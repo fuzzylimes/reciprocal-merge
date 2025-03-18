@@ -37,8 +37,8 @@ This is the same functionality as [excelTemplateMerger](https://github.com/fuzzy
     1. `npm install --save-dev eslint @eslint/js typescript-eslint `
     2. Create `eslint.config.js` file per [docs](https://typescript-eslint.io/getting-started).
 4. Install MUI for component library
-    1. `npm install @mui/material @emotion/react @emotion/styled`
+    1. `npm install @mui/material @emotion/react @emotion/styled @mui/icons-material`
 5. Install zod for schema validation
     1. `npm install zod`
 6. Install Office libraries for file manipulation
-    1. `npm install docxtemplater pizzip https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz`
+    1. `npm install docxtemplater angular-expressions pizzip https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz`
