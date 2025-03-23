@@ -1,22 +1,17 @@
 import { useState } from 'react';
-import { open, save } from '@tauri-apps/plugin-dialog';
-import { readFile, writeFile } from '@tauri-apps/plugin-fs';
+import { save } from '@tauri-apps/plugin-dialog';
+import { writeFile } from '@tauri-apps/plugin-fs';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid2';
 import Paper from '@mui/material/Paper';
-import InputAdornment from '@mui/material/InputAdornment';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import MergeTypeIcon from '@mui/icons-material/MergeType';
 import CircularProgress from '@mui/material/CircularProgress';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-import PizZip from 'pizzip';
-import Docxtemplater from 'docxtemplater';
-import * as XLSX from 'xlsx';
-import expressionParser from 'docxtemplater/expressions.js';
+import FileSelector from './FileSelector';
+import { mergeExcel } from '../utils/merge';
 
 function MergeTab() {
   const [excelFilePath, setExcelFilePath] = useState<string>('');
@@ -32,46 +27,6 @@ function MergeTab() {
     severity: 'info'
   });
 
-  // File selection handler for Excel file
-  const handleSelectExcelFile = async () => {
-    try {
-      const selected = await open({
-        multiple: false,
-        filters: [{
-          name: 'Excel Files',
-          extensions: ['xlsx', 'xls', 'xlsm']
-        }]
-      });
-
-      if (selected && !Array.isArray(selected)) {
-        setExcelFilePath(selected);
-      }
-    } catch (error) {
-      console.error('Failed to select Excel file:', error);
-      showNotification('Failed to select Excel file', 'error');
-    }
-  };
-
-  // File selection handler for Word template file
-  const handleSelectTemplateFile = async () => {
-    try {
-      const selected = await open({
-        multiple: false,
-        filters: [{
-          name: 'Word Files',
-          extensions: ['docx']
-        }]
-      });
-
-      if (selected && !Array.isArray(selected)) {
-        setTemplateFilePath(selected);
-      }
-    } catch (error) {
-      console.error('Failed to select template file:', error);
-      showNotification('Failed to select template file', 'error');
-    }
-  };
-
   const showNotification = (message: string, severity: 'success' | 'error' | 'info' = 'info') => {
     setNotification({
       open: true,
@@ -80,56 +35,13 @@ function MergeTab() {
     });
   };
 
-  const handleCloseNotification = () => {
-    setNotification({ ...notification, open: false });
+  const handleFileSelectionError = (error: unknown) => {
+    showNotification('Failed to select file. See console for details.', 'error');
+    console.error('Error during file selection:', error);
   };
 
-  // Document merging function
-  const mergeExcel = async (templatePath: string, excelPath: string) => {
-    try {
-      // Read the template file
-      const templateContent = await readFile(templatePath);
-
-      // Read and process the Excel file
-      const excelContent = await readFile(excelPath);
-      const workbook = XLSX.read(excelContent);
-
-      // Convert Excel data to JSON
-      const jsonData: Record<string, unknown> = {};
-
-      for (const sheetName of workbook.SheetNames) {
-        const sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-        // If sheet name is 'common' and has data, take the first row as a flat object
-        if (sheetName === 'common' && sheetData.length > 0) {
-          jsonData[sheetName] = sheetData[0];
-        } else {
-          jsonData[sheetName] = sheetData;
-        }
-      }
-
-      // Process Word template with docxtemplater
-      const zip = new PizZip(templateContent);
-      const doc = new Docxtemplater(zip, {
-        paragraphLoop: true,
-        linebreaks: true,
-        parser: expressionParser
-      });
-
-      // Set the data for the template
-      doc.setData(jsonData);
-
-      // Render the document
-      doc.render();
-
-      // Get the output document as a binary buffer
-      const output = doc.getZip().generate({ type: 'uint8array' });
-
-      return output;
-    } catch (error) {
-      console.error('Error in mergeExcel:', error);
-      throw error;
-    }
+  const handleCloseNotification = () => {
+    setNotification({ ...notification, open: false });
   };
 
   // Main merge handler
@@ -180,62 +92,30 @@ function MergeTab() {
         </Typography>
         <Grid container spacing={3}>
           {/* Input Excel File Section */}
-          <Grid size={12}>
-            <TextField
-              fullWidth
-              label="Input Excel File"
-              value={excelFilePath}
-              slotProps={{
-                input: {
-                  readOnly: true,
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <InsertDriveFileIcon />
-                    </InputAdornment>
-                  ),
-                }
-              }}
-              variant="outlined"
-              margin="normal"
-            />
-            <Button
-              variant="contained"
-              onClick={handleSelectExcelFile}
-              sx={{ mt: 1 }}
-              disabled={isProcessing}
-            >
-              Select
-            </Button>
-          </Grid>
+          <FileSelector
+            label="Input Excel File"
+            value={excelFilePath}
+            disabled={isProcessing}
+            onChange={setExcelFilePath}
+            fileTypes={[{
+              name: 'Excel Files',
+              extensions: ['xlsx', 'xls', 'xlsm']
+            }]}
+            onError={handleFileSelectionError}
+          />
 
           {/* Template Word File Section */}
-          <Grid size={12}>
-            <TextField
-              fullWidth
-              label="Template Word File"
-              value={templateFilePath}
-              slotProps={{
-                input: {
-                  readOnly: true,
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <InsertDriveFileIcon />
-                    </InputAdornment>
-                  ),
-                }
-              }}
-              variant="outlined"
-              margin="normal"
-            />
-            <Button
-              variant="contained"
-              onClick={handleSelectTemplateFile}
-              sx={{ mt: 1 }}
-              disabled={isProcessing}
-            >
-              Select
-            </Button>
-          </Grid>
+          <FileSelector
+            label="Template Word File"
+            value={templateFilePath}
+            disabled={isProcessing}
+            onChange={setTemplateFilePath}
+            fileTypes={[{
+              name: 'Word Files',
+              extensions: ['docx']
+            }]}
+            onError={handleFileSelectionError}
+          />
 
           {/* Merge Button Section */}
           <Grid size={12} sx={{ mt: 2 }}>
