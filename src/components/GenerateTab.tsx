@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { open, save } from '@tauri-apps/plugin-dialog';
+import { readFile, writeFile } from '@tauri-apps/plugin-fs';
+import * as XLSX from 'xlsx';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -8,38 +11,141 @@ import Paper from '@mui/material/Paper';
 import InputAdornment from '@mui/material/InputAdornment';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import CreateIcon from '@mui/icons-material/Create';
+import CircularProgress from '@mui/material/CircularProgress';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+
+import { TemplateConfigSchema, type TemplateConfig } from '../models/template-item';
+import templateData from '../models/template.json';
 
 function GenerateTab() {
-  const [practitionerDbPath, setPractitionerDbPath] = useState<string>('');
-  const [excelDataPath, setExcelDataPath] = useState<string>('');
-  const [wordDataPath, setWordDataPath] = useState<string>('');
+  const [config, setConfig] = useState<TemplateConfig | null>(null);
+  const [fileSources, setFileSources] = useState<string[]>([]);
+  const [sourceFiles, setSourceFiles] = useState<Record<string, string>>({});
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [notification, setNotification] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'info';
+  }>({
+    open: false,
+    message: '',
+    severity: 'info'
+  });
 
-  // File selection handlers (to be implemented with Tauri)
-  const handleSelectPractitionerDb = async () => {
-    // TODO: Implement file selection dialog using Tauri APIs
-    console.log('Select Practitioner DB file');
+  // Effect to load the template data on component mount
+  useEffect(() => {
+    loadTemplateData();
+  }, []);
+
+  // Load and process the template data
+  const loadTemplateData = async () => {
+    try {
+      // Validate against our schema
+      const validatedData = TemplateConfigSchema.parse(templateData);
+      setConfig(validatedData);
+
+      // Extract unique file sources
+      const sources = new Set<string>();
+
+      Object.values(validatedData).forEach(items => {
+        items.forEach(item => {
+          sources.add(item.fileSource);
+        });
+      });
+
+      setFileSources(Array.from(sources));
+    } catch (error) {
+      console.error('Failed to load template data:', error);
+      showNotification('Failed to load template configuration', 'error');
+    }
   };
 
-  const handleSelectExcelData = async () => {
-    // TODO: Implement file selection dialog using Tauri APIs
-    console.log('Select Excel Data file');
+  // File selection handler for each source
+  const handleSelectSourceFile = async (source: string) => {
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [{
+          name: 'All Files',
+          extensions: ['xlsx', 'xls', 'docx', 'doc']
+        }]
+      });
+
+      if (selected && !Array.isArray(selected)) {
+        setSourceFiles(prev => ({
+          ...prev,
+          [source]: selected
+        }));
+      }
+    } catch (error) {
+      console.error(`Failed to select file for ${source}:`, error);
+      showNotification(`Failed to select file for ${source}`, 'error');
+    }
   };
 
-  const handleSelectWordData = async () => {
-    // TODO: Implement file selection dialog using Tauri APIs
-    console.log('Select Word Data file');
+  const showNotification = (message: string, severity: 'success' | 'error' | 'info' = 'info') => {
+    setNotification({
+      open: true,
+      message,
+      severity
+    });
   };
 
+  const handleCloseNotification = () => {
+    setNotification({ ...notification, open: false });
+  };
+
+  // Check if all required sources have files
+  const areAllSourcesSelected = () => {
+    return fileSources.every(source => sourceFiles[source] !== undefined);
+  };
+
+  // Main generate handler
   const handleGenerate = async () => {
-    // TODO: Implement template generation functionality
-    console.log('Generate template');
-  };
+    if (!config || !areAllSourcesSelected()) return;
 
-  // Check if all required files are selected to enable the generate button
-  const isGenerateEnabled =
-    practitionerDbPath !== '' &&
-    excelDataPath !== '' &&
-    wordDataPath !== '';
+    setIsProcessing(true);
+
+    try {
+      // Create a workbook for each sheet in the template
+      const workbook = XLSX.utils.book_new();
+
+      // Process each sheet in the template
+      for (const [sheetName, items] of Object.entries(config)) {
+        // Create worksheet with headers based on columnNames
+        const headers = items.map(item => item.columnName);
+        const ws = XLSX.utils.aoa_to_sheet([headers]);
+
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(workbook, ws, sheetName);
+      }
+
+      // Show save dialog for the generated template
+      const savePath = await save({
+        filters: [{
+          name: 'Excel Files',
+          extensions: ['xlsx']
+        }]
+      });
+
+      if (savePath) {
+        // Convert workbook to binary
+        const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+
+        // Save the file
+        await writeFile(savePath, excelBuffer);
+        showNotification('Template generated successfully!', 'success');
+      } else {
+        showNotification('Save operation cancelled', 'info');
+      }
+    } catch (error) {
+      console.error('Error generating template:', error);
+      showNotification('Failed to generate template. See console for details.', 'error');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <Box
@@ -52,106 +158,85 @@ function GenerateTab() {
           Generate Template Files
         </Typography>
 
-        <Grid container spacing={3}>
-          {/* Practitioner DB Section */}
-          <Grid size={12}>
-            <TextField
-              fullWidth
-              label="Practitioner DB"
-              value={practitionerDbPath}
-              slotProps={{
-                input: {
-                  readOnly: true,
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <InsertDriveFileIcon />
-                    </InputAdornment>
-                  ),
-                }
-              }}
-              variant="outlined"
-              margin="normal"
-            />
-            <Button
-              variant="contained"
-              onClick={handleSelectPractitionerDb}
-              sx={{ mt: 1 }}
-            >
-              Select
-            </Button>
-          </Grid>
+        {config && (
+          <>
+            <Typography variant="body1" sx={{ mb: 3 }}>
+              Template loaded successfully. Please select the source files to generate the template.
+            </Typography>
 
-          {/* Excel Data Section */}
-          <Grid size={12}>
-            <TextField
-              fullWidth
-              label="Excel Data"
-              value={excelDataPath}
-              slotProps={{
-                input: {
-                  readOnly: true,
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <InsertDriveFileIcon />
-                    </InputAdornment>
-                  ),
-                }
-              }}
-              variant="outlined"
-              margin="normal"
-            />
-            <Button
-              variant="contained"
-              onClick={handleSelectExcelData}
-              sx={{ mt: 1 }}
-            >
-              Select
-            </Button>
-          </Grid>
+            {/* Dynamically generated source file inputs */}
+            <Grid container spacing={3}>
+              {fileSources.map((source) => (
+                <Grid size={12} key={source}>
+                  <TextField
+                    fullWidth
+                    label={source}
+                    value={sourceFiles[source] || ''}
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <InsertDriveFileIcon />
+                          </InputAdornment>
+                        ),
+                      }
+                    }}
+                    variant="outlined"
+                    margin="normal"
+                  />
+                  <Button
+                    variant="contained"
+                    onClick={() => handleSelectSourceFile(source)}
+                    sx={{ mt: 1 }}
+                    disabled={isProcessing}
+                  >
+                    Select
+                  </Button>
+                </Grid>
+              ))}
+            </Grid>
 
-          {/* Word Data Section */}
-          <Grid size={12}>
-            <TextField
-              fullWidth
-              label="Word Data"
-              value={wordDataPath}
-              slotProps={{
-                input: {
-                  readOnly: true,
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <InsertDriveFileIcon />
-                    </InputAdornment>
-                  ),
-                }
-              }}
-              variant="outlined"
-              margin="normal"
-            />
-            <Button
-              variant="contained"
-              onClick={handleSelectWordData}
-              sx={{ mt: 1 }}
-            >
-              Select
-            </Button>
-          </Grid>
+            {/* Generate Button Section */}
+            <Grid container sx={{ mt: 3 }}>
+              <Grid size={12}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  size="large"
+                  startIcon={isProcessing ? <CircularProgress size={24} color="inherit" /> : <CreateIcon />}
+                  onClick={handleGenerate}
+                  disabled={!areAllSourcesSelected() || isProcessing}
+                >
+                  {isProcessing ? 'Processing...' : 'Generate Template'}
+                </Button>
+              </Grid>
+            </Grid>
+          </>
+        )}
 
-          {/* Generate Button Section */}
-          <Grid size={12} sx={{ mt: 2 }}>
-            <Button
-              variant="contained"
-              color="primary"
-              size="large"
-              startIcon={<CreateIcon />}
-              onClick={handleGenerate}
-              disabled={!isGenerateEnabled}
-            >
-              Generate Template
-            </Button>
-          </Grid>
-        </Grid>
+        {!config && (
+          <Typography variant="body1" color="error">
+            Failed to load template configuration. Please check the console for details.
+          </Typography>
+        )}
       </Paper>
+
+      {/* Notification */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseNotification}
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

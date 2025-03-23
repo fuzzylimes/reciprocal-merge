@@ -1,0 +1,26 @@
+{
+  "a": [
+    {
+      "columnName": "id",
+      "fileSource": "P",
+      "sourceSheet": "Summary",
+      "cell": "B2"
+    },
+    {
+      "columnName": "fun1",
+      "fileSource": "P"
+    }
+  ],
+  "b": [
+    {
+      "columnName": "id",
+      "fileSource": "D",
+      "sourceSheet": "Summary",
+      "cell": "B2"
+    },
+    {
+      "columnName": "fun2",
+      "fileSource": "G"
+    }
+  ]
+}
