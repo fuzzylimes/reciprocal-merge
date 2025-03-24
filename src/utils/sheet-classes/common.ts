@@ -1,9 +1,18 @@
-import { WorkBook } from 'xlsx';
+import { WorkBook, utils } from 'xlsx';
 import { TableData, getCellValue as getWordCellValue } from '../word';
 import { getCellValue } from '../excel';
 import { Base } from './Base';
+import { ReportSheets as rs } from '../sheets';
+import * as c from '../constants';
+
+type row = Record<string, unknown>;
 
 export class common extends Base {
+  trinityNum: number = 0;
+  immNum: number = 0;
+  multipracNum: number = 0;
+  highmedNum: number = 0;
+
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
     super(outData, report, calculations, practitioners, 'common');
   }
@@ -29,7 +38,7 @@ export class common extends Base {
   async dea() {
     this.headers.push('dea');
     try {
-      const cellValue = getCellValue(this.report, 'Summary', 'A3');
+      const cellValue = getCellValue(this.report, rs.summary, 'A3');
       const value = cellValue?.split('#')[1].trim();
       this.data[0].push(value || '');
     } catch (error) {
@@ -40,8 +49,8 @@ export class common extends Base {
 
   async address() {
     this.headers.push('account');
-    const address = getCellValue(this.report, 'Summary', 'A8')?.toUpperCase();
-    const cityStateZip = getCellValue(this.report, 'Summary', 'A9')?.toUpperCase();
+    const address = getCellValue(this.report, rs.summary, 'A8')?.toUpperCase();
+    const cityStateZip = getCellValue(this.report, rs.summary, 'A9')?.toUpperCase();
     const value = `Address #1: ${address}\nCity, State, Zip: ${cityStateZip}`;
     this.data[0].push(value);
   }
@@ -49,7 +58,7 @@ export class common extends Base {
   async daterange() {
     this.headers.push('daterange');
     const regex = /Data Range: (\d{4}-\d{2}-\d{2}) thru (\d{4}-\d{2}-\d{2})/;
-    const cellValue = getCellValue(this.report, 'Summary', 'A1');
+    const cellValue = getCellValue(this.report, rs.summary, 'A1');
     const match = cellValue?.match(regex);
 
     let value = '';
@@ -107,13 +116,13 @@ export class common extends Base {
 
   async cashnoncs() {
     this.headers.push('cashnoncs');
-    const cellValue = getCellValue(this.report, 'Summary', 'C15');
+    const cellValue = getCellValue(this.report, rs.summary, 'C15');
     this.data[0].push(cellValue || '');
   }
 
   async cashcs() {
     this.headers.push('cashcs');
-    const cellValue = getCellValue(this.report, 'Summary', 'C14');
+    const cellValue = getCellValue(this.report, rs.summary, 'C14');
     this.data[0].push(cellValue || '');
   }
 
@@ -121,36 +130,92 @@ export class common extends Base {
     this.headers.push('top10csnum');
   }
 
-  async trinitynum() {
-    this.headers.push('trinitynum');
-  }
-
   async trinity() {
     this.headers.push('trinity');
+    const sheet = this.report.Sheets[rs.trinityConcerns];
+    const rows = utils.sheet_to_json<row>(sheet, { header: "A" })?.slice(1);
+    if (!rows) {
+      this.data[0].push('');
+      return;
+    }
+
+    const mapping: Record<string, Record<number, number>> = {};
+
+    for (const row of rows) {
+      const family = (row.L as string).toLowerCase();
+      const patientId = row.K as number;
+
+      if (family in mapping) {
+        if (patientId in mapping[family]) {
+          mapping[family][patientId]++;
+        } else {
+          mapping[family][patientId] = 1;
+        }
+      } else {
+        mapping[family] = { [patientId]: 1 };
+      }
+    }
+
+    const carisoprodolItems = mapping[c.carisoprodol];
+    const amphetamineItems = mapping[c.amphetamine];
+    const carisoprodolKeys = Object.keys(carisoprodolItems);
+    const carisoprodolCount = carisoprodolKeys.length;
+    const amphetamineKeys = Object.keys(amphetamineItems);
+    const amphetamineCount = amphetamineKeys.length;
+
+    this.trinityNum = carisoprodolCount + amphetamineCount;
+
+    const value = `${carisoprodolCount} ${c.carisoprodol} patients (${carisoprodolKeys.join(', ')})\n${amphetamineCount} ${c.amphetamine} patients (${amphetamineKeys.join(', ')})`;
+    this.data[0].push(value);
   }
 
-  async immednum() {
-    this.headers.push('immednum');
+  async trinitynum() {
+    this.headers.push('trinitynum');
+    this.data[0].push(this.trinityNum);
   }
 
   async imm() {
     this.headers.push('imm');
   }
 
-  async multipracnum() {
-    this.headers.push('multipracnum');
+  async immednum() {
+    this.headers.push('immednum');
   }
 
   async multiprac() {
     this.headers.push('multiprac');
+    const sheet = this.report.Sheets[rs.trinityConcerns];
+    const rows = utils.sheet_to_json<row>(sheet, { header: "A" })?.slice(1);
+    if (!rows) {
+      this.data[0].push('');
+      return;
+    }
+
+    const mapping: Record<number, boolean> = {};
+
+    for (const row of rows) {
+      const patientId = row.K as number;
+      mapping[patientId] = true;
+    }
+
+    const patientIds = Object.keys(mapping);
+    this.multipracNum = patientIds.length;
+
+    const value = `${this.multipracNum} patients (${patientIds.join(', ')})`;
+    this.data[0].push(value);
   }
 
-  async highmednum() {
-    this.headers.push('highmednum');
+  async multipracnum() {
+    this.headers.push('multipracnum');
+    this.data[0].push(this.multipracNum);
   }
 
   async highmed() {
     this.headers.push('highmed');
+  }
+
+  async highmednum() {
+    this.headers.push('highmednum');
   }
 
   async highmedpres() {
@@ -549,14 +614,14 @@ export class common extends Base {
     await this.cashnoncs();
     await this.cashcs();
     await this.top10csnum();
-    await this.trinitynum();
     await this.trinity();
-    await this.immednum();
+    await this.trinitynum();
     await this.imm();
-    await this.multipracnum();
+    await this.immednum();
     await this.multiprac();
-    await this.highmednum();
+    await this.multipracnum();
     await this.highmed();
+    await this.highmednum();
     await this.highmedpres();
     await this.spatial();
     await this.csphyphys();

@@ -7,7 +7,7 @@ export class Base {
   calculations: TableData;
   practitioners: WorkBook;
   headers: string[] = [];
-  data: string[][] = [[]];
+  data: unknown[][] = [[]];
   sheet: string;
 
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook, sheet: string) {
