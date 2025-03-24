@@ -31,3 +31,19 @@ export const saveExcelFile = async (workbook: WorkBook, filePath: string): Promi
 
   await writeFile(filePath, excelData);
 };
+
+export const getCellValue = (workbook: WorkBook, sheetName: string, cell: string): string | undefined => {
+  const sheet = workbook.Sheets[sheetName];
+  if (!sheet) {
+    console.error(`Sheet ${sheetName} not found in workbook`);
+    return undefined
+  }
+
+  const cellValue = sheet[cell];
+  if (!cellValue) {
+    console.error(`Cell ${cell} not found in sheet ${sheetName}`);
+    return undefined
+  }
+
+  return cellValue.v;
+}
