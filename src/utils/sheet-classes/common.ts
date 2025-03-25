@@ -12,6 +12,7 @@ export class common extends Base {
   immNum: number = 0;
   multipracNum: number = 0;
   highmedNum: number = 0;
+  filteredHighMedRows: row[] = [];
 
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
     super(outData, report, calculations, practitioners, 'common');
@@ -31,7 +32,7 @@ export class common extends Base {
 
   async account() {
     this.headers.push('account');
-    const cellValue = getWordCellValue(this.calculations, 'A2');
+    const cellValue = getWordCellValue(this.calculations, 'B1');
     this.data[0].push(cellValue || '');
   }
 
@@ -39,7 +40,7 @@ export class common extends Base {
     this.headers.push('dea');
     try {
       const cellValue = getCellValue(this.report, rs.summary, 'A3');
-      const value = cellValue?.split('#')[1].trim();
+      const value = cellValue?.split('#: ')[1].trim();
       this.data[0].push(value || '');
     } catch (error) {
       console.error(error);
@@ -48,10 +49,10 @@ export class common extends Base {
   }
 
   async address() {
-    this.headers.push('account');
-    const address = getCellValue(this.report, rs.summary, 'A8')?.toUpperCase();
-    const cityStateZip = getCellValue(this.report, rs.summary, 'A9')?.toUpperCase();
-    const value = `Address #1: ${address}\nCity, State, Zip: ${cityStateZip}`;
+    this.headers.push('address');
+    const address = getCellValue(this.report, rs.summary, 'A8');
+    const cityStateZip = getCellValue(this.report, rs.summary, 'A9');
+    const value = `${address}\n${cityStateZip}`;
     this.data[0].push(value);
   }
 
@@ -109,7 +110,6 @@ export class common extends Base {
 
   async cspurchase() {
     this.headers.push('cspurchase');
-    this.headers.push('purchase');
     const cellValue = getWordCellValue(this.calculations, 'B9');
     this.data[0].push(cellValue || '');
   }
@@ -117,17 +117,22 @@ export class common extends Base {
   async cashnoncs() {
     this.headers.push('cashnoncs');
     const cellValue = getCellValue(this.report, rs.summary, 'C15');
-    this.data[0].push(cellValue || '');
+    // this is returned as a decimal, so we need to convert it to a percentage
+    const value = cellValue ? `${(Number(cellValue) * 100).toFixed(0)}%` : '';
+    this.data[0].push(value || '');
   }
 
   async cashcs() {
     this.headers.push('cashcs');
     const cellValue = getCellValue(this.report, rs.summary, 'C14');
-    this.data[0].push(cellValue || '');
+    // this is returned as a decimal, so we need to convert it to a percentage
+    const value = cellValue ? `${(Number(cellValue) * 100).toFixed(0)}%` : '';
+    this.data[0].push(value || '');
   }
 
   async top10csnum() {
     this.headers.push('top10csnum');
+    this.data[0].push('TODO');
   }
 
   async trinity() {
@@ -139,25 +144,23 @@ export class common extends Base {
       return;
     }
 
-    const mapping: Record<string, Record<number, number>> = {};
+    const mapping: Record<string, Record<number, boolean>> = {};
 
     for (const row of rows) {
       const family = (row.L as string).toLowerCase();
       const patientId = row.K as number;
 
-      if (family in mapping) {
-        if (patientId in mapping[family]) {
-          mapping[family][patientId]++;
-        } else {
-          mapping[family][patientId] = 1;
+      if (mapping[family]) {
+        if (!mapping[family][patientId]) {
+          mapping[family][patientId] = true;
         }
       } else {
-        mapping[family] = { [patientId]: 1 };
+        mapping[family] = { [patientId]: true };
       }
     }
 
-    const carisoprodolItems = mapping[c.carisoprodol];
-    const amphetamineItems = mapping[c.amphetamine];
+    const carisoprodolItems = mapping[c.carisoprodol] || {};
+    const amphetamineItems = mapping[c.amphetamine] || {};
     const carisoprodolKeys = Object.keys(carisoprodolItems);
     const carisoprodolCount = carisoprodolKeys.length;
     const amphetamineKeys = Object.keys(amphetamineItems);
@@ -176,15 +179,53 @@ export class common extends Base {
 
   async imm() {
     this.headers.push('imm');
+    const sheet = this.report.Sheets[rs.immediateRelease];
+    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
+    if (!rows) {
+      this.data[0].push('');
+      return;
+    }
+
+    // Check to see if patientId is associated with more than one unique drug name
+    // If it is, it needs to be counted and added to the generated value
+    const mapping: Record<number, Record<string, boolean>> = {};
+    const patientsList: number[] = [];
+    for (const row of rows) {
+      if (!row.H) continue;
+
+      const drugName = (row.H as string).toLowerCase();
+      const patientId = row.K as number;
+
+      if (mapping[patientId]) {
+        mapping[patientId][drugName] = true;
+      } else {
+        mapping[patientId] = { [drugName]: true };
+      }
+    }
+
+    // Step through each of the patients and see if they have more than one drug name
+    Object.entries(mapping).forEach(([id, drugs]) => {
+      if (Object.keys(drugs).length > 1) {
+        patientsList.push(Number(id));
+      }
+    })
+
+    let value = '';
+    if (patientsList.length) {
+      this.immNum = patientsList.length;
+      value = `${this.immNum} patients (${patientsList.join(', ')})`;
+    }
+    this.data[0].push(value);
   }
 
   async immednum() {
     this.headers.push('immednum');
+    this.data[0].push(this.immNum);
   }
 
   async multiprac() {
     this.headers.push('multiprac');
-    const sheet = this.report.Sheets[rs.trinityConcerns];
+    const sheet = this.report.Sheets[rs.multiPractioner];
     const rows = utils.sheet_to_json<row>(sheet, { header: "A" })?.slice(1);
     if (!rows) {
       this.data[0].push('');
@@ -212,14 +253,68 @@ export class common extends Base {
 
   async highmed() {
     this.headers.push('highmed');
+    const sheet = this.report.Sheets[rs.medWatch];
+    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
+    if (!rows) {
+      this.data[0].push('');
+      return;
+    }
+
+    this.filteredHighMedRows = rows.filter(row => row.F && Number(row.F) >= 120)
+    const perscriptionCount = this.filteredHighMedRows.length;
+    const uniquePatients = new Set(this.filteredHighMedRows.map(row => row.H));
+    const patientCount = uniquePatients.size;
+
+    this.highmedNum = perscriptionCount;
+    let value = '';
+    if (perscriptionCount) {
+      value = `There are ${perscriptionCount} perscriptions between ${patientCount} patients with an MED of 120 or higher`;
+    }
+    this.data[0].push(value);
   }
 
   async highmednum() {
     this.headers.push('highmednum');
+    this.data[0].push(this.highmedNum);
   }
 
   async highmedpres() {
     this.headers.push('highmedpres');
+
+    if (!this.filteredHighMedRows.length) {
+      this.data[0].push('');
+      return;
+    }
+
+    // Need to find the perscriber with the most perscriptions, then get the count and Id of the patients
+    const mapping: Record<string, Record<number, boolean>> = {};
+    for (const row of this.filteredHighMedRows) {
+      const perscriber = row.K as string;
+      const patientId = row.H as number;
+
+      if (mapping[perscriber]) {
+        if (!mapping[perscriber][patientId]) {
+          mapping[perscriber][patientId] = true;
+        }
+      } else {
+        mapping[perscriber] = { [patientId]: true };
+      }
+    }
+
+    let maxPerscriber = '';
+    let maxCount = 0;
+    let maxPatients: number[] = [];
+    Object.entries(mapping).forEach(([perscriber, patients]) => {
+      const patientIds = Object.keys(patients);
+      if (patientIds.length > maxCount) {
+        maxCount = patientIds.length;
+        maxPerscriber = perscriber;
+        maxPatients = [...new Set(patientIds.map(id => Number(id)))];
+      }
+    });
+
+    const value = `The most prolific prescriber is ${maxPerscriber} with ${maxCount} perscriptions between ${maxPatients.length} patients`;
+    this.data[0].push(value);
   }
 
   async spatial() {

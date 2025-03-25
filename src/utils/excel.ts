@@ -45,5 +45,6 @@ export const getCellValue = (workbook: WorkBook, sheetName: string, cell: string
     return undefined
   }
 
+  // return value off of cell object
   return cellValue.v;
 }
