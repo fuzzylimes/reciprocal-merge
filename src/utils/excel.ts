@@ -1,5 +1,6 @@
 import { readFile, writeFile } from '@tauri-apps/plugin-fs';
-import { WorkBook, read, write } from 'xlsx';
+import { WorkBook, WorkSheet, read, utils, write } from 'xlsx';
+import { row } from './sheet-classes/common';
 
 /**
  * Loads and parses an Excel file
@@ -47,4 +48,17 @@ export const getCellValue = (workbook: WorkBook, sheetName: string, cell: string
 
   // return value off of cell object
   return cellValue.v;
+}
+
+export const sumColumn = (sheet: WorkSheet, rStart: number, rEnd: number, col: string): number => {
+  const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(rStart, rEnd);
+  if (!rows) {
+    return 0
+  }
+
+  let sum = 0;
+  for (const row of rows) {
+    sum += Number(row[col]) || 0;
+  }
+  return sum;
 }

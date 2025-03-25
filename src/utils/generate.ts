@@ -1,4 +1,5 @@
 import { loadExcelFile } from "./excel"
+import { aig } from "./sheet-classes/aig";
 import { arcos } from "./sheet-classes/arcos";
 import { Base } from "./sheet-classes/Base";
 import { common } from "./sheet-classes/common";
@@ -24,6 +25,7 @@ export const generateInputFile = async (
 
 
   const sheets: Base[] = [
+    ...aig.buildAll(...params),
     new common(...params),
     new deaconcern(...params),
     new cscash(...params),

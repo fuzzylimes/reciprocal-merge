@@ -1,11 +1,11 @@
 import { WorkBook, utils } from 'xlsx';
 import { TableData, getCellValue as getWordCellValue } from '../word';
-import { getCellValue } from '../excel';
+import { getCellValue, sumColumn } from '../excel';
 import { Base } from './Base';
 import { ReportSheets as rs } from '../sheets';
 import * as c from '../constants';
 
-type row = Record<string, unknown>;
+export type row = Record<string, unknown>;
 
 export class common extends Base {
   trinityNum: number = 0;
@@ -319,46 +319,160 @@ export class common extends Base {
 
   async spatial() {
     this.headers.push('spatial');
+    const sheet = this.report.Sheets[rs.spatial];
+    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(6, 9);
+    if (!rows) {
+      this.data[0].push('');
+      return;
+    }
+
+    // look against the specific distances (C - L)
+    let count = 0;
+    for (const row of rows) {
+      for (const col of ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']) {
+        if (row[col]) count++; 
+      }
+    }
+
+    this.data[0].push(count);
   }
 
   async csphyphys() {
     this.headers.push('csphyphys');
+    const sheet = this.report.Sheets[rs.spatial];
+    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(38, 41);
+    // if (!rows) {
+    //   this.data[0].push('');
+    //   return;
+    // }
+
+    // let sum = 0;
+    // for (const row of rows) {
+    //   sum += Number(row.E) || 0;
+    // }
+    const sum = sumColumn(sheet, 38, 41, 'E');
+
+    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
+    this.data[0].push(value);
   }
 
   async phyphys() {
     this.headers.push('phyphys');
+    const sheet = this.report.Sheets[rs.spatial];
+    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(38, 41);
+    // if (!rows) {
+    //   this.data[0].push('');
+    //   return;
+    // }
+
+    // let sum = 0;
+    // for (const row of rows) {
+    //   sum += Number(row.G) || 0;
+    // }
+    const sum = sumColumn(sheet, 38, 41, 'G');
+
+
+    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
+    this.data[0].push(value);
   }
 
   async csphypt() {
     this.headers.push('csphypt');
+    const sheet = this.report.Sheets[rs.spatial];
+    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(51, 54);
+    // if (!rows) {
+    //   this.data[0].push('');
+    //   return;
+    // }
+
+    // let sum = 0;
+    // for (const row of rows) {
+    //   sum += Number(row.E) || 0;
+    // }
+    const sum = sumColumn(sheet, 51, 54, 'E');
+
+    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
+    this.data[0].push(value);
   }
 
   async phypt() {
     this.headers.push('phypt');
+    const sheet = this.report.Sheets[rs.spatial];
+    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(51, 54);
+    // if (!rows) {
+    //   this.data[0].push('');
+    //   return;
+    // }
+
+    // let sum = 0;
+    // for (const row of rows) {
+    //   sum += Number(row.G) || 0;
+    // }
+    const sum = sumColumn(sheet, 51, 54, 'G');
+
+    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
+    this.data[0].push(value);
   }
 
   async csphyspt() {
     this.headers.push('csphyspt');
+    const sheet = this.report.Sheets[rs.spatial];
+    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(64, 67);
+    // if (!rows) {
+    //   this.data[0].push('');
+    //   return;
+    // }
+
+    // let sum = 0;
+    // for (const row of rows) {
+    //   sum += Number(row.E) || 0;
+    // }
+    const sum = sumColumn(sheet, 64, 67, 'E');
+
+    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
+    this.data[0].push(value);
   }
 
   async physpt() {
     this.headers.push('physpt');
+    const sheet = this.report.Sheets[rs.spatial];
+    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(64, 67);
+    // if (!rows) {
+    //   this.data[0].push('');
+    //   return;
+    // }
+
+    // let sum = 0;
+    // for (const row of rows) {
+    //   sum += Number(row.G) || 0;
+    // }
+    const sum = sumColumn(sheet, 64, 67, 'G');
+
+    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
+    this.data[0].push(value);
   }
 
   async alprazfam() {
     this.headers.push('alprazfam');
+    this.data[0].push('Alprazolam Family');
   }
 
   async alprazfamdumonth() {
     this.headers.push('alprazfamdumonth');
+    const cellValue = getWordCellValue(this.calculations, 'B19');
+    this.data[0].push(cellValue); 
   }
 
   async alprazfamtimes() {
     this.headers.push('alprazfamtimes');
+    const cellValue = getWordCellValue(this.calculations, 'B21');
+    this.data[0].push(cellValue); 
   }
 
   async alprazfamhighdose() {
     this.headers.push('alprazfamhighdose');
+    const value = this.aigPcts['aig1'] || 0;
+    this.data[0].push(`${(value * 100).toFixed(0)}%`);
   }
 
   async alpraz2() {

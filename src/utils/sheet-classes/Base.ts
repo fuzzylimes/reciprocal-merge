@@ -9,6 +9,7 @@ export class Base {
   headers: string[] = [];
   data: unknown[][] = [[]];
   sheet: string;
+  aigPcts: Record<string, number> = {};
 
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook, sheet: string) {
     this.outData = outData;
