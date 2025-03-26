@@ -9,3 +9,7 @@ export enum ReportSheets {
   csrx = 'CS Rx\'s',
   allrx = 'All Rx\'s'
 }
+
+export enum PractitionerSheets {
+  ref = 'Reference'
+}

@@ -2,8 +2,9 @@ import { utils, WorkBook } from "xlsx";
 import { TableData, getCellValue as getWordCellValue } from "../word";
 import { Base } from "./Base";
 import { ReportSheets as rs } from '../sheets';
+import { PractitionerSheets as ps } from "../sheets";
 import { row } from "./common";
-import { findPractitionerByDea, Practitioner } from "../excel";
+import { findPractitionerByDea } from "../excel";
 
 interface IaigDef {
   names?: string[];
@@ -18,13 +19,13 @@ type aigRecord = {
   PracticeLocation: string;
   DEA: string;
   State: string;
-  numCS: string;
-  totalRx: string;
-  CSP: string;
-  CSCash: string;
-  Discipline: string;
-  Miles: string;
-  numpt: string;
+  Discipline: string | null;
+  numCS: number | null;
+  totalRx: number | null;
+  CSP: string | null;
+  CSCash: number | null;
+  numpt: number | null;
+  Miles?: string;
 }
 
 const aigLookup: Record<number, IaigDef> = {
@@ -57,7 +58,7 @@ const applyOperation = (value: number, entry: IaigDef): boolean => {
 
 export class aig extends Base {
   aigNum: number = 0;
-  aigDea: string[] = [];
+  top5: aigRecord[] = [];
 
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook, sheetNumber: number) {
     super(outData, report, calculations, practitioners, `aig${sheetNumber}`);
@@ -65,20 +66,17 @@ export class aig extends Base {
     this.headers = ["Name", "Specialty", "PracticeLocation", "DEA", "State", "numCS", "totalRx", "CSP", "CSCash", "Discipline", "Miles", "numpt"];
   }
 
-  async name() {
-    this.headers.push('Name');
+  static buildAll(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
+    const sheets: aig[] = [];
+
+    for (let i = 1; i <= 1; i++) {
+      sheets.push(new aig(outData, report, calculations, practitioners, i));
+    }
+
+    return sheets;
   }
 
-  async specialty() {
-    this.headers.push('Specialty');
-  }
-
-  async practiceLocation() {
-    this.headers.push('PracticeLocation');
-  }
-
-  async dea() {
-    this.headers.push('DEA');
+  async build() {
     const sheet = this.report.Sheets[rs.csrx];
     const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
     if (!rows) {
@@ -102,113 +100,96 @@ export class aig extends Base {
 
     // Multiple checks to get the DEA numbers. First check is to pull back value from the calculations sheet and see if it's > 300
     const duValue = getWordCellValue(this.calculations, 'B19');
-    if (Number(duValue) > 300) {
-      // TODO
-      // Need to sum all values in overRows in order to get "top 5" prescribers
-      const prescribers: Record<string, number> = {};
-      for (const row of drugRows) {
-        const p = String(row.K);
-        const v = Number(row.D);
+    const over300 = Number(duValue) > 300;
+    // Need to sum all values in overRows in order to get "top 5" prescribers
+    const prescribers: Record<string, number> = {};
+    for (const row of over300 ? drugRows : overRows) {
+      const p = String(row.K);
+      const v = Number(row.D);
 
-        if (prescribers[p]) {
-          prescribers[p] += v;
-        } else {
-          prescribers[p] = v;
-        }
+      if (prescribers[p]) {
+        prescribers[p] += v;
+      } else {
+        prescribers[p] = v;
       }
+    }
 
-      const top5Prescribers = Object.entries(prescribers)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5);
-      
-      this.aigDea = top5Prescribers.map(p => p[0])
+    const top5Prescribers = Object.entries(prescribers)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
 
-      // Fetch the top5 details from practitioner file
-      const practitioners: Practitioner[] = [];
-      for (const dea of this.aigDea) {
-        const p = findPractitionerByDea(this.practitioners, dea);
-        if (!p) throw Error('Practitioner does not exist');
-        practitioners.push(p);
-      }
+    const top5 = top5Prescribers.map(p => p[0])
 
-      // pull in all Rx tab
-      const allrx = this.report.Sheets[rs.allrx];
-      const allrxRows = utils.sheet_to_json<row>(sheet, { header: "A"})?.slice(1);
+    // pull in all Rx tab
+    const allrx = this.report.Sheets[rs.allrx];
+    const allrxRows = utils.sheet_to_json<row>(allrx, { header: "A" })?.slice(1);
+
+    // Fetch the top5 details from practitioner file
+    for (const dea of top5) {
+      const pracWorkSheet = this.practitioners.Sheets[ps.ref];
+      const p = findPractitionerByDea(pracWorkSheet, dea);
 
       // filter allrxRows by the dea number (J)
+      const filteredDEA = allrxRows.filter(r => r.J && String(r.J) === dea);
       // filtered length = totalRx
+      let totalRx: number | null = filteredDEA.length;
       // count non-null values in R = numCS
+      const filteredControls = filteredDEA.filter(r => r.R)
+      let numCS: number | null = filteredControls.length;
       // CSP = numCS / totalRx (%) - only include these if CSP > 20%
+      let csp: number | null = numCS / totalRx * 100;
       // If CSP > 20%...
-      // another filtered list of non-null values in R
-      // count non-null values in F / numCS = CSCash - only include if > 20%
+      let csCash = null;
+      if (csp > 20) {
+        // another filtered list of non-null values in R
+        const cash = filteredControls.filter(r => r.F);
+        // count non-null values in F / numCS = CSCash - only include if > 20%
+        csCash = cash.length / numCS * 100;
+        if (csCash < 20) {
+          csCash = null;
+        }
+      } else {
+        totalRx = null;
+        numCS = null;
+        csp = null;
+      }
 
-      // Miles are distance from practioner address to pharmacy
+      const uniquePatients = new Set(filteredDEA.map(r => r.L));
 
-    } else if (ratio > 0) {
-      // get the unique dea numbers from overRows
-      // do the same thing as above, only using overRows
+      // TODO: Calculate milage between two points (how can we do this?)
 
+      const record: aigRecord = {
+        Name: p.Practitioner,
+        Specialty: p.Specialty,
+        PracticeLocation: p.PracticeLocation,
+        DEA: dea,
+        State: p.State,
+        Discipline: p.Discipline,
+        numCS,
+        totalRx,
+        CSP: csp ? `${csp.toFixed(0)}%` : null,
+        CSCash: csCash,
+        numpt: uniquePatients.size,
+        Miles: 'Over _ miles'
+      }
+      this.top5.push(record);
     }
 
-  }
-
-  async state() {
-    this.headers.push('State');
-  }
-
-  async numCS() {
-    this.headers.push('numCS');
-  }
-
-  async totalRx() {
-    this.headers.push('totalRx');
-  }
-
-  async csp() {
-    this.headers.push('CSP');
-  }
-
-  async csCash() {
-    this.headers.push('CSCash');
-  }
-
-  async discipline() {
-    this.headers.push('Discipline');
-  }
-
-  async miles() {
-    this.headers.push('Miles');
-  }
-
-  async numpt() {
-    this.headers.push('numpt');
-  }
-
-  static buildAll(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
-    const sheets: aig[] = [];
-
-    for (let i = 1; i <= 20; i++) {
-      sheets.push(new aig(outData, report, calculations, practitioners, i));
-    }
-
-    return sheets;
-  }
-
-  async build() {
-    await this.dea();
-    await this.name();
-    await this.specialty();
-    await this.practiceLocation();
-    await this.state();
-    await this.numCS();
-    await this.totalRx();
-    await this.csp();
-    await this.csCash();
-    await this.discipline();
-    await this.miles();
-    await this.numpt();
+    // Build out the data in the correct order
+    this.data = this.getDataObject();
 
     await super.build();
+  }
+
+  getDataObject() {
+    const data: unknown[][] = []
+    for (const record of this.top5) {
+      const d = [];
+      for (const i of this.headers) {
+        d.push(record[i as keyof aigRecord])
+      }
+      data.push(d);
+    }
+    return data;
   }
 }

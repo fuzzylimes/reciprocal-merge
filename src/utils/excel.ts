@@ -75,15 +75,24 @@ export type Practitioner = {
   Date: Date | null;
 }
 
-export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practitioner | undefined => {
+/**
+ * 
+ * @param sheet The practitioner Worksheet
+ * @param dea The practitioner id to search for
+ * @returns Practitioner | undefined
+ * @throws Error if practitioner doesn't exist in DB
+ */
+export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practitioner => {
   const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
   if (!rows) {
-    return;
+    throw Error(`Practitioner DB is empty.`)
   }
 
   // We're assuming that there can't be duplicate records, and if they are, then they're the same.
   // It's not the tools responsibility to manage the practioner file.
-  const match = rows.find(r => r.H && String(r.H) === dea) ?? {};
+  const match = rows.find(r => r.H && String(r.H) === dea);
+
+  if (!match) throw Error(`Practitioner ${dea} does not exist in practitioner DB.`);
 
   const prac: Practitioner = {
     Practitioner: String(match.P ?? ''),
