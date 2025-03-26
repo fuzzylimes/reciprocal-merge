@@ -3,15 +3,31 @@ import { TableData, getCellValue as getWordCellValue } from "../word";
 import { Base } from "./Base";
 import { ReportSheets as rs } from '../sheets';
 import { row } from "./common";
+import { findPractitionerByDea, Practitioner } from "../excel";
 
-interface Iaig {
+interface IaigDef {
   names?: string[];
   family?: string;
   operation: string;
   amount: number;
 }
 
-const aigLookup: Record<number, Iaig> = {
+type aigRecord = {
+  Name: string;
+  Specialty: string;
+  PracticeLocation: string;
+  DEA: string;
+  State: string;
+  numCS: string;
+  totalRx: string;
+  CSP: string;
+  CSCash: string;
+  Discipline: string;
+  Miles: string;
+  numpt: string;
+}
+
+const aigLookup: Record<number, IaigDef> = {
   1: {
     names: ['alprazolam', 'xanax'],
     operation: '>',
@@ -31,7 +47,7 @@ const operationMap: Record<string, (value: number, threshold: number) => boolean
 };
 
 // Function to apply the operation
-const applyOperation = (value: number, entry: Iaig): boolean => {
+const applyOperation = (value: number, entry: IaigDef): boolean => {
   const operationFunc = operationMap[entry.operation];
   if (!operationFunc) {
     throw new Error(`Unknown operation: ${entry.operation}`);
@@ -46,6 +62,7 @@ export class aig extends Base {
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook, sheetNumber: number) {
     super(outData, report, calculations, practitioners, `aig${sheetNumber}`);
     this.aigNum = sheetNumber;
+    this.headers = ["Name", "Specialty", "PracticeLocation", "DEA", "State", "numCS", "totalRx", "CSP", "CSCash", "Discipline", "Miles", "numpt"];
   }
 
   async name() {
@@ -87,8 +104,51 @@ export class aig extends Base {
     const duValue = getWordCellValue(this.calculations, 'B19');
     if (Number(duValue) > 300) {
       // TODO
-    } else {
-      // Otherwise, we need to do some other BS....
+      // Need to sum all values in overRows in order to get "top 5" prescribers
+      const prescribers: Record<string, number> = {};
+      for (const row of drugRows) {
+        const p = String(row.K);
+        const v = Number(row.D);
+
+        if (prescribers[p]) {
+          prescribers[p] += v;
+        } else {
+          prescribers[p] = v;
+        }
+      }
+
+      const top5Prescribers = Object.entries(prescribers)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+      
+      this.aigDea = top5Prescribers.map(p => p[0])
+
+      // Fetch the top5 details from practitioner file
+      const practitioners: Practitioner[] = [];
+      for (const dea of this.aigDea) {
+        const p = findPractitionerByDea(this.practitioners, dea);
+        if (!p) throw Error('Practitioner does not exist');
+        practitioners.push(p);
+      }
+
+      // pull in all Rx tab
+      const allrx = this.report.Sheets[rs.allrx];
+      const allrxRows = utils.sheet_to_json<row>(sheet, { header: "A"})?.slice(1);
+
+      // filter allrxRows by the dea number (J)
+      // filtered length = totalRx
+      // count non-null values in R = numCS
+      // CSP = numCS / totalRx (%) - only include these if CSP > 20%
+      // If CSP > 20%...
+      // another filtered list of non-null values in R
+      // count non-null values in F / numCS = CSCash - only include if > 20%
+
+      // Miles are distance from practioner address to pharmacy
+
+    } else if (ratio > 0) {
+      // get the unique dea numbers from overRows
+      // do the same thing as above, only using overRows
+
     }
 
   }

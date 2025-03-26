@@ -75,7 +75,7 @@ export type Practitioner = {
   Date: Date | null;
 }
 
-export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practitioner | unknown => {
+export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practitioner | undefined => {
   const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
   if (!rows) {
     return;

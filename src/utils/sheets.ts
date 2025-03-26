@@ -7,5 +7,5 @@ export enum ReportSheets {
   medWatch = 'M.E.D Watch',
   spatial = 'Spatial Analysis',
   csrx = 'CS Rx\'s',
-
+  allrx = 'All Rx\'s'
 }
