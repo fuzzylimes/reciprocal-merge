@@ -1,74 +1,33 @@
 import { WorkBook } from "xlsx";
 import { TableData } from "../word";
 import { Base } from "./Base";
+import { headers, topdrRecord } from "../sheets";
 
 export class topdr extends Base {
+  record: topdrRecord[] | undefined;
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
-    super(outData, report, calculations, practitioners, 'topdr');
-  }
-
-  async number() {
-    this.headers.push('Number');
-  }
-
-  async name() {
-    this.headers.push('Name');
-  }
-
-  async specialty() {
-    this.headers.push('Specialty');
-  }
-
-  async practiceLocation() {
-    this.headers.push('PracticeLocation');
-  }
-
-  async dea() {
-    this.headers.push('DEA');
-  }
-
-  async state() {
-    this.headers.push('State');
-  }
-
-  async csrx() {
-    this.headers.push('csrx');
-  }
-
-  async totalrx() {
-    this.headers.push('totalrx');
-  }
-
-  async csp() {
-    this.headers.push('CSP');
-  }
-
-  async csCash() {
-    this.headers.push('CSCash');
-  }
-
-  async discipline() {
-    this.headers.push('Discipline');
-  }
-
-  async miles() {
-    this.headers.push('Miles');
+    super(outData, report, calculations, practitioners, 'topdr', headers.topdr);
   }
 
   async build() {
-    await this.number();
-    await this.name();
-    await this.specialty();
-    await this.practiceLocation();
-    await this.dea();
-    await this.state();
-    await this.csrx();
-    await this.totalrx();
-    await this.csp();
-    await this.csCash();
-    await this.discipline();
-    await this.miles();
+    this.data = this.getDataObject();
 
     await super.build();
+  }
+
+  getDataObject() {
+    const data: unknown[][] = []
+    if (this.record) {
+      for (const r of this.record) {
+        const d = [];
+        for (const i of this.headers) {
+          d.push(r[i as keyof topdrRecord])
+        }
+        data.push(d);
+      }
+      return data;
+    } else {
+      return [data];
+    }
   }
 }

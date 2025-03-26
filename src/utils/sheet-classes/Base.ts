@@ -11,12 +11,13 @@ export class Base {
   sheet: string;
   aigPcts: Record<string, number> = {};
 
-  constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook, sheet: string) {
+  constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook, sheet: string, headers: string[]) {
     this.outData = outData;
     this.report = report;
     this.calculations = calculations;
     this.practitioners = practitioners;
     this.sheet = sheet;
+    this.headers = headers;
   }
 
   async build() {

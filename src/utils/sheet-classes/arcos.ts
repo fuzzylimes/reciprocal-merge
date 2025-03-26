@@ -1,34 +1,34 @@
 import { WorkBook } from "xlsx";
 import { TableData } from "../word";
 import { Base } from "./Base";
+import { arcosRecord, headers } from "../sheets";
 
 export class arcos extends Base {
+  record: arcosRecord[] | undefined;
+
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
-    super(outData, report, calculations, practitioners, 'arcos');
-  }
-
-  async drug() {
-    this.headers.push('drug');
-  }
-
-  async mutual() {
-    this.headers.push('Mutual');
-  }
-
-  async supplier2() {
-    this.headers.push('supplier2');
-  }
-
-  async supplier3() {
-    this.headers.push('supplier3');
+    super(outData, report, calculations, practitioners, 'arcos', headers.arcos);
   }
 
   async build() {
-    await this.drug();
-    await this.mutual();
-    await this.supplier2();
-    await this.supplier3();
+    this.data = this.getDataObject();
 
     await super.build();
+  }
+
+  getDataObject() {
+    const data: unknown[][] = []
+    if (this.record) {
+      for (const r of this.record) {
+        const d = [];
+        for (const i of this.headers) {
+          d.push(r[i as keyof arcosRecord])
+        }
+        data.push(d);
+      }
+      return data;
+    } else {
+      return [data];
+    }
   }
 }

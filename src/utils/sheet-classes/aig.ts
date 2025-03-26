@@ -1,31 +1,17 @@
 import { utils, WorkBook } from "xlsx";
 import { TableData, getCellValue as getWordCellValue } from "../word";
 import { Base } from "./Base";
-import { ReportSheets as rs } from '../sheets';
+import { aigRecord, ReportSheets as rs } from '../sheets';
 import { PractitionerSheets as ps } from "../sheets";
 import { row } from "./common";
 import { findPractitionerByDea } from "../excel";
+import { headers } from "../sheets";
 
 interface IaigDef {
   names?: string[];
   family?: string;
   operation: string;
   amount: number;
-}
-
-type aigRecord = {
-  Name: string;
-  Specialty: string;
-  PracticeLocation: string;
-  DEA: string;
-  State: string;
-  Discipline: string | null;
-  numCS: number | null;
-  totalRx: number | null;
-  CSP: string | null;
-  CSCash: number | null;
-  numpt: number | null;
-  Miles?: string;
 }
 
 const aigLookup: Record<number, IaigDef> = {
@@ -61,9 +47,8 @@ export class aig extends Base {
   top5: aigRecord[] = [];
 
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook, sheetNumber: number) {
-    super(outData, report, calculations, practitioners, `aig${sheetNumber}`);
+    super(outData, report, calculations, practitioners, `aig${sheetNumber}`, headers.aig);
     this.aigNum = sheetNumber;
-    this.headers = ["Name", "Specialty", "PracticeLocation", "DEA", "State", "numCS", "totalRx", "CSP", "CSCash", "Discipline", "Miles", "numpt"];
   }
 
   static buildAll(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
