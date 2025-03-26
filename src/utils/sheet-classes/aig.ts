@@ -1,8 +1,43 @@
 import { utils, WorkBook } from "xlsx";
 import { TableData, getCellValue as getWordCellValue } from "../word";
 import { Base } from "./Base";
-import { aigLookup, applyOperation, ReportSheets as rs } from '../sheets';
+import { ReportSheets as rs } from '../sheets';
 import { row } from "./common";
+
+interface Iaig {
+  names?: string[];
+  family?: string;
+  operation: string;
+  amount: number;
+}
+
+const aigLookup: Record<number, Iaig> = {
+  1: {
+    names: ['alprazolam', 'xanax'],
+    operation: '>',
+    amount: 4
+  },
+}
+
+const operationMap: Record<string, (value: number, threshold: number) => boolean> = {
+  '>': (value, threshold) => value > threshold,
+  '<': (value, threshold) => value < threshold,
+  '>=': (value, threshold) => value >= threshold,
+  '<=': (value, threshold) => value <= threshold,
+  '==': (value, threshold) => value === threshold,
+  '===': (value, threshold) => value === threshold,
+  '!=': (value, threshold) => value !== threshold,
+  '!==': (value, threshold) => value !== threshold,
+};
+
+// Function to apply the operation
+const applyOperation = (value: number, entry: Iaig): boolean => {
+  const operationFunc = operationMap[entry.operation];
+  if (!operationFunc) {
+    throw new Error(`Unknown operation: ${entry.operation}`);
+  }
+  return operationFunc(value, entry.amount);
+}
 
 export class aig extends Base {
   aigNum: number = 0;
@@ -101,10 +136,10 @@ export class aig extends Base {
   }
 
   async build() {
+    await this.dea();
     await this.name();
     await this.specialty();
     await this.practiceLocation();
-    await this.dea();
     await this.state();
     await this.numCS();
     await this.totalRx();

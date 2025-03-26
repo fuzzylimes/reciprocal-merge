@@ -62,3 +62,39 @@ export const sumColumn = (sheet: WorkSheet, rStart: number, rEnd: number, col: s
   }
   return sum;
 }
+
+// PRACTITIONER
+export type Practitioner = {
+  Practitioner: string;
+  Specialty: string;
+  PracticeLocation: string;
+  DEA: string;
+  State: string;
+  Discipline: string | null;
+  Note: string | null;
+  Date: Date | null;
+}
+
+export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practitioner | unknown => {
+  const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
+  if (!rows) {
+    return;
+  }
+
+  // We're assuming that there can't be duplicate records, and if they are, then they're the same.
+  // It's not the tools responsibility to manage the practioner file.
+  const match = rows.find(r => r.H && String(r.H) === dea) ?? {};
+
+  const prac: Practitioner = {
+    Practitioner: String(match.P ?? ''),
+    Specialty: String(match.F ?? ''),
+    PracticeLocation: String(match.G ?? ''),
+    DEA: dea,
+    State: String(match.I ?? ''),
+    Discipline: match.J ? String(match.J) : null,
+    Note: match.K ? String(match.K) : null,
+    Date: match.L ? match.L as Date : null
+  }
+
+  return prac;
+}
