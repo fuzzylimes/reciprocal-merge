@@ -20,6 +20,17 @@ const aigLookup: Record<number, IaigDef> = {
     operation: '>',
     amount: 4
   },
+  2: {
+    // TODO: This isn't going to work. These won't match.
+    names: ['alprazolam 2mg', 'xanax 2mg'],
+    operation: '>',
+    amount: 4
+  },
+  3: {
+    family: 'amphetamine',
+    operation: '>',
+    amount: 40
+  }
 }
 
 const operationMap: Record<string, (value: number, threshold: number) => boolean> = {

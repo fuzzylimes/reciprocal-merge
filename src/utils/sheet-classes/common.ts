@@ -9,10 +9,6 @@ import { headers } from "../sheets";
 export type row = Record<string, unknown>;
 
 export class common extends Base {
-  trinityNum: number = 0;
-  immNum: number = 0;
-  multipracNum: number = 0;
-  highmedNum: number = 0;
   filteredHighMedRows: row[] = [];
   record: commonRecord = {};
 
@@ -29,10 +25,6 @@ export class common extends Base {
     }
   }
 
-  async account() {
-    this.record.account = getWordCellValue(this.calculations, 'B1');
-  }
-
   async dea() {
     try {
       const cellValue = getCellValue(this.report, rs.summary, 'A3');
@@ -40,13 +32,6 @@ export class common extends Base {
     } catch (error) {
       console.error(error);
     }
-  }
-
-  async address() {
-    const address = getCellValue(this.report, rs.summary, 'A8');
-    const cityStateZip = getCellValue(this.report, rs.summary, 'A9');
-    const value = `${address}\n${cityStateZip}`;
-    this.record.address = value;
   }
 
   async daterange() {
@@ -68,30 +53,6 @@ export class common extends Base {
     }
 
     this.record.daterange = value;
-  }
-
-  async rxday() {
-    this.record.rxday = getWordCellValue(this.calculations, 'B15');
-  }
-
-  async rxmonth() {
-    this.record.rxmonth = getWordCellValue(this.calculations, 'B14');
-  }
-
-  async csrxvol() {
-    this.record.csrxvol = getWordCellValue(this.calculations, 'B11');
-  }
-
-  async csdu() {
-    this.record.csdu = getWordCellValue(this.calculations, 'B10');
-  }
-
-  async purchase() {
-    this.record.purchase = getWordCellValue(this.calculations, 'B8');
-  }
-
-  async cspurchase() {
-    this.record.cspurchase = getWordCellValue(this.calculations, 'B9');
   }
 
   async cashnoncs() {
@@ -139,13 +100,9 @@ export class common extends Base {
     const amphetamineKeys = Object.keys(amphetamineItems);
     const amphetamineCount = amphetamineKeys.length;
 
-    this.trinityNum = carisoprodolCount + amphetamineCount;
+    this.record.trinitynum = carisoprodolCount + amphetamineCount;
 
     this.record.trinity = `${carisoprodolCount} ${c.carisoprodol} patients (${carisoprodolKeys.join(', ')})\n${amphetamineCount} ${c.amphetamine} patients (${amphetamineKeys.join(', ')})`;
-  }
-
-  async trinitynum() {
-    this.record.trinitynum = this.trinityNum;
   }
 
   async imm() {
@@ -181,14 +138,10 @@ export class common extends Base {
 
     let value = '';
     if (patientsList.length) {
-      this.immNum = patientsList.length;
-      value = `${this.immNum} patients (${patientsList.join(', ')})`;
+      this.record.immednum = patientsList.length;
+      value = `${this.record.immednum} patients (${patientsList.join(', ')})`;
     }
     this.record.imm = value;
-  }
-
-  async immednum() {
-    this.record.immednum = this.immNum;
   }
 
   async multiprac() {
@@ -206,13 +159,9 @@ export class common extends Base {
     }
 
     const patientIds = Object.keys(mapping);
-    this.multipracNum = patientIds.length;
+    this.record.multipracnum = patientIds.length;
 
-    this.record.multiprac = `${this.multipracNum} patients (${patientIds.join(', ')})`;
-  }
-
-  async multipracnum() {
-    this.record.multipracnum = this.multipracNum;
+    this.record.multiprac = `${this.record.multipracnum} patients (${patientIds.join(', ')})`;
   }
 
   async highmed() {
@@ -227,16 +176,12 @@ export class common extends Base {
     const uniquePatients = new Set(this.filteredHighMedRows.map(row => row.H));
     const patientCount = uniquePatients.size;
 
-    this.highmedNum = perscriptionCount;
+    this.record.highmednum = perscriptionCount;
     let value = '';
     if (perscriptionCount) {
       value = `There are ${perscriptionCount} perscriptions between ${patientCount} patients with an MED of 120 or higher`;
     }
     this.record.highmed = value;
-  }
-
-  async highmednum() {
-    this.record.highmednum = this.highmedNum;
   }
 
   async highmedpres() {
@@ -336,255 +281,139 @@ export class common extends Base {
     this.record.physpt = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
   }
 
-  async alprazfam() {
+  setStaticValues() {
+    this.record.account = getWordCellValue(this.calculations, 'B1');
+
+    const address = getCellValue(this.report, rs.summary, 'A8');
+    const cityStateZip = getCellValue(this.report, rs.summary, 'A9');
+    this.record.address = `${address}\n${cityStateZip}`;
+
+    this.record.rxday = getWordCellValue(this.calculations, 'B15');
+    this.record.rxmonth = getWordCellValue(this.calculations, 'B14');
+    this.record.csrxvol = getWordCellValue(this.calculations, 'B11');
+    this.record.csdu = getWordCellValue(this.calculations, 'B10');
+    this.record.purchase = getWordCellValue(this.calculations, 'B8');
+    this.record.cspurchase = getWordCellValue(this.calculations, 'B9');
+
+    // Alprazolam Family
     this.record.alprazfam = 'Alprazolam Family';
-  }
-
-  async alprazfamdumonth() {
     this.record.alprazfamdumonth = getWordCellValue(this.calculations, 'B19');
-  }
-
-  async alprazfamtimes() {
     this.record.alprazfamtimes = getWordCellValue(this.calculations, 'B21');
-  }
-
-  async alprazfamhighdose() {
-    const value = this.aigPcts['aig1'] || 0;
-    this.record.alprazfamhighdose = `${(value * 100).toFixed(0)}%`;
-  }
-
-  async alpraz2() {
-  }
-
-  async alpraz2dumonth() {
-  }
-
-  async alpraz2times() {
-  }
-
-  async alpraz2high() {
-  }
-
-  async amphetamine() {
-  }
-
-  async amphetdumonth() {
-  }
-
-  async amphettimes() {
-  }
-
-  async amphethigh() {
-  }
-
-  async bupe() {
-  }
-
-  async bupedumonth() {
-  }
-
-  async bupetimes() {
-  }
-
-  async bupehigh() {
-  }
-
-  async bupefamper() {
-  }
-
-  async carisoprodol() {
-  }
-
-  async carisodumonth() {
-  }
-
-  async carisotimes() {
-  }
-
-  async carisohigh() {
-  }
-
-  async fentanyl() {
-  }
-
-  async fentdumonth() {
-  }
-
-  async fenttimes() {
-  }
-
-  async fenthigh() {
-  }
-
-  async hydrocofam() {
-  }
-
-  async hydrocodumonth() {
-  }
-
-  async hydrocotimes() {
-  }
-
-  async hydrocohigh() {
-  }
-
-  async hydroco10_325() {
-  }
-
-  async hydroco10dumonth() {
-  }
-
-  async hydroco10times() {
-  }
-
-  async hydroco10high() {
-  }
-
-  async hydroco10perc() {
-  }
-
-  async hydromorph() {
-  }
-
-  async hydromorphdumonth() {
-  }
-
-  async hydromorphtimes() {
-  }
-
-  async hydromorphhigh() {
-  }
-
-  async hydromorph8() {
-  }
-
-  async hydromorph8dumonth() {
-  }
-
-  async hydromorph8times() {
-  }
-
-  async hydromorph8high() {
-  }
-
-  async lisdex() {
-  }
-
-  async lisdexdumonth() {
-  }
-
-  async lisdextimes() {
-  }
-
-  async lisdexhigh() {
-  }
-
-  async methadone() {
-  }
-
-  async methadumonth() {
-  }
-
-  async methatimes() {
-  }
-
-  async methahigh() {
-  }
-
-  async methylphen() {
-  }
-
-  async methyldumonth() {
-  }
-
-  async methyltimes() {
-  }
-
-  async methylhigh() {
-  }
-
-  async morphine() {
-  }
-
-  async morphdumonth() {
-  }
-
-  async morphtimes() {
-  }
-
-  async morphhigh() {
-  }
-
-  async oxycodone() {
-  }
-
-  async oxydumonth() {
-  }
-
-  async oxytimes() {
-  }
-
-  async oxyhigh() {
-  }
-
-  async oxy15() {
-  }
-
-  async oxy15dumonth() {
-  }
-
-  async oxy15times() {
-  }
-
-  async oxy15high() {
-  }
-
-  async oxy30() {
-  }
-
-  async oxy30dumonth() {
-  }
-
-  async oxy30times() {
-  }
-
-  async oxy30high() {
-  }
-
-  async oxy10_325() {
-  }
-
-  async oxy10dumonth() {
-  }
-
-  async oxy10times() {
-  }
-
-  async oxy10high() {
-  }
-
-  async oxymorph() {
-  }
-
-  async oxymorphdumonth() {
-  }
-
-  async oxymorphtimes() {
-  }
-
-  async oxymorphhigh() {
-  }
-
-  async tramadol() {
-  }
-
-  async tramdumonth() {
-  }
-
-  async tramtimes() {
-  }
-
-  async tramhigh() {
+    this.record.alprazfamhighdose = `${((this.aigPcts['aig1'] || 0) * 100).toFixed(0)}%`;
+
+    // Alprazolam 2mg
+    this.record.alpraz2 = 'Alprazolam 2mg';
+    this.record.alpraz2dumonth = getWordCellValue(this.calculations, 'B29');
+    this.record.alpraz2times = getWordCellValue(this.calculations, 'B31');
+    this.record.alpraz2high = `${((this.aigPcts['aig2'] || 0) * 100).toFixed(0)}%`;
+
+    // Amphetamine
+    this.record.amphetamine = 'Amphetamine';
+    this.record.amphetdumonth = getWordCellValue(this.calculations, 'B34');
+    this.record.amphettimes = getWordCellValue(this.calculations, 'B36');
+    this.record.amphethigh = `${((this.aigPcts['aig3'] || 0) * 100).toFixed(0)}%`;
+
+    // Buprenorphine 8mg
+    this.record.bupe = 'Buprenorphine 8mg';
+    this.record.bupedumonth = getWordCellValue(this.calculations, 'B39');
+    this.record.bupetimes = getWordCellValue(this.calculations, 'B41');
+    this.record.bupehigh = `${((this.aigPcts['aig4'] || 0) * 100).toFixed(0)}%`;
+
+    // Carisoprodol
+    this.record.carisoprodol = 'Carisoprodol';
+    this.record.carisodumonth = getWordCellValue(this.calculations, 'B44');
+    this.record.carisotimes = getWordCellValue(this.calculations, 'B46');
+    this.record.carisohigh = `${((this.aigPcts['aig5'] || 0) * 100).toFixed(0)}%`;
+
+    // Fentanyl
+    this.record.fentanyl = 'Fentanyl';
+    this.record.fentdumonth = getWordCellValue(this.calculations, 'B49');
+    this.record.fenttimes = getWordCellValue(this.calculations, 'B51');
+    this.record.fenthigh = `${((this.aigPcts['aig6'] || 0) * 100).toFixed(0)}%`;
+
+    // Hydrocodone Family
+    this.record.hydrocofam = 'Hydrocodone Family';
+    this.record.hydrocodumonth = getWordCellValue(this.calculations, 'B54');
+    this.record.hydrocotimes = getWordCellValue(this.calculations, 'B56');
+    this.record.hydrocohigh = `${((this.aigPcts['aig7'] || 0) * 100).toFixed(0)}%`;
+
+    // Hydrocodone 10/325mg
+    this.record['hydroco10/325'] = 'Hydrocodone 10/325mg';
+    this.record.hydroco10dumonth = getWordCellValue(this.calculations, 'B64');
+    this.record.hydroco10times = getWordCellValue(this.calculations, 'B66');
+    this.record.hydroco10high = `${((this.aigPcts['aig8'] || 0) * 100).toFixed(0)}%`;
+
+    // Hydromorphone
+    this.record.hydromorph = 'Hydromorphone';
+    this.record.hydromorphdumonth = getWordCellValue(this.calculations, 'B69');
+    this.record.hydromorphtimes = getWordCellValue(this.calculations, 'B71');
+    this.record.hydromorphhigh = `${((this.aigPcts['aig9'] || 0) * 100).toFixed(0)}%`;
+
+    // Hydromorphone 8mg
+    this.record.hydromorph8 = 'Hydromorphone 8mg';
+    this.record.hydromorph8dumonth = getWordCellValue(this.calculations, 'B79');
+    this.record.hydromorph8times = getWordCellValue(this.calculations, 'B81');
+    this.record.hydromorph8high = `${((this.aigPcts['aig10'] || 0) * 100).toFixed(0)}%`;
+
+    // Lisdexamfetamine
+    this.record.lisdex = 'Lisdexamfetamine';
+    this.record.lisdexdumonth = getWordCellValue(this.calculations, 'B84');
+    this.record.lisdextimes = getWordCellValue(this.calculations, 'B86');
+    this.record.lisdexhigh = `${((this.aigPcts['aig11'] || 0) * 100).toFixed(0)}%`;
+
+    // Methadone
+    this.record.methadone = 'Methadone';
+    this.record.methadumonth = getWordCellValue(this.calculations, 'B89');
+    this.record.methatimes = getWordCellValue(this.calculations, 'B91');
+    this.record.methahigh = `${((this.aigPcts['aig12'] || 0) * 100).toFixed(0)}%`;
+
+    // Methylphenidate
+    this.record.methylphen = 'Methylphenidate';
+    this.record.methyldumonth = getWordCellValue(this.calculations, 'B94');
+    this.record.methyltimes = getWordCellValue(this.calculations, 'B96');
+    this.record.methylhigh = `${((this.aigPcts['aig13'] || 0) * 100).toFixed(0)}%`;
+
+    // Morphine
+    this.record.morphine = 'Morphine';
+    this.record.morphdumonth = getWordCellValue(this.calculations, 'B99');
+    this.record.morphtimes = getWordCellValue(this.calculations, 'B101');
+    this.record.morphhigh = `${((this.aigPcts['aig14'] || 0) * 100).toFixed(0)}%`;
+
+    // Oxycodone Family
+    this.record.oxycodone = 'Oxycodone Family';
+    this.record.oxydumonth = getWordCellValue(this.calculations, 'B104');
+    this.record.oxytimes = getWordCellValue(this.calculations, 'B106');
+    this.record.oxyhigh = `${((this.aigPcts['aig15'] || 0) * 100).toFixed(0)}%`;
+
+    // Oxycodone 15mg
+    this.record.oxy15 = 'Oxycodone 15mg';
+    this.record.oxy15dumonth = getWordCellValue(this.calculations, 'B114');
+    this.record.oxy15times = getWordCellValue(this.calculations, 'B116');
+    this.record.oxy15high = `${((this.aigPcts['aig16'] || 0) * 100).toFixed(0)}%`;
+
+    // Oxycodone 30mg
+    this.record.oxy30 = 'Oxycodone 30mg';
+    this.record.oxy30dumonth = getWordCellValue(this.calculations, 'B119');
+    this.record.oxy30times = getWordCellValue(this.calculations, 'B121');
+    this.record.oxy30high = `${((this.aigPcts['aig17'] || 0) * 100).toFixed(0)}%`;
+
+    // Oxycodone 10/325mg
+    this.record['oxy10/325'] = 'Oxycodone 10/325mg';
+    this.record.oxy10dumonth = getWordCellValue(this.calculations, 'B125');
+    this.record.oxy10times = getWordCellValue(this.calculations, 'B127');
+    this.record.oxy10high = `${((this.aigPcts['aig18'] || 0) * 100).toFixed(0)}%`;
+
+    // Oxymorphone
+    this.record.oxymorph = 'Oxymorphone';
+    this.record.oxymorphdumonth = getWordCellValue(this.calculations, 'B131');
+    this.record.oxymorphtimes = getWordCellValue(this.calculations, 'B133');
+    this.record.oxymorphhigh = `${((this.aigPcts['aig19'] || 0) * 100).toFixed(0)}%`;
+
+    // Tramadol
+    this.record.tramadol = 'Tramadol';
+    this.record.tramdumonth = getWordCellValue(this.calculations, 'B137');
+    this.record.tramtimes = getWordCellValue(this.calculations, 'B139');
+    this.record.tramhigh = `${((this.aigPcts['aig20'] || 0) * 100).toFixed(0)}%`;
   }
 
   async prevdate() {
@@ -605,27 +434,15 @@ export class common extends Base {
 
   async build() {
     await this.name();
-    await this.account();
     await this.dea();
-    await this.address();
     await this.daterange();
-    await this.rxday();
-    await this.rxmonth();
-    await this.csrxvol();
-    await this.csdu();
-    await this.purchase();
-    await this.cspurchase();
     await this.cashnoncs();
     await this.cashcs();
     await this.top10csnum();
     await this.trinity();
-    await this.trinitynum();
     await this.imm();
-    await this.immednum();
     await this.multiprac();
-    await this.multipracnum();
     await this.highmed();
-    await this.highmednum();
     await this.highmedpres();
     await this.spatial();
     await this.csphyphys();
@@ -634,88 +451,9 @@ export class common extends Base {
     await this.phypt();
     await this.csphyspt();
     await this.physpt();
-    await this.alprazfam();
-    await this.alprazfamdumonth();
-    await this.alprazfamtimes();
-    await this.alprazfamhighdose();
-    await this.alpraz2();
-    await this.alpraz2dumonth();
-    await this.alpraz2times();
-    await this.alpraz2high();
-    await this.amphetamine();
-    await this.amphetdumonth();
-    await this.amphettimes();
-    await this.amphethigh();
-    await this.bupe();
-    await this.bupedumonth();
-    await this.bupetimes();
-    await this.bupehigh();
-    await this.bupefamper();
-    await this.carisoprodol();
-    await this.carisodumonth();
-    await this.carisotimes();
-    await this.carisohigh();
-    await this.fentanyl();
-    await this.fentdumonth();
-    await this.fenttimes();
-    await this.fenthigh();
-    await this.hydrocofam();
-    await this.hydrocodumonth();
-    await this.hydrocotimes();
-    await this.hydrocohigh();
-    await this.hydroco10_325();
-    await this.hydroco10dumonth();
-    await this.hydroco10times();
-    await this.hydroco10high();
-    await this.hydroco10perc();
-    await this.hydromorph();
-    await this.hydromorphdumonth();
-    await this.hydromorphtimes();
-    await this.hydromorphhigh();
-    await this.hydromorph8();
-    await this.hydromorph8dumonth();
-    await this.hydromorph8times();
-    await this.hydromorph8high();
-    await this.lisdex();
-    await this.lisdexdumonth();
-    await this.lisdextimes();
-    await this.lisdexhigh();
-    await this.methadone();
-    await this.methadumonth();
-    await this.methatimes();
-    await this.methahigh();
-    await this.methylphen();
-    await this.methyldumonth();
-    await this.methyltimes();
-    await this.methylhigh();
-    await this.morphine();
-    await this.morphdumonth();
-    await this.morphtimes();
-    await this.morphhigh();
-    await this.oxycodone();
-    await this.oxydumonth();
-    await this.oxytimes();
-    await this.oxyhigh();
-    await this.oxy15();
-    await this.oxy15dumonth();
-    await this.oxy15times();
-    await this.oxy15high();
-    await this.oxy30();
-    await this.oxy30dumonth();
-    await this.oxy30times();
-    await this.oxy30high();
-    await this.oxy10_325();
-    await this.oxy10dumonth();
-    await this.oxy10times();
-    await this.oxy10high();
-    await this.oxymorph();
-    await this.oxymorphdumonth();
-    await this.oxymorphtimes();
-    await this.oxymorphhigh();
-    await this.tramadol();
-    await this.tramdumonth();
-    await this.tramtimes();
-    await this.tramhigh();
+
+    this.setStaticValues();
+
     await this.prevdate();
     await this.currentdate();
     await this.soms();
