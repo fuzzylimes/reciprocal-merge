@@ -12,6 +12,8 @@ interface IaigDef {
   family?: string;
   operation: string;
   high: number;
+  per?: boolean;
+  med?: number;
 }
 
 const aigLookup: Record<number, IaigDef> = {
@@ -32,10 +34,10 @@ const aigLookup: Record<number, IaigDef> = {
   },
   4: {
     family: 'buprenorphine',
-    // TODO: Is this how this should be handled? Or do we want an 'ammount' value to compare against strength column (J)
     names: ['8 mg'],
     operation: '>=',
-    high: 32
+    high: 32,
+    per: true,
   },
   5: {
     family: 'carisoprodol',
@@ -45,29 +47,35 @@ const aigLookup: Record<number, IaigDef> = {
   6: {
     family: 'fentanyl',
     operation: '>',
-    high: 37.5
+    high: 37.5,
+    med: 2.4
   },
   7: {
     family: 'hydrocodone',
     operation: '>=',
-    high: 90
+    high: 90,
+    med: 1
   },
   8: {
     family: 'hydrocodone',
     names: ['10-325 mg'],
     operation: '>=',
-    high: 90
+    high: 90,
+    per:true,
+    med: 1
   },
   9: {
     family: 'hydromorphone',
     operation: '>=',
-    high: 22.5
+    high: 22.5,
+    med: 4
   },
   10: {
     family: 'hydromorphone',
     names: ['8 mg'],
     operation: '>=',
-    high: 22.5
+    high: 22.5,
+    med: 1
   },
   11: {
     family: 'lisdexamfetamine',
@@ -77,7 +85,8 @@ const aigLookup: Record<number, IaigDef> = {
   12: {
     family: 'methadone',
     operation: '>=',
-    high: 20
+    high: 20,
+    med: 4 // 20 = 4; 20-40 = 8; 40-60 = 10; >60 = 12
   },
   13: {
     family: 'methylphenidate',
@@ -87,40 +96,47 @@ const aigLookup: Record<number, IaigDef> = {
   14: {
     family: 'morphine',
     operation: '>=',
-    high: 90
+    high: 90,
+    med: 1
   },
   15: {
     family: 'oxycodone',
     operation: '>=',
-    high: 60
+    high: 60,
+    med: 1.5
   },
   16: {
     family: 'oxycodone',
     names: ['15 mg'],
     operation: '>=',
-    high: 60
+    high: 60,
+    med: 1.5
   },
   17: {
     family: 'oxycodone',
     names: ['30 mg'],
     operation: '>=',
-    high: 60
+    high: 60,
+    med: 1.5
   },
   18: {
     family: 'oxycodone',
     names: ['10-325 mg'],
     operation: '>=',
-    high: 60
+    high: 60,
+    med: 1.5
   },
   19: {
     family: 'oxymorphone',
     operation: '>=',
-    high: 30
+    high: 30,
+    med: 3
   },
   20: {
     family: 'tramadol',
     operation: '>',
-    high: 900
+    high: 900,
+    med: 0.2
   },
 }
 
@@ -188,7 +204,7 @@ export class aig extends Base {
       return;
     }
     const aigDetails = aigLookup[this.aigNum];
-    const { names, family } = aigDetails;
+    const { names, family, per, med } = aigDetails;
 
     let drugRows: row[] = rows;
 
@@ -197,20 +213,42 @@ export class aig extends Base {
       drugRows = drugRows.filter(row => matchesFamily(row, family));
     }
 
+    const familyCount = drugRows.length;
+
     // Apply names filter if needed
     if (names && names.length > 0) {
       drugRows = drugRows.filter(row => matchesName(row, names));
     }
+
+    // filter out liquids
+    drugRows = drugRows.filter(row => !String(row.I).toLowerCase().includes('ml'));
 
     const overRows = drugRows.filter(row => applyOperation(Number(row.F), aigDetails));
     const ratio = overRows.length / drugRows.length * 100;
     // Set the values to be used back over in common
     this.aigPcts[`aig${this.aigNum}`] = ratio;
 
+    if (per && familyCount) {
+      const perVal = drugRows.length / familyCount * 100;
+      // TODO: figure out how to get this in common
+    }
+
+    if (med) {
+      // from overRows, find the lowest mg/day (F), highest mg/day (f)
+      if (family === 'methadone') {
+        methadoneMed(overRows);
+      } else {
+        medCalc(overRows, med);
+      }
+
+    }
+
     // Multiple checks to get the DEA numbers. First check is to pull back value from the calculations sheet and see if it's > 300
     const duValue = getWordCellValue(this.calculations, 'B19');
     const over300 = Number(duValue) > 300;
-    // Need to sum all values in overRows in order to get "top 5" prescribers
+
+    // Need to sum all values in order to get "top 5" prescribers
+    // If over 300, use the filtered drugRows, otherwise use the full set (overRows)
     const prescribers: Record<string, number> = {};
     for (const row of over300 ? drugRows : overRows) {
       const p = String(row.K);
