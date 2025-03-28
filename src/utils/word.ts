@@ -164,3 +164,16 @@ export function getColumnValues(tableData: TableData, colIndex: number): string[
 export function getRowValues(tableData: TableData, rowIndex: number): string[] {
   return tableData.rows[rowIndex] || [];
 }
+
+/**
+ * Safely converts a string to a number, handling commas and other formatting
+ * @param value The string value to convert
+ * @returns The parsed number or 0 if the input is invalid
+ */
+export const parseNumericString = (value: string | undefined): number => {
+  if (!value) return 0;
+  // Remove commas and other non-numeric characters except decimal point and minus sign
+  const cleanedValue = value.replace(/[^\d.-]/g, '');
+  const parsedValue = parseFloat(cleanedValue);
+  return isNaN(parsedValue) ? 0 : parsedValue;
+};
