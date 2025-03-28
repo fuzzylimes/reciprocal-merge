@@ -11,26 +11,117 @@ interface IaigDef {
   names?: string[];
   family?: string;
   operation: string;
-  amount: number;
+  high: number;
 }
 
 const aigLookup: Record<number, IaigDef> = {
   1: {
     names: ['alprazolam', 'xanax'],
     operation: '>',
-    amount: 4
+    high: 4
   },
   2: {
-    // TODO: This isn't going to work. These won't match.
-    names: ['alprazolam 2mg', 'xanax 2mg'],
+    names: ['alprazolam*2 mg', 'xanax*2 mg'],
     operation: '>',
-    amount: 4
+    high: 4
   },
   3: {
     family: 'amphetamine',
     operation: '>',
-    amount: 40
-  }
+    high: 40
+  },
+  4: {
+    family: 'buprenorphine',
+    // TODO: Is this how this should be handled? Or do we want an 'ammount' value to compare against strength column (J)
+    names: ['8 mg'],
+    operation: '>=',
+    high: 32
+  },
+  5: {
+    family: 'carisoprodol',
+    operation: '>=',
+    high: 1400
+  },
+  6: {
+    family: 'fentanyl',
+    operation: '>',
+    high: 37.5
+  },
+  7: {
+    family: 'hydrocodone',
+    operation: '>=',
+    high: 90
+  },
+  8: {
+    family: 'hydrocodone',
+    names: ['10-325 mg'],
+    operation: '>=',
+    high: 90
+  },
+  9: {
+    family: 'hydromorphone',
+    operation: '>=',
+    high: 22.5
+  },
+  10: {
+    family: 'hydromorphone',
+    names: ['8 mg'],
+    operation: '>=',
+    high: 22.5
+  },
+  11: {
+    family: 'lisdexamfetamine',
+    operation: '>',
+    high: 70
+  },
+  12: {
+    family: 'methadone',
+    operation: '>=',
+    high: 20
+  },
+  13: {
+    family: 'methylphenidate',
+    operation: '>=',
+    high: 60
+  },
+  14: {
+    family: 'morphine',
+    operation: '>=',
+    high: 90
+  },
+  15: {
+    family: 'oxycodone',
+    operation: '>=',
+    high: 60
+  },
+  16: {
+    family: 'oxycodone',
+    names: ['15 mg'],
+    operation: '>=',
+    high: 60
+  },
+  17: {
+    family: 'oxycodone',
+    names: ['30 mg'],
+    operation: '>=',
+    high: 60
+  },
+  18: {
+    family: 'oxycodone',
+    names: ['10-325 mg'],
+    operation: '>=',
+    high: 60
+  },
+  19: {
+    family: 'oxymorphone',
+    operation: '>=',
+    high: 30
+  },
+  20: {
+    family: 'tramadol',
+    operation: '>',
+    high: 900
+  },
 }
 
 const operationMap: Record<string, (value: number, threshold: number) => boolean> = {
@@ -50,7 +141,7 @@ const applyOperation = (value: number, entry: IaigDef): boolean => {
   if (!operationFunc) {
     throw new Error(`Unknown operation: ${entry.operation}`);
   }
-  return operationFunc(value, entry.amount);
+  return operationFunc(value, entry.high);
 }
 
 export class aig extends Base {
@@ -73,6 +164,23 @@ export class aig extends Base {
   }
 
   async build() {
+    // Handles name matches for filtering.
+    // Supports wildcards by including a * between each piece
+    const matchesName = (row: row, names: string[]) => {
+      return (names ?? []).some((word) => {
+        const rowText = String(row.I).toLowerCase();
+        if (word.includes('*')) {
+          const parts = word.split('*');
+          return parts.every(part => rowText.includes(part.toLowerCase()));
+        }
+        return rowText.includes(word.toLowerCase());
+      });
+    };
+
+    const matchesFamily = (row: row, family?: string) => {
+      return !family || String(row.O) === family;
+    };
+
     const sheet = this.report.Sheets[rs.csrx];
     const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
     if (!rows) {
@@ -80,15 +188,20 @@ export class aig extends Base {
       return;
     }
     const aigDetails = aigLookup[this.aigNum];
-    // Fix this, as it's only for alprazolam
-    let drugRows: row[] = [];
-    if (aigDetails.names && aigDetails.names.length > 0 && !aigDetails.family) {
-      drugRows = rows.filter(row => (aigDetails.names ?? []).some(word => String(row.I).toLowerCase().includes(word.toLowerCase())));
-    } else if (aigDetails.family && !aigDetails.names) {
-      // TODO
-    } else if (aigDetails.names && aigDetails.family) {
-      // TODO
+    const { names, family } = aigDetails;
+
+    let drugRows: row[] = rows;
+
+    // Apply family filter if needed
+    if (family) {
+      drugRows = drugRows.filter(row => matchesFamily(row, family));
     }
+
+    // Apply names filter if needed
+    if (names && names.length > 0) {
+      drugRows = drugRows.filter(row => matchesName(row, names));
+    }
+
     const overRows = drugRows.filter(row => applyOperation(Number(row.F), aigDetails));
     const ratio = overRows.length / drugRows.length * 100;
     // Set the values to be used back over in common
