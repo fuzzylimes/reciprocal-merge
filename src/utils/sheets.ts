@@ -10,8 +10,58 @@ export enum ReportSheets {
   allrx = 'All Rx\'s'
 }
 
+export type trinitySheet = {
+  'Patient ID': number;
+  'Family': string;
+}
+
+export type irSheet = {
+  'Drug Name': string;
+  'Patient ID': number;
+}
+
+export type multipracSheet = {
+  'Patient ID': number;
+}
+
+export type medSheet = {
+  'Daily M.E.D per Prescription': string;
+  'Patient ID': number;
+  'DEA#': string;
+}
+
+// Spatial will continue to use dirrect cell references due to the way the page is setup
+
+export type csrxSheet = {
+  'Drug Name': string;
+  Family: string;
+  'mg/day': number;
+  'DEA#': string;
+  Qty: number;
+  'DEA Sched': string;
+}
+
+export type allrxSheet = {
+  'DEA#': string;
+  'DEA Sched': string;
+  'Days Supply': number;
+  'Patient ID': number;
+  'Pay Type': string;
+}
+
 export enum PractitionerSheets {
   ref = 'Reference'
+}
+
+export type pracRefSheet = {
+  Practitioner: string;
+  Specialty: string;
+  PracticeLocation: string;
+  DEA: string;
+  State: string;
+  Discipline: string;
+  'PC Note - Pharm': string;
+  'PC Notes Date': Date;
 }
 
 export const headers = {

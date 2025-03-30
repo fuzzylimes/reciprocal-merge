@@ -2,14 +2,14 @@ import { WorkBook, utils } from 'xlsx';
 import { TableData, getCellValue as getWordCellValue } from '../word';
 import { getCellValue, sumColumn } from '../excel';
 import { Base } from './Base';
-import { commonRecord, ReportSheets as rs } from '../sheets';
+import { commonRecord, irSheet, medSheet, multipracSheet, ReportSheets as rs, trinitySheet } from '../sheets';
 import * as c from '../constants';
 import { headers } from "../sheets";
 
 export type row = Record<string, unknown>;
 
 export class common extends Base {
-  filteredHighMedRows: row[] = [];
+  filteredHighMedRows: medSheet[] = [];
   record: commonRecord = {};
 
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
@@ -73,7 +73,7 @@ export class common extends Base {
 
   async trinity() {
     const sheet = this.report.Sheets[rs.trinityConcerns];
-    const rows = utils.sheet_to_json<row>(sheet, { header: "A" })?.slice(1);
+    const rows = utils.sheet_to_json<trinitySheet>(sheet);
     if (!rows) {
       return;
     }
@@ -81,8 +81,8 @@ export class common extends Base {
     const mapping: Record<string, Record<number, boolean>> = {};
 
     for (const row of rows) {
-      const family = (row.L as string).toLowerCase();
-      const patientId = row.K as number;
+      const family = row.Family.toLowerCase();
+      const patientId = row['Patient ID'];
 
       if (mapping[family]) {
         if (!mapping[family][patientId]) {
@@ -107,7 +107,7 @@ export class common extends Base {
 
   async imm() {
     const sheet = this.report.Sheets[rs.immediateRelease];
-    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
+    const rows = utils.sheet_to_json<irSheet>(sheet, { blankrows: true });
     if (!rows) {
       return;
     }
@@ -117,10 +117,10 @@ export class common extends Base {
     const mapping: Record<number, Record<string, boolean>> = {};
     const patientsList: number[] = [];
     for (const row of rows) {
-      if (!row.H) continue;
+      if (!row['Drug Name']) continue;
 
-      const drugName = (row.H as string).toLowerCase();
-      const patientId = row.K as number;
+      const drugName = row['Drug Name'].toLowerCase();
+      const patientId = row['Patient ID'];
 
       if (mapping[patientId]) {
         mapping[patientId][drugName] = true;
@@ -146,7 +146,7 @@ export class common extends Base {
 
   async multiprac() {
     const sheet = this.report.Sheets[rs.multiPractioner];
-    const rows = utils.sheet_to_json<row>(sheet, { header: "A" })?.slice(1);
+    const rows = utils.sheet_to_json<multipracSheet>(sheet);
     if (!rows) {
       return;
     }
@@ -154,7 +154,7 @@ export class common extends Base {
     const mapping: Record<number, boolean> = {};
 
     for (const row of rows) {
-      const patientId = row.K as number;
+      const patientId = row['Patient ID'];
       mapping[patientId] = true;
     }
 
@@ -166,14 +166,14 @@ export class common extends Base {
 
   async highmed() {
     const sheet = this.report.Sheets[rs.medWatch];
-    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
+    const rows = utils.sheet_to_json<medSheet>(sheet, { blankrows: true });
     if (!rows) {
       return;
     }
 
-    this.filteredHighMedRows = rows.filter(row => row.F && Number(row.F) >= 120)
+    this.filteredHighMedRows = rows.filter(row => row['Daily M.E.D per Prescription'] && Number(row['Daily M.E.D per Prescription']) >= 120)
     const perscriptionCount = this.filteredHighMedRows.length;
-    const uniquePatients = new Set(this.filteredHighMedRows.map(row => row.H));
+    const uniquePatients = new Set(this.filteredHighMedRows.map(row => row['Patient ID']));
     const patientCount = uniquePatients.size;
 
     this.record.highmednum = perscriptionCount;
@@ -192,8 +192,8 @@ export class common extends Base {
     // Need to find the perscriber with the most perscriptions, then get the count and Id of the patients
     const mapping: Record<string, Record<number, boolean>> = {};
     for (const row of this.filteredHighMedRows) {
-      const perscriber = row.K as string;
-      const patientId = row.H as number;
+      const perscriber = row['DEA#'];
+      const patientId = row['Patient ID'];
 
       if (mapping[perscriber]) {
         if (!mapping[perscriber][patientId]) {
@@ -217,7 +217,7 @@ export class common extends Base {
     });
 
     const value = `The most prolific prescriber is ${maxPerscriber} with ${maxCount} perscriptions between ${maxPatients.length} patients`;
-    this.data[0].push(value);
+    this.record.highmedpres = value;
   }
 
   async spatial() {

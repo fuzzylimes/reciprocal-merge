@@ -1,9 +1,8 @@
 import { utils, WorkBook } from "xlsx";
 import { TableData, getCellValue as getWordCellValue, parseNumericString } from "../word";
 import { Base } from "./Base";
-import { aigRecord, ReportSheets as rs } from '../sheets';
+import { aigRecord, allrxSheet, csrxSheet, ReportSheets as rs } from '../sheets';
 import { PractitionerSheets as ps } from "../sheets";
-import { row } from "./common";
 import { findPractitionerByDea } from "../excel";
 import { headers } from "../sheets";
 
@@ -203,9 +202,9 @@ export class aig extends Base {
   async build() {
     // Handles name matches for filtering.
     // Supports wildcards by including a * between each piece
-    const matchesName = (row: row, names: string[]) => {
+    const matchesName = (row: csrxSheet, names: string[]) => {
       return (names ?? []).some((word) => {
-        const rowText = String(row.I).toLowerCase();
+        const rowText = String(row["Drug Name"]).toLowerCase();
         if (word.includes('*')) {
           const parts = word.split('*');
           return parts.every(part => rowText.includes(part.toLowerCase()));
@@ -214,16 +213,16 @@ export class aig extends Base {
       });
     };
 
-    const matchesFamily = (row: row, family?: string) => {
-      return !family || String(row.O) === family;
+    const matchesFamily = (row: csrxSheet, family?: string) => {
+      return !family || String(row.Family) === family;
     };
 
-    const highlow = (rows: row[]) => {
+    const highlow = (rows: csrxSheet[]) => {
       let high = 0;
       let low = 10000000;
 
       for (const row of rows) {
-        const val = Number(row.F);
+        const val = Number(row["mg/day"]);
         if (val > high) high = val;
         if (val < low) low = val;
       }
@@ -233,7 +232,7 @@ export class aig extends Base {
       return { high, low };
     }
 
-    const medCalc = (rows: row[], aig: IaigDef) => {
+    const medCalc = (rows: csrxSheet[], aig: IaigDef) => {
       const { high, low } = highlow(rows);
       const highmed = high * aig.med!;
       const lowmed = low * aig.med!;
@@ -242,7 +241,7 @@ export class aig extends Base {
       Base.aigData[this.sheet]['lowmed'] = lowmed;
     }
 
-    const methadoneMed = (rows: row[]) => {
+    const methadoneMed = (rows: csrxSheet[]) => {
       const hl = highlow(rows);
       const hlv = {
         high: 0,
@@ -263,9 +262,8 @@ export class aig extends Base {
     }
 
     const sheet = this.report.Sheets[rs.csrx];
-    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
+    const rows = utils.sheet_to_json<csrxSheet>(sheet, { blankrows: true });
     if (!rows) {
-      this.data[0].push('');
       return;
     }
     const aigDetails = aigLookup[this.aigNum];
@@ -273,7 +271,7 @@ export class aig extends Base {
 
     console.log(this.sheet, aigDetails);
 
-    let drugRows: row[] = rows;
+    let drugRows: csrxSheet[] = rows;
 
     // Apply family filter if needed
     if (family) {
@@ -290,11 +288,11 @@ export class aig extends Base {
     }
 
     // filter out liquids
-    drugRows = drugRows.filter(row => !String(row.I).toLowerCase().endsWith(' ml'));
+    drugRows = drugRows.filter(row => !String(row["Drug Name"]).toLowerCase().endsWith(' ml'));
 
     console.log(JSON.stringify(drugRows));
 
-    const overRows = drugRows.filter(row => applyOperation(Number(row.F), aigDetails));
+    const overRows = drugRows.filter(row => applyOperation(Number(row["mg/day"]), aigDetails));
     const ratio = overRows.length / drugRows.length * 100;
     // Set the values to be used back over in common
     Base.aigData[this.sheet].highpct = ratio;
@@ -322,8 +320,8 @@ export class aig extends Base {
     // If over 300, use the filtered drugRows, otherwise use the full set (overRows)
     const prescribers: Record<string, number> = {};
     for (const row of over300 ? drugRows : overRows) {
-      const p = String(row.K);
-      const v = Number(row.D);
+      const p = String(row["DEA#"]);
+      const v = Number(row.Qty);
 
       if (prescribers[p]) {
         prescribers[p] += v;
@@ -340,7 +338,7 @@ export class aig extends Base {
 
     // pull in all Rx tab
     const allrx = this.report.Sheets[rs.allrx];
-    const allrxRows = utils.sheet_to_json<row>(allrx, { header: "A" })?.slice(1);
+    const allrxRows = utils.sheet_to_json<allrxSheet>(allrx);
 
     // Fetch the top5 details from practitioner file
     for (const dea of top5) {
@@ -354,11 +352,11 @@ export class aig extends Base {
       }
 
       // filter allrxRows by the dea number (J)
-      const filteredDEA = allrxRows.filter(r => r.J && String(r.J) === dea);
+      const filteredDEA = allrxRows.filter(r => r["DEA#"] && String(r["DEA#"]) === dea);
       // filtered length = totalRx
       let totalRx: number | null = filteredDEA.length;
       // count non-null values in R = numCS
-      const filteredControls = filteredDEA.filter(r => r.R)
+      const filteredControls = filteredDEA.filter(r => r["DEA Sched"])
       let numCS: number | null = filteredControls.length;
       // CSP = numCS / totalRx (%) - only include these if CSP > 20%
       let csp: number | null = numCS / totalRx * 100;
@@ -366,7 +364,7 @@ export class aig extends Base {
       let csCash = null;
       if (csp > 20) {
         // another filtered list of non-null values in R
-        const cash = filteredControls.filter(r => r.F);
+        const cash = filteredControls.filter(r => r["Pay Type"]);
         // count non-null values in F / numCS = CSCash - only include if > 20%
         csCash = cash.length / numCS * 100;
         if (csCash < 20) {
@@ -378,7 +376,7 @@ export class aig extends Base {
         csp = null;
       }
 
-      const uniquePatients = new Set(filteredDEA.map(r => r.L));
+      const uniquePatients = new Set(filteredDEA.map(r => r["Patient ID"]));
 
       // TODO: Calculate milage between two points (how can we do this?)
 

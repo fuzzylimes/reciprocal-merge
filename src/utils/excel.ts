@@ -1,6 +1,7 @@
 import { readFile, writeFile } from '@tauri-apps/plugin-fs';
 import { WorkBook, WorkSheet, read, utils, write } from 'xlsx';
 import { row } from './sheet-classes/common';
+import { pracRefSheet } from './sheets';
 
 /**
  * Loads and parses an Excel file
@@ -83,26 +84,26 @@ export type Practitioner = {
  * @throws Error if practitioner doesn't exist in DB
  */
 export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practitioner => {
-  const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
+  const rows = utils.sheet_to_json<pracRefSheet>(sheet, { header: "A", blankrows: true })?.slice(1);
   if (!rows) {
     throw Error(`Practitioner DB is empty.`)
   }
 
   // We're assuming that there can't be duplicate records, and if they are, then they're the same.
   // It's not the tools responsibility to manage the practioner file.
-  const match = rows.find(r => r.H && String(r.H) === dea);
+  const match = rows.find(r => r.DEA && String(r.DEA) === dea);
 
   if (!match) throw Error(`Practitioner ${dea} does not exist in practitioner DB.`);
 
   const prac: Practitioner = {
-    Practitioner: String(match.P ?? ''),
-    Specialty: String(match.F ?? ''),
-    PracticeLocation: String(match.G ?? ''),
+    Practitioner: String(match.Practitioner ?? ''),
+    Specialty: String(match.Specialty ?? ''),
+    PracticeLocation: String(match.PracticeLocation ?? ''),
     DEA: dea,
-    State: String(match.I ?? ''),
-    Discipline: match.J ? String(match.J) : null,
-    Note: match.K ? String(match.K) : null,
-    Date: match.L ? match.L as Date : null
+    State: String(match.State ?? ''),
+    Discipline: match.Discipline ? String(match.Discipline) : null,
+    Note: match['PC Note - Pharm'] ? String(match['PC Note - Pharm']) : null,
+    Date: match['PC Notes Date'] ? match['PC Notes Date'] : null
   }
 
   return prac;
