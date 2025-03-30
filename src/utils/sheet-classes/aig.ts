@@ -5,160 +5,7 @@ import { aigRecord, allrxSheet, csrxSheet, ReportSheets as rs } from '../sheets'
 import { PractitionerSheets as ps } from "../sheets";
 import { findPractitionerByDea } from "../excel";
 import { headers } from "../sheets";
-
-interface IaigDef {
-  names?: string[];
-  family?: string;
-  duField: string;
-  operation: string;
-  high: number;
-  per?: boolean;
-  med?: number;
-}
-
-const aigLookup: Record<number, IaigDef> = {
-  1: {
-    names: ['alprazolam', 'xanax'],
-    operation: '>',
-    high: 4,
-    duField: 'B19'
-  },
-  2: {
-    names: ['alprazolam*2 mg', 'xanax*2 mg'],
-    operation: '>',
-    high: 4,
-    duField: 'B29'
-  },
-  3: {
-    family: 'amphetamine',
-    operation: '>',
-    high: 40,
-    duField: 'B34'
-  },
-  4: {
-    family: 'buprenorphine',
-    names: ['8 mg'],
-    operation: '>=',
-    high: 32,
-    per: true,
-    duField: 'B39'
-  },
-  5: {
-    family: 'carisoprodol',
-    operation: '>=',
-    high: 1400,
-    duField: 'B44'
-  },
-  6: {
-    family: 'fentanyl',
-    operation: '>',
-    high: 37.5,
-    med: 2.4,
-    duField: 'B49'
-  },
-  7: {
-    family: 'hydrocodone',
-    operation: '>=',
-    high: 90,
-    med: 1,
-    duField: 'B54'
-  },
-  8: {
-    family: 'hydrocodone',
-    names: ['10-325 mg'],
-    operation: '>=',
-    high: 90,
-    per: true,
-    med: 1,
-    duField: 'B64'
-  },
-  9: {
-    family: 'hydromorphone',
-    operation: '>=',
-    high: 22.5,
-    med: 4,
-    duField: 'B69'
-  },
-  10: {
-    family: 'hydromorphone',
-    names: ['8 mg'],
-    operation: '>=',
-    high: 22.5,
-    med: 1,
-    duField: 'B79'
-  },
-  11: {
-    family: 'lisdexamfetamine',
-    operation: '>',
-    high: 70,
-    duField: 'B84'
-  },
-  12: {
-    family: 'methadone',
-    operation: '>=',
-    high: 20,
-    med: 4,
-    duField: 'B89'
-  },
-  13: {
-    family: 'methylphenidate',
-    operation: '>=',
-    high: 60,
-    duField: 'B94'
-  },
-  14: {
-    family: 'morphine',
-    operation: '>=',
-    high: 90,
-    med: 1,
-    duField: 'B99'
-  },
-  15: {
-    family: 'oxycodone',
-    operation: '>=',
-    high: 60,
-    med: 1.5,
-    duField: 'B104'
-  },
-  16: {
-    family: 'oxycodone',
-    names: ['15 mg'],
-    operation: '>=',
-    high: 60,
-    med: 1.5,
-    duField: 'B114'
-  },
-  17: {
-    family: 'oxycodone',
-    names: ['30 mg'],
-    operation: '>=',
-    high: 60,
-    med: 1.5,
-    duField: 'B119'
-  },
-  18: {
-    family: 'oxycodone',
-    names: ['10-325 mg'],
-    operation: '>=',
-    high: 60,
-    med: 1.5,
-    duField: 'B125'
-  },
-  19: {
-    family: 'oxymorphone',
-    operation: '>=',
-    high: 30,
-    med: 3,
-    duField: 'B131'
-  },
-  20: {
-    family: 'tramadol',
-    operation: '>',
-    high: 900,
-    med: 0.2,
-    duField: 'B137'
-  },
-}
+import { aigLookup, IaigDef } from "../aig-helper";
 
 const operationMap: Record<string, (value: number, threshold: number) => boolean> = {
   '>': (value, threshold) => value > threshold,
@@ -182,11 +29,13 @@ const applyOperation = (value: number, entry: IaigDef): boolean => {
 
 export class aig extends Base {
   aigNum: number = 0;
+  aigDetails: IaigDef;
   top5: aigRecord[] = [];
 
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook, sheetNumber: number) {
     super(outData, report, calculations, practitioners, `aig${sheetNumber}`, headers.aig);
     this.aigNum = sheetNumber;
+    this.aigDetails = aigLookup[sheetNumber]
   }
 
   static buildAll(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
@@ -237,8 +86,8 @@ export class aig extends Base {
       const highmed = high * aig.med!;
       const lowmed = low * aig.med!;
 
-      Base.aigData[this.sheet]['highmed'] = highmed;
-      Base.aigData[this.sheet]['lowmed'] = lowmed;
+      Base.aigData[this.aigDetails.aigReference].highmed = highmed;
+      Base.aigData[this.aigDetails.aigReference].lowmed = lowmed;
     }
 
     const methadoneMed = (rows: csrxSheet[]) => {
@@ -257,8 +106,8 @@ export class aig extends Base {
         hlv[k as keyof typeof hlv] = v * multiplier;
       }
 
-      Base.aigData[this.sheet]['highmed'] = hlv.high;
-      Base.aigData[this.sheet]['lowmed'] = hlv.low;
+      Base.aigData[this.aigDetails.aigReference].highmed = hlv.high;
+      Base.aigData[this.aigDetails.aigReference].lowmed = hlv.low;
     }
 
     const sheet = this.report.Sheets[rs.csrx];
@@ -266,10 +115,9 @@ export class aig extends Base {
     if (!rows) {
       return;
     }
-    const aigDetails = aigLookup[this.aigNum];
-    const { names, family, per, med, duField } = aigDetails;
+    const { names, family, per, med, duMonthCell: duField } = this.aigDetails;
 
-    console.log(this.sheet, aigDetails);
+    console.log(this.sheet, this.aigDetails);
 
     let drugRows: csrxSheet[] = rows;
 
@@ -292,14 +140,14 @@ export class aig extends Base {
 
     console.log(JSON.stringify(drugRows));
 
-    const overRows = drugRows.filter(row => applyOperation(Number(row["mg/day"]), aigDetails));
+    const overRows = drugRows.filter(row => applyOperation(Number(row["mg/day"]), this.aigDetails));
     const ratio = overRows.length / drugRows.length * 100;
     // Set the values to be used back over in common
-    Base.aigData[this.sheet].highpct = ratio;
+    Base.aigData[this.aigDetails.aigReference].highpct = ratio;
 
     if (per && familyCount) {
       const perVal = drugRows.length / familyCount * 100;
-      Base.aigData[this.sheet]['per'] = perVal;
+      Base.aigData[this.aigDetails.aigReference].per = perVal;
     }
 
     if (med) {
@@ -307,7 +155,7 @@ export class aig extends Base {
       if (family === 'methadone') {
         methadoneMed(overRows);
       } else {
-        medCalc(overRows, aigDetails);
+        medCalc(overRows, this.aigDetails);
       }
     }
 
