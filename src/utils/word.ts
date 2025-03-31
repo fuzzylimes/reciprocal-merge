@@ -180,7 +180,7 @@ export class TableData {
 
     for (let rowIndex = 0; rowIndex < column0Values.length; rowIndex++) {
       const rowLabel = column0Values[rowIndex];
-      if (exactMatch ? rowLabel === label : rowLabel.toLowerCase().includes(label)) {
+      if (exactMatch ? rowLabel === label : rowLabel.toLowerCase().includes(label.toLowerCase())) {
         return this.getCellByIndex(rowIndex, columnIndex);
       }
     }

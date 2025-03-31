@@ -295,234 +295,193 @@ export class common extends Base {
     this.record.purchase = this.calculations.getCellByRowLabel(CalcKeys.purchase);
     this.record.cspurchase = this.calculations.getCellByRowLabel(CalcKeys.cspurchase);
 
-
     // Alprazolam Family
     const { alpraz } = Base.aigData;
     this.record.alprazfam = 'Alprazolam Family';
     let [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.alpraz).duMonthCell);
-    this.record.alprazfamdumonth = du;
-    this.record.alprazfamtimes = times;
+    this.record.alprazfamdumonth = alpraz.month = Number(du);
+    this.record.alprazfamtimes = alpraz.times = Number(times);
     this.record.alprazfamhighdose = `${((alpraz.highpct || 0)).toFixed(0)}%`;
-    alpraz.month = Number(this.record.alprazfamdumonth);
-    alpraz.times = Number(this.record.alprazfamtimes);
 
     // Alprazolam 2mg
     const { alpraz2 } = Base.aigData;
     this.record.alpraz2 = 'Alprazolam 2mg';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.alpraz2).duMonthCell);
-    this.record.alpraz2dumonth = du;
-    this.record.alpraz2times = times;
+    this.record.alpraz2dumonth = alpraz2.month = Number(du);
+    this.record.alpraz2times = alpraz2.times = Number(times);
     this.record.alpraz2high = `${((alpraz2.highpct || 0)).toFixed(0)}%`;
-    alpraz2.month = Number(this.record.alpraz2dumonth);
-    alpraz2.times = Number(this.record.alpraz2high);
 
     // Amphetamine
     const { amphet } = Base.aigData;
     this.record.amphetamine = 'Amphetamine';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.amphet).duMonthCell);
-    this.record.amphetdumonth = du;
-    this.record.amphettimes = times;
+    this.record.amphetdumonth = amphet.month = Number(du);
+    this.record.amphettimes = amphet.times = Number(times);
     this.record.amphethigh = `${((amphet.highpct || 0)).toFixed(0)}%`;
-    amphet.month = Number(this.record.amphetdumonth);
-    amphet.times = Number(this.record.amphettimes);
 
     // Buprenorphine 8mg
     const { bupe } = Base.aigData;
     this.record.bupe = 'Buprenorphine 8mg';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.bupe).duMonthCell);
-    this.record.bupedumonth = du;
-    this.record.bupetimes = times;
+    this.record.bupedumonth = bupe.month = Number(du);
+    this.record.bupetimes = bupe.times = Number(times);
     this.record.bupehigh = `${((bupe.highpct || 0)).toFixed(0)}%`;
     this.record.bupefamper = `${(bupe.per || 0).toFixed(2)}%`
-    bupe.month = Number(this.record.bupedumonth);
-    bupe.times = Number(this.record.bupetimes);
 
     // Carisoprodol
     const { cariso } = Base.aigData;
     this.record.carisoprodol = 'Carisoprodol';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.cariso).duMonthCell);
-    this.record.carisodumonth = du;
-    this.record.carisotimes = times;
+    this.record.carisodumonth = cariso.month = Number(du);
+    this.record.carisotimes = cariso.times = Number(times);
     this.record.carisohigh = `${((cariso.highpct || 0)).toFixed(0)}%`;
-    cariso.month = Number(this.record.carisodumonth);
-    cariso.times = Number(this.record.carisotimes);
 
     // Fentanyl
     const { fent } = Base.aigData;
     this.record.fentanyl = 'Fentanyl';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.fent).duMonthCell);
-    this.record.fentdumonth = du;
-    this.record.fenttimes = times;
+    this.record.fentdumonth = fent.month = Number(du);
+    this.record.fenttimes = fent.times = Number(times);
     this.record.fenthigh = `${((fent.highpct || 0)).toFixed(0)}%`;
     this.record.fentmedhigh = fent.highmed;
     this.record.fentmedlow = fent.lowmed;
-    fent.month = Number(this.record.fentdumonth);
-    fent.times = Number(this.record.fenttimes);
 
     // Hydrocodone Family
     const { hydroco } = Base.aigData;
     this.record.hydrocofam = 'Hydrocodone Family';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydroco).duMonthCell);
-    this.record.hydrocodumonth = du;
-    this.record.hydrocotimes = times;
+    this.record.hydrocodumonth = hydroco.month = Number(du);
+    this.record.hydrocotimes = hydroco.times = Number(times);
     this.record.hydrocohigh = `${((hydroco.highpct || 0)).toFixed(0)}%`;
     this.record.hydrocomedhigh = hydroco.highmed;
     this.record.hydrocomedlow = hydroco.lowmed;
-    hydroco.month = Number(this.record.hydrocodumonth);
-    hydroco.times = Number(this.record.hydrocotimes);
 
     // Hydrocodone 10/325mg
     const { hydroco10 } = Base.aigData;
     this.record['hydroco10/325'] = 'Hydrocodone 10/325mg';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydroco10).duMonthCell);
-    this.record.hydroco10dumonth = du;
-    this.record.hydroco10times = times;
+    this.record.hydroco10dumonth = hydroco10.month = Number(du);
+    this.record.hydroco10times = hydroco10.times = Number(times);
     this.record.hydroco10high = `${((hydroco10.highpct || 0)).toFixed(0)}%`;
     this.record.hydroco10perc = `${(hydroco10.per || 0).toFixed(2)}%`
     this.record.hydroco10medhigh = hydroco10.highmed;
     this.record.hydroco10medlow = hydroco10.lowmed;
-    hydroco10.month = Number(this.record.hydroco10dumonth);
-    hydroco10.times = Number(this.record.hydroco10times);
 
     // Hydromorphone
     const { hydromorph } = Base.aigData;
     this.record.hydromorph = 'Hydromorphone';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydromorph).duMonthCell);
-    this.record.hydromorphdumonth = du;
-    this.record.hydromorphtimes = times;
+    this.record.hydromorphdumonth = hydromorph.month = Number(du);
+    this.record.hydromorphtimes = hydromorph.times = Number(times);
     this.record.hydromorphhigh = `${((hydromorph.highpct || 0)).toFixed(0)}%`;
     this.record.hydromorphmedhigh = hydromorph.highmed;
     this.record.hydromorphmedlow = hydromorph.lowmed;
-    hydromorph.month = Number(this.record.hydromorphdumonth);
-    hydromorph.times = Number(this.record.hydromorphtimes);
 
     // Hydromorphone 8mg
     const { hydromorph8 } = Base.aigData;
     this.record.hydromorph8 = 'Hydromorphone 8mg';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydromorph8).duMonthCell);
-    this.record.hydromorph8dumonth = du;
-    this.record.hydromorph8times = times;
+    this.record.hydromorph8dumonth = hydromorph8.month = Number(du);
+    this.record.hydromorph8times = hydromorph8.times = Number(times);
     this.record.hydromorph8high = `${((hydromorph8.highpct || 0)).toFixed(0)}%`;
     this.record.hydromorph8medhigh = hydromorph8.highmed;
     this.record.hydromorph8medlow = hydromorph8.lowmed;
-    hydromorph8.month = Number(this.record.hydromorph8dumonth);
-    hydromorph8.times = Number(this.record.hydromorph8times);
 
     // Lisdexamfetamine
     const { lisdex } = Base.aigData;
     this.record.lisdex = 'Lisdexamfetamine';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.lisdex).duMonthCell);
-    this.record.lisdexdumonth = du;
-    this.record.lisdextimes = times;
+    this.record.lisdexdumonth = lisdex.month = Number(du);
+    this.record.lisdextimes = lisdex.times = Number(times);
     this.record.lisdexhigh = `${((lisdex.highpct || 0)).toFixed(0)}%`;
-    lisdex.month = Number(this.record.lisdexdumonth);
-    lisdex.times = Number(this.record.lisdextimes);
 
     // Methadone
     const { metha } = Base.aigData;
     this.record.methadone = 'Methadone';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.metha).duMonthCell);
-    this.record.methadumonth = du;
-    this.record.methatimes = times;
+    this.record.methadumonth = metha.month = Number(du);
+    this.record.methatimes = metha.times = Number(times);
     this.record.methahigh = `${((metha.highpct || 0)).toFixed(0)}%`;
     this.record.methamedhigh = metha.highmed;
     this.record.methamedlow = metha.lowmed;
-    metha.month = Number(this.record.methadumonth);
-    metha.times = Number(this.record.methatimes);
 
     // Methylphenidate
     const { methyl } = Base.aigData;
     this.record.methylphen = 'Methylphenidate';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.methyl).duMonthCell);
-    this.record.methyldumonth = du;
-    this.record.methyltimes = times;
+    this.record.methyldumonth = methyl.month = Number(du);
+    this.record.methyltimes = methyl.times = Number(times);
     this.record.methylhigh = `${((methyl.highpct || 0)).toFixed(0)}%`;
-    methyl.month = Number(this.record.methyldumonth);
-    methyl.times = Number(this.record.methyltimes);
 
     // Morphine
     const { morph } = Base.aigData;
     this.record.morphine = 'Morphine';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.morph).duMonthCell);
-    this.record.morphdumonth = du;
-    this.record.morphtimes = times;
+    this.record.morphdumonth = morph.month = Number(du);
+    this.record.morphtimes = morph.times = Number(times);
     this.record.morphhigh = `${((morph.highpct || 0)).toFixed(0)}%`;
     this.record.morphmedhigh = morph.highmed;
     this.record.morphmedlow = morph.lowmed;
-    morph.month = Number(this.record.morphdumonth);
-    morph.times = Number(this.record.morphtimes);
 
     // Oxycodone Family
     const { oxy } = Base.aigData;
     this.record.oxycodone = 'Oxycodone Family';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy).duMonthCell);
-    this.record.oxydumonth = du;
-    this.record.oxytimes = times;
+    this.record.oxydumonth = oxy.month = Number(du);
+    this.record.oxytimes = oxy.times = Number(times);
     this.record.oxyhigh = `${((oxy.highpct || 0)).toFixed(0)}%`;
     this.record.oxymedhigh = oxy.highmed;
     this.record.oxymedlow = oxy.lowmed;
-    oxy.month = Number(this.record.oxydumonth);
-    oxy.times = Number(this.record.oxytimes);
 
     // Oxycodone 15mg
     const { oxy15 } = Base.aigData;
     this.record.oxy15 = 'Oxycodone 15mg';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy15).duMonthCell);
-    this.record.oxy15dumonth = du;
-    this.record.oxy15times = times;
+    this.record.oxy15dumonth = oxy15.month = Number(du);
+    this.record.oxy15times = oxy15.times = Number(times);
     this.record.oxy15high = `${((oxy15.highpct || 0)).toFixed(0)}%`;
     this.record.oxy15medhigh = oxy15.highmed;
     this.record.oxy15medlow = oxy15.lowmed;
-    oxy15.month = Number(this.record.oxy15dumonth);
-    oxy15.times = Number(this.record.oxy15times);
 
     // Oxycodone 30mg
     const { oxy30 } = Base.aigData;
     this.record.oxy30 = 'Oxycodone 30mg';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy30).duMonthCell);
-    this.record.oxy30dumonth = du;
-    this.record.oxy30times = times;
+    this.record.oxy30dumonth = oxy30.month = Number(du);
+    this.record.oxy30times = oxy30.times = Number(times);
     this.record.oxy30high = `${((oxy30.highpct || 0)).toFixed(0)}%`;
     this.record.oxy30medhigh = oxy30.highmed;
     this.record.oxy30medlow = oxy30.lowmed;
-    oxy30.month = Number(this.record.oxy30dumonth);
-    oxy30.times = Number(this.record.oxy30times);
 
     // Oxycodone 10/325mg
     const { oxy10 } = Base.aigData;
     this.record['oxy10/325'] = 'Oxycodone 10/325mg';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy10).duMonthCell);
-    this.record.oxy10dumonth = du;
-    this.record.oxy10times = times;
+    this.record.oxy10dumonth = oxy10.month = Number(du);
+    this.record.oxy10times = oxy10.times = Number(times);
     this.record.oxy10high = `${((oxy10.highpct || 0)).toFixed(0)}%`;
     this.record.oxy10medhigh = oxy10.highmed;
     this.record.oxy10medlow = oxy10.lowmed;
-    oxy10.month = Number(this.record.oxy10dumonth);
-    oxy10.times = Number(this.record.oxy10times);
 
     // Oxymorphone
     const { oxymorph } = Base.aigData;
     this.record.oxymorph = 'Oxymorphone';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxymorph).duMonthCell);
-    this.record.oxymorphdumonth = du;
-    this.record.oxymorphtimes = times;
+    this.record.oxymorphdumonth = oxymorph.month = Number(du);
+    this.record.oxymorphtimes = oxymorph.times = Number(times);
     this.record.oxymorphhigh = `${((oxymorph.highpct || 0)).toFixed(0)}%`;
     this.record.oxymorphmedhigh = oxymorph.highmed;
     this.record.oxymorphmedlow = oxymorph.lowmed;
-    oxymorph.month = Number(this.record.oxymorphdumonth);
-    oxymorph.times = Number(this.record.oxymorphtimes);
 
     // Tramadol
     const { tram } = Base.aigData;
     this.record.tramadol = 'Tramadol';
     [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.tram).duMonthCell);
-    this.record.tramdumonth = du;
-    this.record.tramtimes = times;
+    this.record.tramdumonth = tram.month = Number(du);
+    this.record.tramtimes = tram.times = Number(times);
     this.record.tramhigh = `${((tram.highpct || 0)).toFixed(0)}%`;
     this.record.trammedhigh = tram.highmed;
     this.record.trammedlow = tram.lowmed;
-    tram.month = Number(this.record.tramdumonth);
-    tram.times = Number(this.record.tramhigh);
   }
 
   async prevdate() {

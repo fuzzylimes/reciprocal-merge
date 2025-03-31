@@ -63,20 +63,23 @@ export class aig extends Base {
     };
 
     const matchesFamily = (row: csrxSheet, family?: string) => {
-      return !family || String(row.Family) === family;
+      return !family || String(row.Family?.toLowerCase()) === family?.toLowerCase();
     };
 
     const highlow = (rows: csrxSheet[]) => {
       let high = 0;
       let low = 10000000;
 
-      for (const row of rows) {
-        const val = Number(row["mg/day"]);
-        if (val > high) high = val;
-        if (val < low) low = val;
+      // handle the case where there are now rows
+      if (rows.length === 0) {
+        low = 0;
+      } else {
+        for (const row of rows) {
+          const val = Number(row["mg/day"]);
+          if (val > high) high = val;
+          if (val < low) low = val;
+        }
       }
-
-      console.log(rows);
 
       return { high, low };
     }

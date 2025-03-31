@@ -84,7 +84,7 @@ export type Practitioner = {
  * @throws Error if practitioner doesn't exist in DB
  */
 export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practitioner => {
-  const rows = utils.sheet_to_json<pracRefSheet>(sheet, { header: "A", blankrows: true })?.slice(1);
+  const rows = utils.sheet_to_json<pracRefSheet>(sheet, { blankrows: true });
   if (!rows) {
     throw Error(`Practitioner DB is empty.`)
   }

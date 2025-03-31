@@ -303,7 +303,7 @@ export const CalcKeys = {
   account: ' calculations ',
   rxday: " rx's daily",
   rxmonth: " rx's per month",
-  csrxvol: 'dispensed by Rx',
+  csrxvol: 'dispensed by rx',
   csdu: 'dispensed by dosage',
   purchase: '% dosage units purchased',
   cspurchase: '% control dosage units purchased',
