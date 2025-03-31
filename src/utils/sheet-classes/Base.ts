@@ -1,5 +1,6 @@
 import { WorkBook, utils } from 'xlsx';
 import { TableData } from '../word';
+import { aigReference, aigTracking } from '../aig-helper';
 
 export class Base {
   outData: WorkBook;
@@ -9,14 +10,19 @@ export class Base {
   headers: string[] = [];
   data: unknown[][] = [[]];
   sheet: string;
-  aigPcts: Record<string, number> = {};
 
-  constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook, sheet: string) {
+  // Static property - shared across ALL instances
+  static aigData: Record<aigReference, Partial<aigTracking>> = Object.fromEntries(
+    Object.values(aigReference).map(key => [key, {}])
+  ) as Record<aigReference, Partial<aigTracking>>;
+
+  constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook, sheet: string, headers: string[]) {
     this.outData = outData;
     this.report = report;
     this.calculations = calculations;
     this.practitioners = practitioners;
     this.sheet = sheet;
+    this.headers = headers;
   }
 
   async build() {

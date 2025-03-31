@@ -75,9 +75,13 @@ function GenerateTab() {
       } else {
         showNotification('Save operation cancelled', 'info');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error during template generation:', error);
-      showNotification('Failed to generate template. See console for details.', 'error');
+      if (error instanceof Error) {
+        showNotification(`Failed to generate template: ${error.message}.`, 'error');
+      } else {
+        showNotification('Failed to generate template. See console for details.', 'error');
+      }
     } finally {
       setIsProcessing(false);
     }

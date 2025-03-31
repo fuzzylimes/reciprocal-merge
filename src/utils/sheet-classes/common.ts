@@ -1,68 +1,46 @@
 import { WorkBook, utils } from 'xlsx';
-import { TableData, getCellValue as getWordCellValue } from '../word';
+import { TableData } from '../word';
 import { getCellValue, sumColumn } from '../excel';
 import { Base } from './Base';
-import { ReportSheets as rs } from '../sheets';
+import { CalcKeys, commonRecord, irSheet, medSheet, multipracSheet, ReportSheets as rs, trinitySheet } from '../sheets';
 import * as c from '../constants';
+import { headers } from "../sheets";
+import { aigReference, getAigByReference } from '../aig-helper';
 
 export type row = Record<string, unknown>;
 
 export class common extends Base {
-  trinityNum: number = 0;
-  immNum: number = 0;
-  multipracNum: number = 0;
-  highmedNum: number = 0;
-  filteredHighMedRows: row[] = [];
+  filteredHighMedRows: medSheet[] = [];
+  record: commonRecord = {};
 
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
-    super(outData, report, calculations, practitioners, 'common');
+    super(outData, report, calculations, practitioners, 'common', headers.common);
   }
 
   async name() {
-    this.headers.push('name');
     try {
-      const cellValue = getWordCellValue(this.calculations, 'A1');
-      const value = cellValue?.split(/(\w{2}\d{7})/g)[0].trim();
-      this.data[0].push(value || '');
+      const cellValue = this.calculations.getCellValue('A1');
+      this.record.name = cellValue?.split(/(\w{2}\d{7})/g)[0].trim();
     } catch (error) {
       console.error(error);
-      this.data[0].push('');
     }
-  }
-
-  async account() {
-    this.headers.push('account');
-    const cellValue = getWordCellValue(this.calculations, 'B1');
-    this.data[0].push(cellValue || '');
   }
 
   async dea() {
-    this.headers.push('dea');
     try {
       const cellValue = getCellValue(this.report, rs.summary, 'A3');
-      const value = cellValue?.split('#: ')[1].trim();
-      this.data[0].push(value || '');
+      this.record.dea = cellValue?.split('#: ')[1].trim();
     } catch (error) {
       console.error(error);
-      this.data[0].push('');
     }
   }
 
-  async address() {
-    this.headers.push('address');
-    const address = getCellValue(this.report, rs.summary, 'A8');
-    const cityStateZip = getCellValue(this.report, rs.summary, 'A9');
-    const value = `${address}\n${cityStateZip}`;
-    this.data[0].push(value);
-  }
-
   async daterange() {
-    this.headers.push('daterange');
     const regex = /Data Range: (\d{4}-\d{2}-\d{2}) thru (\d{4}-\d{2}-\d{2})/;
     const cellValue = getCellValue(this.report, rs.summary, 'A1');
     const match = cellValue?.match(regex);
 
-    let value = '';
+    let value = null;
 
     if (match) {
       const startDate = new Date(match[1]);
@@ -75,80 +53,37 @@ export class common extends Base {
       value = `${startFormatted} - ${endFormatted}`;
     }
 
-    this.data[0].push(value);
-  }
-
-  async rxday() {
-    this.headers.push('rxday');
-    const cellValue = getWordCellValue(this.calculations, 'B15');
-    this.data[0].push(cellValue || '');
-  }
-
-  async rxmonth() {
-    this.headers.push('rxmonth');
-    const cellValue = getWordCellValue(this.calculations, 'B14');
-    this.data[0].push(cellValue || '');
-  }
-
-  async csrxvol() {
-    this.headers.push('csrxvol');
-    const cellValue = getWordCellValue(this.calculations, 'B11');
-    this.data[0].push(cellValue || '');
-  }
-
-  async csdu() {
-    this.headers.push('csdu');
-    const cellValue = getWordCellValue(this.calculations, 'B10');
-    this.data[0].push(cellValue || '');
-  }
-
-  async purchase() {
-    this.headers.push('purchase');
-    const cellValue = getWordCellValue(this.calculations, 'B8');
-    this.data[0].push(cellValue || '');
-  }
-
-  async cspurchase() {
-    this.headers.push('cspurchase');
-    const cellValue = getWordCellValue(this.calculations, 'B9');
-    this.data[0].push(cellValue || '');
+    this.record.daterange = value;
   }
 
   async cashnoncs() {
-    this.headers.push('cashnoncs');
     const cellValue = getCellValue(this.report, rs.summary, 'C15');
     // this is returned as a decimal, so we need to convert it to a percentage
-    const value = cellValue ? `${(Number(cellValue) * 100).toFixed(0)}%` : '';
-    this.data[0].push(value || '');
+    this.record.cashnoncs = cellValue ? `${(Number(cellValue) * 100).toFixed(0)}%` : '';
   }
 
   async cashcs() {
-    this.headers.push('cashcs');
     const cellValue = getCellValue(this.report, rs.summary, 'C14');
     // this is returned as a decimal, so we need to convert it to a percentage
-    const value = cellValue ? `${(Number(cellValue) * 100).toFixed(0)}%` : '';
-    this.data[0].push(value || '');
+    this.record.cashcs = cellValue ? `${(Number(cellValue) * 100).toFixed(0)}%` : '';
   }
 
   async top10csnum() {
-    this.headers.push('top10csnum');
-    this.data[0].push('TODO');
+    this.record.top10csnum = 'TODO';
   }
 
   async trinity() {
-    this.headers.push('trinity');
     const sheet = this.report.Sheets[rs.trinityConcerns];
-    const rows = utils.sheet_to_json<row>(sheet, { header: "A" })?.slice(1);
+    const rows = utils.sheet_to_json<trinitySheet>(sheet);
     if (!rows) {
-      this.data[0].push('');
       return;
     }
 
     const mapping: Record<string, Record<number, boolean>> = {};
 
     for (const row of rows) {
-      const family = (row.L as string).toLowerCase();
-      const patientId = row.K as number;
+      const family = row.Family.toLowerCase();
+      const patientId = row['Patient ID'];
 
       if (mapping[family]) {
         if (!mapping[family][patientId]) {
@@ -166,23 +101,15 @@ export class common extends Base {
     const amphetamineKeys = Object.keys(amphetamineItems);
     const amphetamineCount = amphetamineKeys.length;
 
-    this.trinityNum = carisoprodolCount + amphetamineCount;
+    this.record.trinitynum = carisoprodolCount + amphetamineCount;
 
-    const value = `${carisoprodolCount} ${c.carisoprodol} patients (${carisoprodolKeys.join(', ')})\n${amphetamineCount} ${c.amphetamine} patients (${amphetamineKeys.join(', ')})`;
-    this.data[0].push(value);
-  }
-
-  async trinitynum() {
-    this.headers.push('trinitynum');
-    this.data[0].push(this.trinityNum);
+    this.record.trinity = `${carisoprodolCount} ${c.carisoprodol} patients (${carisoprodolKeys.join(', ')})\n${amphetamineCount} ${c.amphetamine} patients (${amphetamineKeys.join(', ')})`;
   }
 
   async imm() {
-    this.headers.push('imm');
     const sheet = this.report.Sheets[rs.immediateRelease];
-    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
+    const rows = utils.sheet_to_json<irSheet>(sheet, { blankrows: true });
     if (!rows) {
-      this.data[0].push('');
       return;
     }
 
@@ -191,10 +118,10 @@ export class common extends Base {
     const mapping: Record<number, Record<string, boolean>> = {};
     const patientsList: number[] = [];
     for (const row of rows) {
-      if (!row.H) continue;
+      if (!row['Drug Name']) continue;
 
-      const drugName = (row.H as string).toLowerCase();
-      const patientId = row.K as number;
+      const drugName = row['Drug Name'].toLowerCase();
+      const patientId = row['Patient ID'];
 
       if (mapping[patientId]) {
         mapping[patientId][drugName] = true;
@@ -212,85 +139,62 @@ export class common extends Base {
 
     let value = '';
     if (patientsList.length) {
-      this.immNum = patientsList.length;
-      value = `${this.immNum} patients (${patientsList.join(', ')})`;
+      this.record.immednum = patientsList.length;
+      value = `${this.record.immednum} patients (${patientsList.join(', ')})`;
     }
-    this.data[0].push(value);
-  }
-
-  async immednum() {
-    this.headers.push('immednum');
-    this.data[0].push(this.immNum);
+    this.record.imm = value;
   }
 
   async multiprac() {
-    this.headers.push('multiprac');
     const sheet = this.report.Sheets[rs.multiPractioner];
-    const rows = utils.sheet_to_json<row>(sheet, { header: "A" })?.slice(1);
+    const rows = utils.sheet_to_json<multipracSheet>(sheet);
     if (!rows) {
-      this.data[0].push('');
       return;
     }
 
     const mapping: Record<number, boolean> = {};
 
     for (const row of rows) {
-      const patientId = row.K as number;
+      const patientId = row['Patient ID'];
       mapping[patientId] = true;
     }
 
     const patientIds = Object.keys(mapping);
-    this.multipracNum = patientIds.length;
+    this.record.multipracnum = patientIds.length;
 
-    const value = `${this.multipracNum} patients (${patientIds.join(', ')})`;
-    this.data[0].push(value);
-  }
-
-  async multipracnum() {
-    this.headers.push('multipracnum');
-    this.data[0].push(this.multipracNum);
+    this.record.multiprac = `${this.record.multipracnum} patients (${patientIds.join(', ')})`;
   }
 
   async highmed() {
-    this.headers.push('highmed');
     const sheet = this.report.Sheets[rs.medWatch];
-    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1);
+    const rows = utils.sheet_to_json<medSheet>(sheet, { blankrows: true });
     if (!rows) {
-      this.data[0].push('');
       return;
     }
 
-    this.filteredHighMedRows = rows.filter(row => row.F && Number(row.F) >= 120)
+    this.filteredHighMedRows = rows.filter(row => row['Daily M.E.D per Prescription'] && Number(row['Daily M.E.D per Prescription']) >= 120)
     const perscriptionCount = this.filteredHighMedRows.length;
-    const uniquePatients = new Set(this.filteredHighMedRows.map(row => row.H));
+    const uniquePatients = new Set(this.filteredHighMedRows.map(row => row['Patient ID']));
     const patientCount = uniquePatients.size;
 
-    this.highmedNum = perscriptionCount;
+    this.record.highmednum = perscriptionCount;
     let value = '';
     if (perscriptionCount) {
       value = `There are ${perscriptionCount} perscriptions between ${patientCount} patients with an MED of 120 or higher`;
     }
-    this.data[0].push(value);
-  }
-
-  async highmednum() {
-    this.headers.push('highmednum');
-    this.data[0].push(this.highmedNum);
+    this.record.highmed = value;
   }
 
   async highmedpres() {
-    this.headers.push('highmedpres');
-
     if (!this.filteredHighMedRows.length) {
-      this.data[0].push('');
       return;
     }
 
     // Need to find the perscriber with the most perscriptions, then get the count and Id of the patients
     const mapping: Record<string, Record<number, boolean>> = {};
     for (const row of this.filteredHighMedRows) {
-      const perscriber = row.K as string;
-      const patientId = row.H as number;
+      const perscriber = row['DEA#'];
+      const patientId = row['Patient ID'];
 
       if (mapping[perscriber]) {
         if (!mapping[perscriber][patientId]) {
@@ -314,15 +218,13 @@ export class common extends Base {
     });
 
     const value = `The most prolific prescriber is ${maxPerscriber} with ${maxCount} perscriptions between ${maxPatients.length} patients`;
-    this.data[0].push(value);
+    this.record.highmedpres = value;
   }
 
   async spatial() {
-    this.headers.push('spatial');
     const sheet = this.report.Sheets[rs.spatial];
     const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(6, 9);
     if (!rows) {
-      this.data[0].push('');
       return;
     }
 
@@ -330,507 +232,285 @@ export class common extends Base {
     let count = 0;
     for (const row of rows) {
       for (const col of ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']) {
-        if (row[col]) count++; 
+        if (row[col]) count++;
       }
     }
 
-    this.data[0].push(count);
+    this.record.spatial = count;
   }
 
   async csphyphys() {
-    this.headers.push('csphyphys');
     const sheet = this.report.Sheets[rs.spatial];
-    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(38, 41);
-    // if (!rows) {
-    //   this.data[0].push('');
-    //   return;
-    // }
-
-    // let sum = 0;
-    // for (const row of rows) {
-    //   sum += Number(row.E) || 0;
-    // }
     const sum = sumColumn(sheet, 38, 41, 'E');
 
-    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
-    this.data[0].push(value);
+    this.record.csphyphys = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
   }
 
   async phyphys() {
-    this.headers.push('phyphys');
     const sheet = this.report.Sheets[rs.spatial];
-    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(38, 41);
-    // if (!rows) {
-    //   this.data[0].push('');
-    //   return;
-    // }
-
-    // let sum = 0;
-    // for (const row of rows) {
-    //   sum += Number(row.G) || 0;
-    // }
     const sum = sumColumn(sheet, 38, 41, 'G');
 
 
-    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
-    this.data[0].push(value);
+    this.record.phyphys = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
   }
 
   async csphypt() {
-    this.headers.push('csphypt');
     const sheet = this.report.Sheets[rs.spatial];
-    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(51, 54);
-    // if (!rows) {
-    //   this.data[0].push('');
-    //   return;
-    // }
-
-    // let sum = 0;
-    // for (const row of rows) {
-    //   sum += Number(row.E) || 0;
-    // }
     const sum = sumColumn(sheet, 51, 54, 'E');
 
-    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
-    this.data[0].push(value);
+    this.record.csphypt = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
   }
 
   async phypt() {
-    this.headers.push('phypt');
     const sheet = this.report.Sheets[rs.spatial];
-    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(51, 54);
-    // if (!rows) {
-    //   this.data[0].push('');
-    //   return;
-    // }
-
-    // let sum = 0;
-    // for (const row of rows) {
-    //   sum += Number(row.G) || 0;
-    // }
     const sum = sumColumn(sheet, 51, 54, 'G');
 
-    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
-    this.data[0].push(value);
+    this.record.phypt = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
   }
 
   async csphyspt() {
-    this.headers.push('csphyspt');
     const sheet = this.report.Sheets[rs.spatial];
-    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(64, 67);
-    // if (!rows) {
-    //   this.data[0].push('');
-    //   return;
-    // }
-
-    // let sum = 0;
-    // for (const row of rows) {
-    //   sum += Number(row.E) || 0;
-    // }
     const sum = sumColumn(sheet, 64, 67, 'E');
 
-    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
-    this.data[0].push(value);
+    this.record.csphyspt = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
   }
 
   async physpt() {
-    this.headers.push('physpt');
     const sheet = this.report.Sheets[rs.spatial];
-    // const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(64, 67);
-    // if (!rows) {
-    //   this.data[0].push('');
-    //   return;
-    // }
-
-    // let sum = 0;
-    // for (const row of rows) {
-    //   sum += Number(row.G) || 0;
-    // }
     const sum = sumColumn(sheet, 64, 67, 'G');
 
-    const value = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
-    this.data[0].push(value);
-  }
-
-  async alprazfam() {
-    this.headers.push('alprazfam');
-    this.data[0].push('Alprazolam Family');
-  }
-
-  async alprazfamdumonth() {
-    this.headers.push('alprazfamdumonth');
-    const cellValue = getWordCellValue(this.calculations, 'B19');
-    this.data[0].push(cellValue); 
-  }
-
-  async alprazfamtimes() {
-    this.headers.push('alprazfamtimes');
-    const cellValue = getWordCellValue(this.calculations, 'B21');
-    this.data[0].push(cellValue); 
-  }
-
-  async alprazfamhighdose() {
-    this.headers.push('alprazfamhighdose');
-    const value = this.aigPcts['aig1'] || 0;
-    this.data[0].push(`${(value * 100).toFixed(0)}%`);
-  }
-
-  async alpraz2() {
-    this.headers.push('alpraz2');
-  }
-
-  async alpraz2dumonth() {
-    this.headers.push('alpraz2dumonth');
-  }
-
-  async alpraz2times() {
-    this.headers.push('alpraz2times');
-  }
-
-  async alpraz2high() {
-    this.headers.push('alpraz2high');
-  }
-
-  async amphetamine() {
-    this.headers.push('amphetamine');
-  }
-
-  async amphetdumonth() {
-    this.headers.push('amphetdumonth');
-  }
-
-  async amphettimes() {
-    this.headers.push('amphettimes');
-  }
-
-  async amphethigh() {
-    this.headers.push('amphethigh');
-  }
-
-  async bupe() {
-    this.headers.push('bupe');
-  }
-
-  async bupedumonth() {
-    this.headers.push('bupedumonth');
-  }
-
-  async bupetimes() {
-    this.headers.push('bupetimes');
-  }
-
-  async bupehigh() {
-    this.headers.push('bupehigh');
-  }
-
-  async bupefamper() {
-    this.headers.push('bupefamper');
-  }
-
-  async carisoprodol() {
-    this.headers.push('carisoprodol');
-  }
-
-  async carisodumonth() {
-    this.headers.push('carisodumonth');
-  }
-
-  async carisotimes() {
-    this.headers.push('carisotimes');
-  }
-
-  async carisohigh() {
-    this.headers.push('carisohigh');
-  }
-
-  async fentanyl() {
-    this.headers.push('fentanyl');
-  }
-
-  async fentdumonth() {
-    this.headers.push('fentdumonth');
-  }
-
-  async fenttimes() {
-    this.headers.push('fenttimes');
-  }
-
-  async fenthigh() {
-    this.headers.push('fenthigh');
-  }
-
-  async hydrocofam() {
-    this.headers.push('hydrocofam');
-  }
-
-  async hydrocodumonth() {
-    this.headers.push('hydrocodumonth');
-  }
-
-  async hydrocotimes() {
-    this.headers.push('hydrocotimes');
-  }
-
-  async hydrocohigh() {
-    this.headers.push('hydrocohigh');
-  }
-
-  async hydroco10_325() {
-    this.headers.push('hydroco10/325');
-  }
-
-  async hydroco10dumonth() {
-    this.headers.push('hydroco10dumonth');
-  }
-
-  async hydroco10times() {
-    this.headers.push('hydroco10times');
-  }
-
-  async hydroco10high() {
-    this.headers.push('hydroco10high');
-  }
-
-  async hydroco10perc() {
-    this.headers.push('hydroco10perc');
-  }
-
-  async hydromorph() {
-    this.headers.push('hydromorph');
-  }
-
-  async hydromorphdumonth() {
-    this.headers.push('hydromorphdumonth');
-  }
-
-  async hydromorphtimes() {
-    this.headers.push('hydromorphtimes');
-  }
-
-  async hydromorphhigh() {
-    this.headers.push('hydromorphhigh');
-  }
-
-  async hydromorph8() {
-    this.headers.push('hydromorph8');
-  }
-
-  async hydromorph8dumonth() {
-    this.headers.push('hydromorph8dumonth');
-  }
-
-  async hydromorph8times() {
-    this.headers.push('hydromorph8times');
-  }
-
-  async hydromorph8high() {
-    this.headers.push('hydromorph8high');
-  }
-
-  async lisdex() {
-    this.headers.push('lisdex');
-  }
-
-  async lisdexdumonth() {
-    this.headers.push('lisdexdumonth');
-  }
-
-  async lisdextimes() {
-    this.headers.push('lisdextimes');
-  }
-
-  async lisdexhigh() {
-    this.headers.push('lisdexhigh');
-  }
-
-  async methadone() {
-    this.headers.push('methadone');
-  }
-
-  async methadumonth() {
-    this.headers.push('methadumonth');
-  }
-
-  async methatimes() {
-    this.headers.push('methatimes');
-  }
-
-  async methahigh() {
-    this.headers.push('methahigh');
-  }
-
-  async methylphen() {
-    this.headers.push('methylphen');
-  }
-
-  async methyldumonth() {
-    this.headers.push('methyldumonth');
-  }
-
-  async methyltimes() {
-    this.headers.push('methyltimes');
-  }
-
-  async methylhigh() {
-    this.headers.push('methylhigh');
-  }
-
-  async morphine() {
-    this.headers.push('morphine');
-  }
-
-  async morphdumonth() {
-    this.headers.push('morphdumonth');
-  }
-
-  async morphtimes() {
-    this.headers.push('morphtimes');
-  }
-
-  async morphhigh() {
-    this.headers.push('morphhigh');
-  }
-
-  async oxycodone() {
-    this.headers.push('oxycodone');
-  }
-
-  async oxydumonth() {
-    this.headers.push('oxydumonth');
-  }
-
-  async oxytimes() {
-    this.headers.push('oxytimes');
-  }
-
-  async oxyhigh() {
-    this.headers.push('oxyhigh');
-  }
-
-  async oxy15() {
-    this.headers.push('oxy15');
-  }
-
-  async oxy15dumonth() {
-    this.headers.push('oxy15dumonth');
-  }
-
-  async oxy15times() {
-    this.headers.push('oxy15times');
-  }
-
-  async oxy15high() {
-    this.headers.push('oxy15high');
-  }
-
-  async oxy30() {
-    this.headers.push('oxy30');
-  }
-
-  async oxy30dumonth() {
-    this.headers.push('oxy30dumonth');
-  }
-
-  async oxy30times() {
-    this.headers.push('oxy30times');
-  }
-
-  async oxy30high() {
-    this.headers.push('oxy30high');
-  }
-
-  async oxy10_325() {
-    this.headers.push('oxy10/325');
-  }
-
-  async oxy10dumonth() {
-    this.headers.push('oxy10dumonth');
-  }
-
-  async oxy10times() {
-    this.headers.push('oxy10times');
-  }
-
-  async oxy10high() {
-    this.headers.push('oxy10high');
-  }
-
-  async oxymorph() {
-    this.headers.push('oxymorph');
-  }
-
-  async oxymorphdumonth() {
-    this.headers.push('oxymorphdumonth');
-  }
-
-  async oxymorphtimes() {
-    this.headers.push('oxymorphtimes');
-  }
-
-  async oxymorphhigh() {
-    this.headers.push('oxymorphhigh');
-  }
-
-  async tramadol() {
-    this.headers.push('tramadol');
-  }
-
-  async tramdumonth() {
-    this.headers.push('tramdumonth');
-  }
-
-  async tramtimes() {
-    this.headers.push('tramtimes');
-  }
-
-  async tramhigh() {
-    this.headers.push('tramhigh');
+    this.record.physpt = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
+  }
+
+  setStaticValues() {
+    const address = getCellValue(this.report, rs.summary, 'A8');
+    const cityStateZip = getCellValue(this.report, rs.summary, 'A9');
+    this.record.address = `${address}\n${cityStateZip}`;
+
+    this.record.account = this.calculations.getCellByRowLabel(CalcKeys.account);
+    this.record.rxday = this.calculations.getCellByRowLabel(CalcKeys.rxday);
+    this.record.rxmonth = this.calculations.getCellByRowLabel(CalcKeys.rxmonth);
+    this.record.csrxvol = this.calculations.getCellByRowLabel(CalcKeys.csrxvol);
+    this.record.csdu = this.calculations.getCellByRowLabel(CalcKeys.csdu);
+    this.record.purchase = this.calculations.getCellByRowLabel(CalcKeys.purchase);
+    this.record.cspurchase = this.calculations.getCellByRowLabel(CalcKeys.cspurchase);
+
+    // Alprazolam Family
+    const { alpraz } = Base.aigData;
+    this.record.alprazfam = 'Alprazolam Family';
+    let [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.alpraz).duMonthCell);
+    this.record.alprazfamdumonth = alpraz.month = du;
+    this.record.alprazfamtimes = alpraz.times = times;
+    this.record.alprazfamhighdose = `${((alpraz.highpct || 0)).toFixed(0)}%`;
+
+    // Alprazolam 2mg
+    const { alpraz2 } = Base.aigData;
+    this.record.alpraz2 = 'Alprazolam 2mg';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.alpraz2).duMonthCell);
+    this.record.alpraz2dumonth = alpraz2.month = du;
+    this.record.alpraz2times = alpraz2.times = times;
+    this.record.alpraz2high = `${((alpraz2.highpct || 0)).toFixed(0)}%`;
+
+    // Amphetamine
+    const { amphet } = Base.aigData;
+    this.record.amphetamine = 'Amphetamine';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.amphet).duMonthCell);
+    this.record.amphetdumonth = amphet.month = du;
+    this.record.amphettimes = amphet.times = times;
+    this.record.amphethigh = `${((amphet.highpct || 0)).toFixed(0)}%`;
+
+    // Buprenorphine 8mg
+    const { bupe } = Base.aigData;
+    this.record.bupe = 'Buprenorphine 8mg';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.bupe).duMonthCell);
+    this.record.bupedumonth = bupe.month = du;
+    this.record.bupetimes = bupe.times = times;
+    this.record.bupehigh = `${((bupe.highpct || 0)).toFixed(0)}%`;
+    this.record.bupefamper = `${(bupe.per || 0).toFixed(2)}%`
+
+    // Carisoprodol
+    const { cariso } = Base.aigData;
+    this.record.carisoprodol = 'Carisoprodol';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.cariso).duMonthCell);
+    this.record.carisodumonth = cariso.month = du;
+    this.record.carisotimes = cariso.times = times;
+    this.record.carisohigh = `${((cariso.highpct || 0)).toFixed(0)}%`;
+
+    // Fentanyl
+    const { fent } = Base.aigData;
+    this.record.fentanyl = 'Fentanyl';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.fent).duMonthCell);
+    this.record.fentdumonth = fent.month = du;
+    this.record.fenttimes = fent.times = times;
+    this.record.fenthigh = `${((fent.highpct || 0)).toFixed(0)}%`;
+    this.record.fentmedhigh = fent.highmed;
+    this.record.fentmedlow = fent.lowmed;
+
+    // Hydrocodone Family
+    const { hydroco } = Base.aigData;
+    this.record.hydrocofam = 'Hydrocodone Family';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydroco).duMonthCell);
+    this.record.hydrocodumonth = hydroco.month = du;
+    this.record.hydrocotimes = hydroco.times = times;
+    this.record.hydrocohigh = `${((hydroco.highpct || 0)).toFixed(0)}%`;
+    this.record.hydrocomedhigh = hydroco.highmed;
+    this.record.hydrocomedlow = hydroco.lowmed;
+
+    // Hydrocodone 10/325mg
+    const { hydroco10 } = Base.aigData;
+    this.record['hydroco10/325'] = 'Hydrocodone 10/325mg';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydroco10).duMonthCell);
+    this.record.hydroco10dumonth = hydroco10.month = du;
+    this.record.hydroco10times = hydroco10.times = times;
+    this.record.hydroco10high = `${((hydroco10.highpct || 0)).toFixed(0)}%`;
+    this.record.hydroco10perc = `${(hydroco10.per || 0).toFixed(2)}%`
+    this.record.hydroco10medhigh = hydroco10.highmed;
+    this.record.hydroco10medlow = hydroco10.lowmed;
+
+    // Hydromorphone
+    const { hydromorph } = Base.aigData;
+    this.record.hydromorph = 'Hydromorphone';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydromorph).duMonthCell);
+    this.record.hydromorphdumonth = hydromorph.month = du;
+    this.record.hydromorphtimes = hydromorph.times = times;
+    this.record.hydromorphhigh = `${((hydromorph.highpct || 0)).toFixed(0)}%`;
+    this.record.hydromorphmedhigh = hydromorph.highmed;
+    this.record.hydromorphmedlow = hydromorph.lowmed;
+
+    // Hydromorphone 8mg
+    const { hydromorph8 } = Base.aigData;
+    this.record.hydromorph8 = 'Hydromorphone 8mg';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydromorph8).duMonthCell);
+    this.record.hydromorph8dumonth = hydromorph8.month = du;
+    this.record.hydromorph8times = hydromorph8.times = times;
+    this.record.hydromorph8high = `${((hydromorph8.highpct || 0)).toFixed(0)}%`;
+    this.record.hydromorph8medhigh = hydromorph8.highmed;
+    this.record.hydromorph8medlow = hydromorph8.lowmed;
+
+    // Lisdexamfetamine
+    const { lisdex } = Base.aigData;
+    this.record.lisdex = 'Lisdexamfetamine';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.lisdex).duMonthCell);
+    this.record.lisdexdumonth = lisdex.month = du;
+    this.record.lisdextimes = lisdex.times = times;
+    this.record.lisdexhigh = `${((lisdex.highpct || 0)).toFixed(0)}%`;
+
+    // Methadone
+    const { metha } = Base.aigData;
+    this.record.methadone = 'Methadone';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.metha).duMonthCell);
+    this.record.methadumonth = metha.month = du;
+    this.record.methatimes = metha.times = times;
+    this.record.methahigh = `${((metha.highpct || 0)).toFixed(0)}%`;
+    this.record.methamedhigh = metha.highmed;
+    this.record.methamedlow = metha.lowmed;
+
+    // Methylphenidate
+    const { methyl } = Base.aigData;
+    this.record.methylphen = 'Methylphenidate';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.methyl).duMonthCell);
+    this.record.methyldumonth = methyl.month = du;
+    this.record.methyltimes = methyl.times = times;
+    this.record.methylhigh = `${((methyl.highpct || 0)).toFixed(0)}%`;
+
+    // Morphine
+    const { morph } = Base.aigData;
+    this.record.morphine = 'Morphine';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.morph).duMonthCell);
+    this.record.morphdumonth = morph.month = du;
+    this.record.morphtimes = morph.times = times;
+    this.record.morphhigh = `${((morph.highpct || 0)).toFixed(0)}%`;
+    this.record.morphmedhigh = morph.highmed;
+    this.record.morphmedlow = morph.lowmed;
+
+    // Oxycodone Family
+    const { oxy } = Base.aigData;
+    this.record.oxycodone = 'Oxycodone Family';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy).duMonthCell);
+    this.record.oxydumonth = oxy.month = du;
+    this.record.oxytimes = oxy.times = times;
+    this.record.oxyhigh = `${((oxy.highpct || 0)).toFixed(0)}%`;
+    this.record.oxymedhigh = oxy.highmed;
+    this.record.oxymedlow = oxy.lowmed;
+
+    // Oxycodone 15mg
+    const { oxy15 } = Base.aigData;
+    this.record.oxy15 = 'Oxycodone 15mg';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy15).duMonthCell);
+    this.record.oxy15dumonth = oxy15.month = du;
+    this.record.oxy15times = oxy15.times = times;
+    this.record.oxy15high = `${((oxy15.highpct || 0)).toFixed(0)}%`;
+    this.record.oxy15medhigh = oxy15.highmed;
+    this.record.oxy15medlow = oxy15.lowmed;
+
+    // Oxycodone 30mg
+    const { oxy30 } = Base.aigData;
+    this.record.oxy30 = 'Oxycodone 30mg';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy30).duMonthCell);
+    this.record.oxy30dumonth = oxy30.month = du;
+    this.record.oxy30times = oxy30.times = times;
+    this.record.oxy30high = `${((oxy30.highpct || 0)).toFixed(0)}%`;
+    this.record.oxy30medhigh = oxy30.highmed;
+    this.record.oxy30medlow = oxy30.lowmed;
+
+    // Oxycodone 10/325mg
+    const { oxy10 } = Base.aigData;
+    this.record['oxy10/325'] = 'Oxycodone 10/325mg';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy10).duMonthCell);
+    this.record.oxy10dumonth = oxy10.month = du;
+    this.record.oxy10times = oxy10.times = times;
+    this.record.oxy10high = `${((oxy10.highpct || 0)).toFixed(0)}%`;
+    this.record.oxy10medhigh = oxy10.highmed;
+    this.record.oxy10medlow = oxy10.lowmed;
+
+    // Oxymorphone
+    const { oxymorph } = Base.aigData;
+    this.record.oxymorph = 'Oxymorphone';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxymorph).duMonthCell);
+    this.record.oxymorphdumonth = oxymorph.month = du;
+    this.record.oxymorphtimes = oxymorph.times = times;
+    this.record.oxymorphhigh = `${((oxymorph.highpct || 0)).toFixed(0)}%`;
+    this.record.oxymorphmedhigh = oxymorph.highmed;
+    this.record.oxymorphmedlow = oxymorph.lowmed;
+
+    // Tramadol
+    const { tram } = Base.aigData;
+    this.record.tramadol = 'Tramadol';
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.tram).duMonthCell);
+    this.record.tramdumonth = tram.month = du;
+    this.record.tramtimes = tram.times = times;
+    this.record.tramhigh = `${((tram.highpct || 0)).toFixed(0)}%`;
+    this.record.trammedhigh = tram.highmed;
+    this.record.trammedlow = tram.lowmed;
   }
 
   async prevdate() {
-    this.headers.push('prevdate');
   }
 
   async currentdate() {
-    this.headers.push('currentdate');
   }
 
   async soms() {
-    this.headers.push('soms');
   }
 
   async arcosmonth() {
-    this.headers.push('arcosmonth');
   }
 
   async arcossupnum() {
-    this.headers.push('arcossupnum');
   }
 
 
   async build() {
     await this.name();
-    await this.account();
     await this.dea();
-    await this.address();
     await this.daterange();
-    await this.rxday();
-    await this.rxmonth();
-    await this.csrxvol();
-    await this.csdu();
-    await this.purchase();
-    await this.cspurchase();
     await this.cashnoncs();
     await this.cashcs();
     await this.top10csnum();
     await this.trinity();
-    await this.trinitynum();
     await this.imm();
-    await this.immednum();
     await this.multiprac();
-    await this.multipracnum();
     await this.highmed();
-    await this.highmednum();
     await this.highmedpres();
     await this.spatial();
     await this.csphyphys();
@@ -839,94 +519,26 @@ export class common extends Base {
     await this.phypt();
     await this.csphyspt();
     await this.physpt();
-    await this.alprazfam();
-    await this.alprazfamdumonth();
-    await this.alprazfamtimes();
-    await this.alprazfamhighdose();
-    await this.alpraz2();
-    await this.alpraz2dumonth();
-    await this.alpraz2times();
-    await this.alpraz2high();
-    await this.amphetamine();
-    await this.amphetdumonth();
-    await this.amphettimes();
-    await this.amphethigh();
-    await this.bupe();
-    await this.bupedumonth();
-    await this.bupetimes();
-    await this.bupehigh();
-    await this.bupefamper();
-    await this.carisoprodol();
-    await this.carisodumonth();
-    await this.carisotimes();
-    await this.carisohigh();
-    await this.fentanyl();
-    await this.fentdumonth();
-    await this.fenttimes();
-    await this.fenthigh();
-    await this.hydrocofam();
-    await this.hydrocodumonth();
-    await this.hydrocotimes();
-    await this.hydrocohigh();
-    await this.hydroco10_325();
-    await this.hydroco10dumonth();
-    await this.hydroco10times();
-    await this.hydroco10high();
-    await this.hydroco10perc();
-    await this.hydromorph();
-    await this.hydromorphdumonth();
-    await this.hydromorphtimes();
-    await this.hydromorphhigh();
-    await this.hydromorph8();
-    await this.hydromorph8dumonth();
-    await this.hydromorph8times();
-    await this.hydromorph8high();
-    await this.lisdex();
-    await this.lisdexdumonth();
-    await this.lisdextimes();
-    await this.lisdexhigh();
-    await this.methadone();
-    await this.methadumonth();
-    await this.methatimes();
-    await this.methahigh();
-    await this.methylphen();
-    await this.methyldumonth();
-    await this.methyltimes();
-    await this.methylhigh();
-    await this.morphine();
-    await this.morphdumonth();
-    await this.morphtimes();
-    await this.morphhigh();
-    await this.oxycodone();
-    await this.oxydumonth();
-    await this.oxytimes();
-    await this.oxyhigh();
-    await this.oxy15();
-    await this.oxy15dumonth();
-    await this.oxy15times();
-    await this.oxy15high();
-    await this.oxy30();
-    await this.oxy30dumonth();
-    await this.oxy30times();
-    await this.oxy30high();
-    await this.oxy10_325();
-    await this.oxy10dumonth();
-    await this.oxy10times();
-    await this.oxy10high();
-    await this.oxymorph();
-    await this.oxymorphdumonth();
-    await this.oxymorphtimes();
-    await this.oxymorphhigh();
-    await this.tramadol();
-    await this.tramdumonth();
-    await this.tramtimes();
-    await this.tramhigh();
+
+    this.setStaticValues();
+
     await this.prevdate();
     await this.currentdate();
     await this.soms();
     await this.arcosmonth();
     await this.arcossupnum();
 
+    this.data = this.getDataObject();
     await super.build();
+  }
+
+  getDataObject() {
+    const data: unknown[] = []
+    if (this.record) {
+      for (const i of this.headers) {
+        data.push(this.record[i as keyof commonRecord])
+      }
+    }
+    return [data];
   }
 }
