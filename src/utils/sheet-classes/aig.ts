@@ -120,8 +120,6 @@ export class aig extends Base {
     }
     const { names, family, per, med, duMonthCell: duField } = this.aigDetails;
 
-    console.log(this.sheet, this.aigDetails);
-
     let drugRows: csrxSheet[] = rows;
 
     // Apply family filter if needed
@@ -131,8 +129,6 @@ export class aig extends Base {
 
     const familyCount = drugRows.length;
 
-    console.log(familyCount, JSON.stringify(drugRows));
-
     // Apply names filter if needed
     if (names && names.length > 0) {
       drugRows = drugRows.filter(row => matchesName(row, names));
@@ -140,8 +136,6 @@ export class aig extends Base {
 
     // filter out liquids
     drugRows = drugRows.filter(row => !String(row["Drug Name"]).toLowerCase().endsWith(' ml'));
-
-    console.log(JSON.stringify(drugRows));
 
     const overRows = drugRows.filter(row => applyOperation(Number(row["mg/day"]), this.aigDetails));
     const ratio = overRows.length / drugRows.length * 100;
@@ -165,7 +159,6 @@ export class aig extends Base {
     // Multiple checks to get the DEA numbers. First check is to pull back value from the calculations sheet and see if it's > 300
     const duValue = this.calculations.getNumericValue(duField);
     const over300 = Number(duValue) > 300;
-    console.log(duValue);
 
     // Need to sum all values in order to get "top 5" prescribers
     // If over 300, use the filtered drugRows, otherwise use the full set (overRows)

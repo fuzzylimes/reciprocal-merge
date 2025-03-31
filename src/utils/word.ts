@@ -167,6 +167,15 @@ export class TableData {
     return isNaN(parsedValue) ? 0 : parsedValue;
   }
 
+  getNumericValueByIndex(row: number, column: number): number {
+    const value = this.getCellByIndex(row, column);
+    if (!value) return 0;
+    // Remove commas and other non-numeric characters except decimal point and minus sign
+    const cleanedValue = value.replace(/[^\d.-]/g, '');
+    const parsedValue = parseFloat(cleanedValue);
+    return isNaN(parsedValue) ? 0 : parsedValue;
+  }
+
   /**
    * Get a cell value by finding a row where column 0 includes the label,
    * then returning the value from the specified column
@@ -195,14 +204,14 @@ export class TableData {
    * @param exactMatch Whether to require an exact match (default false)
    * @returns Array containing [DU value, Times value]
    */
-  getDuAndTimesByRowLabel(label: string, columnIndex = 1, exactMatch = false): [string | undefined, string | undefined] {
+  getDuAndTimesByRowLabel(label: string, columnIndex = 1, exactMatch = false): [number | undefined, number | undefined] {
     const column0Values = this.getColumnValues(0);
 
     for (let rowIndex = 0; rowIndex < column0Values.length; rowIndex++) {
       const rowLabel = column0Values[rowIndex];
       if (exactMatch ? rowLabel === label : rowLabel.toLowerCase().includes(label.toLowerCase())) {
-        const du = this.getCellByIndex(rowIndex, columnIndex);
-        const times = this.getCellByIndex(rowIndex + 2, columnIndex);
+        const du = this.getNumericValueByIndex(rowIndex, columnIndex);
+        const times = this.getNumericValueByIndex(rowIndex + 2, columnIndex);
         return [du, times];
       }
     }

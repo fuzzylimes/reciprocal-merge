@@ -26,7 +26,6 @@ export class Base {
   }
 
   async build() {
-    console.log(this.sheet, JSON.stringify(this.data));
     const commonWorksheet = utils.aoa_to_sheet([this.headers, ...this.data]);
     utils.book_append_sheet(this.outData, commonWorksheet, this.sheet);
   }
