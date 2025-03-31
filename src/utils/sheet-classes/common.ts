@@ -1,10 +1,11 @@
 import { WorkBook, utils } from 'xlsx';
-import { TableData, getCellValue as getWordCellValue } from '../word';
+import { TableData } from '../word';
 import { getCellValue, sumColumn } from '../excel';
 import { Base } from './Base';
-import { commonRecord, irSheet, medSheet, multipracSheet, ReportSheets as rs, trinitySheet } from '../sheets';
+import { CalcKeys, commonRecord, irSheet, medSheet, multipracSheet, ReportSheets as rs, trinitySheet } from '../sheets';
 import * as c from '../constants';
 import { headers } from "../sheets";
+import { aigReference, getAigByReference } from '../aig-helper';
 
 export type row = Record<string, unknown>;
 
@@ -18,7 +19,7 @@ export class common extends Base {
 
   async name() {
     try {
-      const cellValue = getWordCellValue(this.calculations, 'A1');
+      const cellValue = this.calculations.getCellValue('A1');
       this.record.name = cellValue?.split(/(\w{2}\d{7})/g)[0].trim();
     } catch (error) {
       console.error(error);
@@ -282,25 +283,25 @@ export class common extends Base {
   }
 
   setStaticValues() {
-    this.record.account = getWordCellValue(this.calculations, 'B1');
-
     const address = getCellValue(this.report, rs.summary, 'A8');
     const cityStateZip = getCellValue(this.report, rs.summary, 'A9');
     this.record.address = `${address}\n${cityStateZip}`;
 
-    this.record.rxday = getWordCellValue(this.calculations, 'B15');
-    this.record.rxmonth = getWordCellValue(this.calculations, 'B14');
-    this.record.csrxvol = getWordCellValue(this.calculations, 'B11');
-    this.record.csdu = getWordCellValue(this.calculations, 'B10');
-    this.record.purchase = getWordCellValue(this.calculations, 'B8');
-    this.record.cspurchase = getWordCellValue(this.calculations, 'B9');
+    this.record.account = this.calculations.getCellByRowLabel(CalcKeys.account);
+    this.record.rxday = this.calculations.getCellByRowLabel(CalcKeys.rxday);
+    this.record.rxmonth = this.calculations.getCellByRowLabel(CalcKeys.rxmonth);
+    this.record.csrxvol = this.calculations.getCellByRowLabel(CalcKeys.csrxvol);
+    this.record.csdu = this.calculations.getCellByRowLabel(CalcKeys.csdu);
+    this.record.purchase = this.calculations.getCellByRowLabel(CalcKeys.purchase);
+    this.record.cspurchase = this.calculations.getCellByRowLabel(CalcKeys.cspurchase);
 
 
     // Alprazolam Family
     const { alpraz } = Base.aigData;
     this.record.alprazfam = 'Alprazolam Family';
-    this.record.alprazfamdumonth = getWordCellValue(this.calculations, 'B19');
-    this.record.alprazfamtimes = getWordCellValue(this.calculations, 'B21');
+    let [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.alpraz).duMonthCell);
+    this.record.alprazfamdumonth = du;
+    this.record.alprazfamtimes = times;
     this.record.alprazfamhighdose = `${((alpraz.highpct || 0)).toFixed(0)}%`;
     alpraz.month = Number(this.record.alprazfamdumonth);
     alpraz.times = Number(this.record.alprazfamtimes);
@@ -308,8 +309,9 @@ export class common extends Base {
     // Alprazolam 2mg
     const { alpraz2 } = Base.aigData;
     this.record.alpraz2 = 'Alprazolam 2mg';
-    this.record.alpraz2dumonth = getWordCellValue(this.calculations, 'B29');
-    this.record.alpraz2times = getWordCellValue(this.calculations, 'B31');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.alpraz2).duMonthCell);
+    this.record.alpraz2dumonth = du;
+    this.record.alpraz2times = times;
     this.record.alpraz2high = `${((alpraz2.highpct || 0)).toFixed(0)}%`;
     alpraz2.month = Number(this.record.alpraz2dumonth);
     alpraz2.times = Number(this.record.alpraz2high);
@@ -317,8 +319,9 @@ export class common extends Base {
     // Amphetamine
     const { amphet } = Base.aigData;
     this.record.amphetamine = 'Amphetamine';
-    this.record.amphetdumonth = getWordCellValue(this.calculations, 'B34');
-    this.record.amphettimes = getWordCellValue(this.calculations, 'B36');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.amphet).duMonthCell);
+    this.record.amphetdumonth = du;
+    this.record.amphettimes = times;
     this.record.amphethigh = `${((amphet.highpct || 0)).toFixed(0)}%`;
     amphet.month = Number(this.record.amphetdumonth);
     amphet.times = Number(this.record.amphettimes);
@@ -326,8 +329,9 @@ export class common extends Base {
     // Buprenorphine 8mg
     const { bupe } = Base.aigData;
     this.record.bupe = 'Buprenorphine 8mg';
-    this.record.bupedumonth = getWordCellValue(this.calculations, 'B39');
-    this.record.bupetimes = getWordCellValue(this.calculations, 'B41');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.bupe).duMonthCell);
+    this.record.bupedumonth = du;
+    this.record.bupetimes = times;
     this.record.bupehigh = `${((bupe.highpct || 0)).toFixed(0)}%`;
     this.record.bupefamper = `${(bupe.per || 0).toFixed(2)}%`
     bupe.month = Number(this.record.bupedumonth);
@@ -336,8 +340,9 @@ export class common extends Base {
     // Carisoprodol
     const { cariso } = Base.aigData;
     this.record.carisoprodol = 'Carisoprodol';
-    this.record.carisodumonth = getWordCellValue(this.calculations, 'B44');
-    this.record.carisotimes = getWordCellValue(this.calculations, 'B46');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.cariso).duMonthCell);
+    this.record.carisodumonth = du;
+    this.record.carisotimes = times;
     this.record.carisohigh = `${((cariso.highpct || 0)).toFixed(0)}%`;
     cariso.month = Number(this.record.carisodumonth);
     cariso.times = Number(this.record.carisotimes);
@@ -345,8 +350,9 @@ export class common extends Base {
     // Fentanyl
     const { fent } = Base.aigData;
     this.record.fentanyl = 'Fentanyl';
-    this.record.fentdumonth = getWordCellValue(this.calculations, 'B49');
-    this.record.fenttimes = getWordCellValue(this.calculations, 'B51');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.fent).duMonthCell);
+    this.record.fentdumonth = du;
+    this.record.fenttimes = times;
     this.record.fenthigh = `${((fent.highpct || 0)).toFixed(0)}%`;
     this.record.fentmedhigh = fent.highmed;
     this.record.fentmedlow = fent.lowmed;
@@ -356,8 +362,9 @@ export class common extends Base {
     // Hydrocodone Family
     const { hydroco } = Base.aigData;
     this.record.hydrocofam = 'Hydrocodone Family';
-    this.record.hydrocodumonth = getWordCellValue(this.calculations, 'B54');
-    this.record.hydrocotimes = getWordCellValue(this.calculations, 'B56');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydroco).duMonthCell);
+    this.record.hydrocodumonth = du;
+    this.record.hydrocotimes = times;
     this.record.hydrocohigh = `${((hydroco.highpct || 0)).toFixed(0)}%`;
     this.record.hydrocomedhigh = hydroco.highmed;
     this.record.hydrocomedlow = hydroco.lowmed;
@@ -367,8 +374,9 @@ export class common extends Base {
     // Hydrocodone 10/325mg
     const { hydroco10 } = Base.aigData;
     this.record['hydroco10/325'] = 'Hydrocodone 10/325mg';
-    this.record.hydroco10dumonth = getWordCellValue(this.calculations, 'B64');
-    this.record.hydroco10times = getWordCellValue(this.calculations, 'B66');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydroco10).duMonthCell);
+    this.record.hydroco10dumonth = du;
+    this.record.hydroco10times = times;
     this.record.hydroco10high = `${((hydroco10.highpct || 0)).toFixed(0)}%`;
     this.record.hydroco10perc = `${(hydroco10.per || 0).toFixed(2)}%`
     this.record.hydroco10medhigh = hydroco10.highmed;
@@ -379,8 +387,9 @@ export class common extends Base {
     // Hydromorphone
     const { hydromorph } = Base.aigData;
     this.record.hydromorph = 'Hydromorphone';
-    this.record.hydromorphdumonth = getWordCellValue(this.calculations, 'B69');
-    this.record.hydromorphtimes = getWordCellValue(this.calculations, 'B71');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydromorph).duMonthCell);
+    this.record.hydromorphdumonth = du;
+    this.record.hydromorphtimes = times;
     this.record.hydromorphhigh = `${((hydromorph.highpct || 0)).toFixed(0)}%`;
     this.record.hydromorphmedhigh = hydromorph.highmed;
     this.record.hydromorphmedlow = hydromorph.lowmed;
@@ -390,8 +399,9 @@ export class common extends Base {
     // Hydromorphone 8mg
     const { hydromorph8 } = Base.aigData;
     this.record.hydromorph8 = 'Hydromorphone 8mg';
-    this.record.hydromorph8dumonth = getWordCellValue(this.calculations, 'B79');
-    this.record.hydromorph8times = getWordCellValue(this.calculations, 'B81');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.hydromorph8).duMonthCell);
+    this.record.hydromorph8dumonth = du;
+    this.record.hydromorph8times = times;
     this.record.hydromorph8high = `${((hydromorph8.highpct || 0)).toFixed(0)}%`;
     this.record.hydromorph8medhigh = hydromorph8.highmed;
     this.record.hydromorph8medlow = hydromorph8.lowmed;
@@ -401,8 +411,9 @@ export class common extends Base {
     // Lisdexamfetamine
     const { lisdex } = Base.aigData;
     this.record.lisdex = 'Lisdexamfetamine';
-    this.record.lisdexdumonth = getWordCellValue(this.calculations, 'B84');
-    this.record.lisdextimes = getWordCellValue(this.calculations, 'B86');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.lisdex).duMonthCell);
+    this.record.lisdexdumonth = du;
+    this.record.lisdextimes = times;
     this.record.lisdexhigh = `${((lisdex.highpct || 0)).toFixed(0)}%`;
     lisdex.month = Number(this.record.lisdexdumonth);
     lisdex.times = Number(this.record.lisdextimes);
@@ -410,8 +421,9 @@ export class common extends Base {
     // Methadone
     const { metha } = Base.aigData;
     this.record.methadone = 'Methadone';
-    this.record.methadumonth = getWordCellValue(this.calculations, 'B89');
-    this.record.methatimes = getWordCellValue(this.calculations, 'B91');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.metha).duMonthCell);
+    this.record.methadumonth = du;
+    this.record.methatimes = times;
     this.record.methahigh = `${((metha.highpct || 0)).toFixed(0)}%`;
     this.record.methamedhigh = metha.highmed;
     this.record.methamedlow = metha.lowmed;
@@ -421,8 +433,9 @@ export class common extends Base {
     // Methylphenidate
     const { methyl } = Base.aigData;
     this.record.methylphen = 'Methylphenidate';
-    this.record.methyldumonth = getWordCellValue(this.calculations, 'B94');
-    this.record.methyltimes = getWordCellValue(this.calculations, 'B96');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.methyl).duMonthCell);
+    this.record.methyldumonth = du;
+    this.record.methyltimes = times;
     this.record.methylhigh = `${((methyl.highpct || 0)).toFixed(0)}%`;
     methyl.month = Number(this.record.methyldumonth);
     methyl.times = Number(this.record.methyltimes);
@@ -430,8 +443,9 @@ export class common extends Base {
     // Morphine
     const { morph } = Base.aigData;
     this.record.morphine = 'Morphine';
-    this.record.morphdumonth = getWordCellValue(this.calculations, 'B99');
-    this.record.morphtimes = getWordCellValue(this.calculations, 'B101');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.morph).duMonthCell);
+    this.record.morphdumonth = du;
+    this.record.morphtimes = times;
     this.record.morphhigh = `${((morph.highpct || 0)).toFixed(0)}%`;
     this.record.morphmedhigh = morph.highmed;
     this.record.morphmedlow = morph.lowmed;
@@ -441,8 +455,9 @@ export class common extends Base {
     // Oxycodone Family
     const { oxy } = Base.aigData;
     this.record.oxycodone = 'Oxycodone Family';
-    this.record.oxydumonth = getWordCellValue(this.calculations, 'B104');
-    this.record.oxytimes = getWordCellValue(this.calculations, 'B106');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy).duMonthCell);
+    this.record.oxydumonth = du;
+    this.record.oxytimes = times;
     this.record.oxyhigh = `${((oxy.highpct || 0)).toFixed(0)}%`;
     this.record.oxymedhigh = oxy.highmed;
     this.record.oxymedlow = oxy.lowmed;
@@ -452,8 +467,9 @@ export class common extends Base {
     // Oxycodone 15mg
     const { oxy15 } = Base.aigData;
     this.record.oxy15 = 'Oxycodone 15mg';
-    this.record.oxy15dumonth = getWordCellValue(this.calculations, 'B114');
-    this.record.oxy15times = getWordCellValue(this.calculations, 'B116');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy15).duMonthCell);
+    this.record.oxy15dumonth = du;
+    this.record.oxy15times = times;
     this.record.oxy15high = `${((oxy15.highpct || 0)).toFixed(0)}%`;
     this.record.oxy15medhigh = oxy15.highmed;
     this.record.oxy15medlow = oxy15.lowmed;
@@ -463,8 +479,9 @@ export class common extends Base {
     // Oxycodone 30mg
     const { oxy30 } = Base.aigData;
     this.record.oxy30 = 'Oxycodone 30mg';
-    this.record.oxy30dumonth = getWordCellValue(this.calculations, 'B119');
-    this.record.oxy30times = getWordCellValue(this.calculations, 'B121');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy30).duMonthCell);
+    this.record.oxy30dumonth = du;
+    this.record.oxy30times = times;
     this.record.oxy30high = `${((oxy30.highpct || 0)).toFixed(0)}%`;
     this.record.oxy30medhigh = oxy30.highmed;
     this.record.oxy30medlow = oxy30.lowmed;
@@ -474,8 +491,9 @@ export class common extends Base {
     // Oxycodone 10/325mg
     const { oxy10 } = Base.aigData;
     this.record['oxy10/325'] = 'Oxycodone 10/325mg';
-    this.record.oxy10dumonth = getWordCellValue(this.calculations, 'B125');
-    this.record.oxy10times = getWordCellValue(this.calculations, 'B127');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxy10).duMonthCell);
+    this.record.oxy10dumonth = du;
+    this.record.oxy10times = times;
     this.record.oxy10high = `${((oxy10.highpct || 0)).toFixed(0)}%`;
     this.record.oxy10medhigh = oxy10.highmed;
     this.record.oxy10medlow = oxy10.lowmed;
@@ -485,8 +503,9 @@ export class common extends Base {
     // Oxymorphone
     const { oxymorph } = Base.aigData;
     this.record.oxymorph = 'Oxymorphone';
-    this.record.oxymorphdumonth = getWordCellValue(this.calculations, 'B131');
-    this.record.oxymorphtimes = getWordCellValue(this.calculations, 'B133');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.oxymorph).duMonthCell);
+    this.record.oxymorphdumonth = du;
+    this.record.oxymorphtimes = times;
     this.record.oxymorphhigh = `${((oxymorph.highpct || 0)).toFixed(0)}%`;
     this.record.oxymorphmedhigh = oxymorph.highmed;
     this.record.oxymorphmedlow = oxymorph.lowmed;
@@ -496,8 +515,9 @@ export class common extends Base {
     // Tramadol
     const { tram } = Base.aigData;
     this.record.tramadol = 'Tramadol';
-    this.record.tramdumonth = getWordCellValue(this.calculations, 'B137');
-    this.record.tramtimes = getWordCellValue(this.calculations, 'B139');
+    [du, times] = this.calculations.getDuAndTimesByRowLabel(getAigByReference(aigReference.tram).duMonthCell);
+    this.record.tramdumonth = du;
+    this.record.tramtimes = times;
     this.record.tramhigh = `${((tram.highpct || 0)).toFixed(0)}%`;
     this.record.trammedhigh = tram.highmed;
     this.record.trammedlow = tram.lowmed;

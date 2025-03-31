@@ -3,7 +3,6 @@ export interface IaigDef {
   names?: string[];
   family?: string;
   duMonthCell: string;
-  duTimesCell: string;
   operation: string;
   high: number;
   per?: boolean;
@@ -40,8 +39,7 @@ export const aigLookup: Record<number, IaigDef> = {
     names: ['alprazolam', 'xanax'],
     operation: '>',
     high: 4,
-    duMonthCell: 'B19',
-    duTimesCell: 'B21',
+    duMonthCell: 'Alprazolam Family ALL Tabs',
     aigSheetNum: 1,
     aigReference: aigReference.alpraz
   },
@@ -49,8 +47,7 @@ export const aigLookup: Record<number, IaigDef> = {
     names: ['alprazolam*2 mg', 'xanax*2 mg'],
     operation: '>',
     high: 4,
-    duMonthCell: 'B29',
-    duTimesCell: 'B31',
+    duMonthCell: 'Alprazolam 2mg Tabs',
     aigSheetNum: 2,
     aigReference: aigReference.alpraz2
   },
@@ -58,8 +55,7 @@ export const aigLookup: Record<number, IaigDef> = {
     family: 'amphetamine',
     operation: '>',
     high: 40,
-    duMonthCell: 'B34',
-    duTimesCell: 'B36',
+    duMonthCell: 'Amphetamine Tabs',
     aigSheetNum: 3,
     aigReference: aigReference.amphet
   },
@@ -69,8 +65,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 32,
     per: true,
-    duMonthCell: 'B39',
-    duTimesCell: 'B41',
+    duMonthCell: 'Buprenorphine 8mg SL',
     aigSheetNum: 4,
     aigReference: aigReference.bupe
   },
@@ -78,8 +73,7 @@ export const aigLookup: Record<number, IaigDef> = {
     family: 'carisoprodol',
     operation: '>=',
     high: 1400,
-    duMonthCell: 'B44',
-    duTimesCell: 'B46',
+    duMonthCell: 'Carisoprodol Tabs',
     aigSheetNum: 5,
     aigReference: aigReference.cariso
   },
@@ -88,8 +82,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>',
     high: 37.5,
     med: 2.4,
-    duMonthCell: 'B49',
-    duTimesCell: 'B51',
+    duMonthCell: 'Fentanyl Tabs',
     aigSheetNum: 6,
     aigReference: aigReference.fent
   },
@@ -98,8 +91,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 90,
     med: 1,
-    duMonthCell: 'B54',
-    duTimesCell: 'B56',
+    duMonthCell: 'Hydrocodone Family ALL Tabs',
     aigSheetNum: 7,
     aigReference: aigReference.hydroco
   },
@@ -110,8 +102,7 @@ export const aigLookup: Record<number, IaigDef> = {
     high: 90,
     per: true,
     med: 1,
-    duMonthCell: 'B64',
-    duTimesCell: 'B66',
+    duMonthCell: 'Hydrocodone 10/325mg Tabs',
     aigSheetNum: 8,
     aigReference: aigReference.hydroco10
   },
@@ -120,8 +111,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 22.5,
     med: 4,
-    duMonthCell: 'B69',
-    duTimesCell: 'B71',
+    duMonthCell: 'Hydromorphone Tabs',
     aigSheetNum: 9,
     aigReference: aigReference.hydromorph
   },
@@ -131,8 +121,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 22.5,
     med: 1,
-    duMonthCell: 'B79',
-    duTimesCell: 'B81',
+    duMonthCell: 'Hydromorphone 8mg DU',
     aigSheetNum: 10,
     aigReference: aigReference.hydromorph8
   },
@@ -140,8 +129,7 @@ export const aigLookup: Record<number, IaigDef> = {
     family: 'lisdexamfetamine',
     operation: '>',
     high: 70,
-    duMonthCell: 'B84',
-    duTimesCell: 'B86',
+    duMonthCell: 'Lisdexamfetamine Tabs',
     aigSheetNum: 11,
     aigReference: aigReference.lisdex
   },
@@ -150,8 +138,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 20,
     med: 4,
-    duMonthCell: 'B89',
-    duTimesCell: 'B91',
+    duMonthCell: 'Methadone Tabs',
     aigSheetNum: 12,
     aigReference: aigReference.metha
   },
@@ -159,8 +146,7 @@ export const aigLookup: Record<number, IaigDef> = {
     family: 'methylphenidate',
     operation: '>=',
     high: 60,
-    duMonthCell: 'B94',
-    duTimesCell: 'B96',
+    duMonthCell: 'Methylphenidate Tabs',
     aigSheetNum: 13,
     aigReference: aigReference.methyl
   },
@@ -169,8 +155,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 90,
     med: 1,
-    duMonthCell: 'B99',
-    duTimesCell: 'B101',
+    duMonthCell: 'Morphine Tabs',
     aigSheetNum: 14,
     aigReference: aigReference.morph
   },
@@ -179,8 +164,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 60,
     med: 1.5,
-    duMonthCell: 'B104',
-    duTimesCell: 'B106',
+    duMonthCell: 'Oxycodone Family ALL DU',
     aigSheetNum: 15,
     aigReference: aigReference.oxy
   },
@@ -190,8 +174,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 60,
     med: 1.5,
-    duMonthCell: 'B114',
-    duTimesCell: 'B116',
+    duMonthCell: 'Oxycodone 15mg tabs DU',
     aigSheetNum: 16,
     aigReference: aigReference.oxy15
   },
@@ -201,8 +184,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 60,
     med: 1.5,
-    duMonthCell: 'B119',
-    duTimesCell: 'B121',
+    duMonthCell: 'Oxycodone 30mg tabs DU',
     aigSheetNum: 17,
     aigReference: aigReference.oxy30
   },
@@ -212,8 +194,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 60,
     med: 1.5,
-    duMonthCell: 'B125',
-    duTimesCell: 'B127',
+    duMonthCell: 'Oxycodone 10/325mg tabs DU',
     aigSheetNum: 18,
     aigReference: aigReference.oxy10
   },
@@ -222,8 +203,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 30,
     med: 3,
-    duMonthCell: 'B131',
-    duTimesCell: 'B133',
+    duMonthCell: 'Oxymorphone tabs DU',
     aigSheetNum: 19,
     aigReference: aigReference.oxymorph
   },
@@ -232,8 +212,7 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>',
     high: 900,
     med: 0.2,
-    duMonthCell: 'B137',
-    duTimesCell: 'B139',
+    duMonthCell: 'Tramadol Tabs',
     aigSheetNum: 20,
     aigReference: aigReference.tram
   },

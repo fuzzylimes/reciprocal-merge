@@ -1,5 +1,5 @@
 import { utils, WorkBook } from "xlsx";
-import { TableData, getCellValue as getWordCellValue, parseNumericString } from "../word";
+import { TableData } from "../word";
 import { Base } from "./Base";
 import { aigRecord, allrxSheet, csrxSheet, ReportSheets as rs } from '../sheets';
 import { PractitionerSheets as ps } from "../sheets";
@@ -160,7 +160,7 @@ export class aig extends Base {
     }
 
     // Multiple checks to get the DEA numbers. First check is to pull back value from the calculations sheet and see if it's > 300
-    const duValue = parseNumericString(getWordCellValue(this.calculations, duField));
+    const duValue = this.calculations.getNumericValue(duField);
     const over300 = Number(duValue) > 300;
     console.log(duValue);
 

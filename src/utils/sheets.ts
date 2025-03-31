@@ -298,3 +298,13 @@ export type topdrRecord = {
   Discipline?: unknown;
   Miles?: unknown;
 }
+
+export const CalcKeys = {
+  account: ' calculations ',
+  rxday: " rx's daily",
+  rxmonth: " rx's per month",
+  csrxvol: 'dispensed by Rx',
+  csdu: 'dispensed by dosage',
+  purchase: '% dosage units purchased',
+  cspurchase: '% control dosage units purchased',
+}
