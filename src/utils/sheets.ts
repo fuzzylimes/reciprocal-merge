@@ -71,7 +71,8 @@ export const headers = {
   cscash: ['drug', 'percent'],
   arcos: ['drug', 'Mutual', 'supplier2', 'supplier3'],
   top10cs: ['drug', 'number', 'csdoseperc', 'totaldoseperc', 'csdosenum', 'totalcsnum', 'totaldosenum'],
-  topdr: ['Number', 'Name', 'Specialty', 'PracticeLocation', 'DEA', 'State', 'csrx', 'totalrx', 'CSP', 'CSCash', 'Discipline', 'Miles']
+  topdr: ['Number', 'Name', 'Specialty', 'PracticeLocation', 'DEA', 'State', 'csrx', 'totalrx', 'CSP', 'CSCash', 'Discipline', 'Miles'],
+  aigTable: ['AIG', 'Prevdate', 'Prevdoses', 'currentdate', 'currentdoses', 'Change', 'Changedose']
 };
 
 export enum csrxCols {
@@ -151,33 +152,33 @@ export type commonRecord = {
   fentdumonth?: unknown;
   fenttimes?: unknown;
   fenthigh?: unknown;
-  fentmedhigh?: number;
-  fentmedlow?: number;
+  fentmedhigh?: unknown;
+  fentmedlow?: unknown;
   hydrocofam?: unknown;
   hydrocodumonth?: unknown;
   hydrocotimes?: unknown;
   hydrocohigh?: unknown;
-  hydrocomedhigh?: number;
-  hydrocomedlow?: number;
+  hydrocomedhigh?: unknown;
+  hydrocomedlow?: unknown;
   'hydroco10/325'?: unknown;
   hydroco10dumonth?: unknown;
   hydroco10times?: unknown;
   hydroco10high?: unknown;
   hydroco10perc?: unknown;
-  hydroco10medhigh?: number;
-  hydroco10medlow?: number;
+  hydroco10medhigh?: unknown;
+  hydroco10medlow?: unknown;
   hydromorph?: unknown;
   hydromorphdumonth?: unknown;
   hydromorphtimes?: unknown;
   hydromorphhigh?: unknown;
-  hydromorphmedhigh?: number;
-  hydromorphmedlow?: number;
+  hydromorphmedhigh?: unknown;
+  hydromorphmedlow?: unknown;
   hydromorph8?: unknown;
   hydromorph8dumonth?: unknown;
   hydromorph8times?: unknown;
   hydromorph8high?: unknown;
-  hydromorph8medhigh?: number;
-  hydromorph8medlow?: number;
+  hydromorph8medhigh?: unknown;
+  hydromorph8medlow?: unknown;
   lisdex?: unknown;
   lisdexdumonth?: unknown;
   lisdextimes?: unknown;
@@ -186,8 +187,8 @@ export type commonRecord = {
   methadumonth?: unknown;
   methatimes?: unknown;
   methahigh?: unknown;
-  methamedhigh?: number;
-  methamedlow?: number;
+  methamedhigh?: unknown;
+  methamedlow?: unknown;
   methylphen?: unknown;
   methyldumonth?: unknown;
   methyltimes?: unknown;
@@ -196,44 +197,44 @@ export type commonRecord = {
   morphdumonth?: unknown;
   morphtimes?: unknown;
   morphhigh?: unknown;
-  morphmedhigh?: number;
-  morphmedlow?: number;
+  morphmedhigh?: unknown;
+  morphmedlow?: unknown;
   oxycodone?: unknown;
   oxydumonth?: unknown;
   oxytimes?: unknown;
   oxyhigh?: unknown;
-  oxymedhigh?: number;
-  oxymedlow?: number;
+  oxymedhigh?: unknown;
+  oxymedlow?: unknown;
   oxy15?: unknown;
   oxy15dumonth?: unknown;
   oxy15times?: unknown;
   oxy15high?: unknown;
-  oxy15medhigh?: number;
-  oxy15medlow?: number;
+  oxy15medhigh?: unknown;
+  oxy15medlow?: unknown;
   oxy30?: unknown;
   oxy30dumonth?: unknown;
   oxy30times?: unknown;
   oxy30high?: unknown;
-  oxy30medhigh?: number;
-  oxy30medlow?: number;
+  oxy30medhigh?: unknown;
+  oxy30medlow?: unknown;
   'oxy10/325'?: unknown;
   oxy10dumonth?: unknown;
   oxy10times?: unknown;
   oxy10high?: unknown;
-  oxy10medhigh?: number;
-  oxy10medlow?: number;
+  oxy10medhigh?: unknown;
+  oxy10medlow?: unknown;
   oxymorph?: unknown;
   oxymorphdumonth?: unknown;
   oxymorphtimes?: unknown;
   oxymorphhigh?: unknown;
-  oxymorphmedhigh?: number;
-  oxymorphmedlow?: number;
+  oxymorphmedhigh?: unknown;
+  oxymorphmedlow?: unknown;
   tramadol?: unknown;
   tramdumonth?: unknown;
   tramtimes?: unknown;
   tramhigh?: unknown;
-  trammedhigh?: number;
-  trammedlow?: number;
+  trammedhigh?: unknown;
+  trammedlow?: unknown;
   prevdate?: unknown;
   currentdate?: unknown;
   soms?: unknown;
@@ -297,6 +298,16 @@ export type topdrRecord = {
   CSCash?: unknown;
   Discipline?: unknown;
   Miles?: unknown;
+}
+
+export type aigTableRecord = {
+  AIG: string,
+  Prevdate?: number,
+  Prevdoses?: number,
+  currentdate: number,
+  currentdoses: number,
+  Change: unknown,
+  Changedose: unknown
 }
 
 export const CalcKeys = {

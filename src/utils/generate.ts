@@ -1,5 +1,6 @@
 import { loadExcelFile } from "./excel"
 import { aig } from "./sheet-classes/aig";
+import { aigtable } from "./sheet-classes/aigtable";
 import { arcos } from "./sheet-classes/arcos";
 import { Base } from "./sheet-classes/Base";
 import { common } from "./sheet-classes/common";
@@ -31,6 +32,7 @@ export const generateInputFile = async (
     new cscash(...params),
     new arcos(...params),
     new top10cs(...params),
+    new aigtable(...params),
   ];
 
   for (const sheet of sheets) {

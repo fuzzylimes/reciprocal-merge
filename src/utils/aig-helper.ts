@@ -1,5 +1,6 @@
 
 export interface IaigDef {
+  label: string;
   names?: string[];
   family?: string;
   duMonthCell: string;
@@ -36,6 +37,7 @@ export enum aigReference {
 
 export const aigLookup: Record<number, IaigDef> = {
   1: {
+    label: 'Alprazolam Family',
     names: ['alprazolam', 'xanax'],
     operation: '>',
     high: 4,
@@ -44,6 +46,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.alpraz
   },
   2: {
+    label: 'Alprazolam 2mg',
     names: ['alprazolam*2 mg', 'xanax*2 mg'],
     operation: '>',
     high: 4,
@@ -52,6 +55,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.alpraz2
   },
   3: {
+    label: 'Amphetamine',
     family: 'amphetamine',
     operation: '>',
     high: 40,
@@ -60,6 +64,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.amphet
   },
   4: {
+    label: 'Buprenorphine 8mg',
     family: 'buprenorphine',
     names: ['8 mg'],
     operation: '>=',
@@ -70,6 +75,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.bupe
   },
   5: {
+    label: 'Carisoprodol',
     family: 'carisoprodol',
     operation: '>=',
     high: 1400,
@@ -78,6 +84,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.cariso
   },
   6: {
+    label: 'Fentanyl',
     family: 'fentanyl',
     operation: '>',
     high: 37.5,
@@ -87,6 +94,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.fent
   },
   7: {
+    label: 'Hydrocodone Family',
     family: 'hydrocodone',
     operation: '>=',
     high: 90,
@@ -96,6 +104,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.hydroco
   },
   8: {
+    label: 'Hydrocodone 10/325mg',
     family: 'hydrocodone',
     names: ['10-325 mg'],
     operation: '>=',
@@ -107,6 +116,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.hydroco10
   },
   9: {
+    label: 'Hydromorphone',
     family: 'hydromorphone',
     operation: '>=',
     high: 22.5,
@@ -116,6 +126,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.hydromorph
   },
   10: {
+    label: 'Hydromorphone 8mg',
     family: 'hydromorphone',
     names: ['8 mg'],
     operation: '>=',
@@ -126,6 +137,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.hydromorph8
   },
   11: {
+    label: 'Lisdexamfetamine',
     family: 'lisdexamfetamine',
     operation: '>',
     high: 70,
@@ -134,6 +146,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.lisdex
   },
   12: {
+    label: 'Methadone',
     family: 'methadone',
     operation: '>=',
     high: 20,
@@ -143,6 +156,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.metha
   },
   13: {
+    label: 'Methylphenidate',
     family: 'methylphenidate',
     operation: '>=',
     high: 60,
@@ -151,6 +165,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.methyl
   },
   14: {
+    label: 'Morphine',
     family: 'morphine',
     operation: '>=',
     high: 90,
@@ -160,6 +175,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.morph
   },
   15: {
+    label: 'Oxycodone Family',
     family: 'oxycodone',
     operation: '>=',
     high: 60,
@@ -169,6 +185,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.oxy
   },
   16: {
+    label: 'Oxycodone 15mg',
     family: 'oxycodone',
     names: ['15 mg'],
     operation: '>=',
@@ -179,6 +196,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.oxy15
   },
   17: {
+    label: 'Oxycodone 30mg',
     family: 'oxycodone',
     names: ['30 mg'],
     operation: '>=',
@@ -189,6 +207,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.oxy30
   },
   18: {
+    label: 'Oxycodone 10/325mg',
     family: 'oxycodone',
     names: ['10-325 mg'],
     operation: '>=',
@@ -199,6 +218,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.oxy10
   },
   19: {
+    label: 'Oxymorphone',
     family: 'oxymorphone',
     operation: '>=',
     high: 30,
@@ -208,6 +228,7 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.oxymorph
   },
   20: {
+    label: 'Tramadol',
     family: 'tramadol',
     operation: '>',
     high: 900,
