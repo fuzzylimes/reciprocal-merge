@@ -7,6 +7,7 @@ import { common } from "./sheet-classes/common";
 import { cscash } from "./sheet-classes/cscash";
 import { deaconcern } from "./sheet-classes/deaconcern";
 import { top10cs } from "./sheet-classes/top10cs";
+import { topdr } from "./sheet-classes/topdr";
 import { sheetOrder } from "./sheets";
 import { TableData } from "./word";
 import { utils, WorkBook } from 'xlsx';
@@ -28,11 +29,12 @@ export const generateInputFile = async (
 
   const sheets: Base[] = [
     ...aig.buildAll(...params),
+    new top10cs(...params),
     new common(...params),
     new deaconcern(...params),
     new cscash(...params),
     new arcos(...params),
-    new top10cs(...params),
+    new topdr(...params),
     new aigtable(...params),
   ];
 

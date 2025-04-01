@@ -10,6 +10,11 @@ export class topdr extends Base {
   }
 
   async build() {
+    // spaitial page, row 2, cols C - L = DEA nums
+    // pull in practitioner details like AIG
+    // other two cols are K & L, 7-16, in Analysis
+    // CSP = ratio csrx / totalrx - only include if >= 20%
+    // CS Cash = O, 7-16, in Analysis - only if CSP >= 20% and Cash >= 20%
     this.data = this.getDataObject();
 
     await super.build();

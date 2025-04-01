@@ -51,6 +51,8 @@ export class common extends Base {
       const startFormatted = startDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
       const endFormatted = endDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
 
+      this.record.currentdate = endFormatted;
+
       value = `${startFormatted} - ${endFormatted}`;
     }
 
@@ -70,6 +72,7 @@ export class common extends Base {
   }
 
   async top10csnum() {
+    // total number of rows in top10cs
     this.record.top10csnum = 'TODO';
   }
 
@@ -297,22 +300,6 @@ export class common extends Base {
     }
   }
 
-  async prevdate() {
-  }
-
-  async currentdate() {
-  }
-
-  async soms() {
-  }
-
-  async arcosmonth() {
-  }
-
-  async arcossupnum() {
-  }
-
-
   async build() {
     await this.name();
     await this.dea();
@@ -328,12 +315,6 @@ export class common extends Base {
     await this.spatial();
 
     this.setStaticValues();
-
-    await this.prevdate();
-    await this.currentdate();
-    await this.soms();
-    await this.arcosmonth();
-    await this.arcossupnum();
 
     this.data = this.getDataObject();
     await super.build();

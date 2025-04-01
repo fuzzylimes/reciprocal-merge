@@ -11,24 +11,9 @@ export class deaconcern extends Base {
   }
 
   async build() {
-    this.data = this.getDataObject();
+    // For now, this is a copy/paste effort. May revist at another time.
 
     await super.build();
   }
 
-  getDataObject() {
-    const data: unknown[][] = []
-    if (this.record) {
-      for (const r of this.record) {
-        const d = [];
-        for (const i of this.headers) {
-          d.push(r[i as keyof deaconcernRecord])
-        }
-        data.push(d);
-      }
-      return data;
-    } else {
-      return [data];
-    }
-  }
 }

@@ -275,14 +275,15 @@ export type arcosRecord = {
   supplier3?: unknown;
 }
 
+// Top 10 Rx's on Analysys
 export type top10csRecord = {
-  drug?: unknown;
-  number?: unknown;
-  csdoseperc?: unknown;
-  totaldoseperc?: unknown;
-  csdosenum?: unknown;
-  totalcsnum?: unknown;
-  totaldosenum?: unknown;
+  drug?: unknown; // B
+  number?: unknown; // "top 10" row
+  csdoseperc?: unknown; // csdosenum / totalcsnum (round to whole %)
+  totaldoseperc?: unknown; // csdoesnum / totaldoesnum (round to whole %)
+  csdosenum?: unknown; // C
+  totalcsnum?: unknown; // J62
+  totaldosenum?: unknown; //B4 on calculations
 }
 
 export type topdrRecord = {

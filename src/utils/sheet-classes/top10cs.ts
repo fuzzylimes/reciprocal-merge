@@ -10,6 +10,7 @@ export class top10cs extends Base {
   }
 
   async build() {
+    // See notes on top10csRecord
     this.data = this.getDataObject();
 
     await super.build();
