@@ -5,7 +5,8 @@ import { Base } from './Base';
 import { CalcKeys, commonRecord, irSheet, medSheet, multipracSheet, ReportSheets as rs, trinitySheet } from '../sheets';
 import * as c from '../constants';
 import { headers } from "../sheets";
-import { aigReference, getAigByReference } from '../aig-helper';
+import { aigLookup, IaigDef } from '../aig-helper';
+import { toPercent } from '../format';
 
 export type row = Record<string, unknown>;
 
@@ -221,6 +222,8 @@ export class common extends Base {
     this.record.highmedpres = value;
   }
 
+  // Handles all values from the spatial sheet
+  // Uses direct cell references because multiple tables on the page
   async spatial() {
     const sheet = this.report.Sheets[rs.spatial];
     const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(6, 9);
@@ -237,67 +240,42 @@ export class common extends Base {
     }
 
     this.record.spatial = count;
-  }
 
-  async csphyphys() {
-    const sheet = this.report.Sheets[rs.spatial];
-    const sum = sumColumn(sheet, 38, 41, 'E');
-
-    this.record.csphyphys = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
-  }
-
-  async phyphys() {
-    const sheet = this.report.Sheets[rs.spatial];
-    const sum = sumColumn(sheet, 38, 41, 'G');
-
-
-    this.record.phyphys = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
-  }
-
-  async csphypt() {
-    const sheet = this.report.Sheets[rs.spatial];
-    const sum = sumColumn(sheet, 51, 54, 'E');
-
-    this.record.csphypt = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
-  }
-
-  async phypt() {
-    const sheet = this.report.Sheets[rs.spatial];
-    const sum = sumColumn(sheet, 51, 54, 'G');
-
-    this.record.phypt = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
-  }
-
-  async csphyspt() {
-    const sheet = this.report.Sheets[rs.spatial];
-    const sum = sumColumn(sheet, 64, 67, 'E');
-
-    this.record.csphyspt = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
-  }
-
-  async physpt() {
-    const sheet = this.report.Sheets[rs.spatial];
-    const sum = sumColumn(sheet, 64, 67, 'G');
-
-    this.record.physpt = sum ? `${(Number(sum) * 100).toFixed(0)}%` : '0%';
+    // csphyphys
+    let sum = sumColumn(sheet, 38, 41, 'E');
+    this.record.csphyphys = toPercent(sum);
+    // phyphys
+    sum = sumColumn(sheet, 38, 41, 'G');
+    this.record.phyphys = toPercent(sum);
+    //csphypt
+    sum = sumColumn(sheet, 51, 54, 'E');
+    this.record.csphypt = toPercent(sum);
+    //phypt
+    sum = sumColumn(sheet, 51, 54, 'G');
+    this.record.phypt = toPercent(sum);
+    // csphyspt
+    sum = sumColumn(sheet, 64, 67, 'E');
+    this.record.csphyspt = toPercent(sum);
+    // physpt
+    sum = sumColumn(sheet, 64, 67, 'G');
+    this.record.physpt = toPercent(sum);
   }
 
   processAigData(
-    reference: aigReference,
-    recordPrefix: string,
+    aig: IaigDef,
   ) {
+    const reference = aig.aigReference;
     const data = Base.aigData[reference];
-    const aig = getAigByReference(reference);
 
-    this.record[recordPrefix as keyof commonRecord] = aig.label;
+    this.record[(aig.base ? aig.base : reference) as keyof commonRecord] = aig.label;
     const [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record[`${recordPrefix}.dumonth` as keyof commonRecord] = data.month = du;
-    this.record[`${recordPrefix}.times` as keyof commonRecord] = data.times = times;
-    this.record[`${recordPrefix}.highdose` as keyof commonRecord] = `${((data.highpct || 0)).toFixed(0)}%`;
+    this.record[`${reference}dumonth` as keyof commonRecord] = data.month = du;
+    this.record[`${reference}times` as keyof commonRecord] = data.times = times;
+    this.record[`${reference}high` as keyof commonRecord] = `${((data.highpct || 0)).toFixed(0)}%`;
 
-    if (data.per) this.record[`${recordPrefix}medlow` as keyof commonRecord] = `${(data.per || 0).toFixed(2)}%`
-    if (data.highmed) this.record[`${recordPrefix}medhigh` as keyof commonRecord] = data.highmed;
-    if (data.lowmed) this.record[`${recordPrefix}medlow` as keyof commonRecord] = data.lowmed;
+    if (data.per || data.per === 0) this.record[`${reference}per` as keyof commonRecord] = `${(data.per || 0).toFixed(2)}%`
+    if (data.highmed || data.highmed === 0) this.record[`${reference}medhigh` as keyof commonRecord] = data.highmed;
+    if (data.lowmed || data.lowmed === 0) this.record[`${reference}medlow` as keyof commonRecord] = data.lowmed;
   }
 
   setStaticValues() {
@@ -306,220 +284,17 @@ export class common extends Base {
     this.record.address = `${address}\n${cityStateZip}`;
 
     this.record.account = this.calculations.getCellByRowLabel(CalcKeys.account);
-    this.record.rxday = this.calculations.getCellByRowLabel(CalcKeys.rxday);
-    this.record.rxmonth = this.calculations.getCellByRowLabel(CalcKeys.rxmonth);
+    this.record.rxday = this.calculations.getCellByRowLabel(CalcKeys.rxday, 1, false, true);
+    this.record.rxmonth = this.calculations.getCellByRowLabel(CalcKeys.rxmonth, 1, false, true);
     this.record.csrxvol = this.calculations.getCellByRowLabel(CalcKeys.csrxvol);
     this.record.csdu = this.calculations.getCellByRowLabel(CalcKeys.csdu);
     this.record.purchase = this.calculations.getCellByRowLabel(CalcKeys.purchase);
     this.record.cspurchase = this.calculations.getCellByRowLabel(CalcKeys.cspurchase);
 
-    // Alprazolam Family
-    const { alpraz } = Base.aigData;
-    let aig = getAigByReference(aigReference.alpraz);
-    this.record.alprazfam = aig.label;
-    let [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.alprazfamdumonth = alpraz.month = du;
-    this.record.alprazfamtimes = alpraz.times = times;
-    this.record.alprazfamhighdose = `${((alpraz.highpct || 0)).toFixed(0)}%`;
-
-    // Alprazolam 2mg
-    const { alpraz2 } = Base.aigData;
-    aig = getAigByReference(aigReference.alpraz2);
-    this.record.alpraz2 = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.alpraz2dumonth = alpraz2.month = du;
-    this.record.alpraz2times = alpraz2.times = times;
-    this.record.alpraz2high = `${((alpraz2.highpct || 0)).toFixed(0)}%`;
-
-    // Amphetamine
-    const { amphet } = Base.aigData;
-    aig = getAigByReference(aigReference.amphet);
-    this.record.amphetamine = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.amphetdumonth = amphet.month = du;
-    this.record.amphettimes = amphet.times = times;
-    this.record.amphethigh = `${((amphet.highpct || 0)).toFixed(0)}%`;
-
-    // Buprenorphine 8mg
-    const { bupe } = Base.aigData;
-    aig = getAigByReference(aigReference.bupe);
-    this.record.bupe = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.bupedumonth = bupe.month = du;
-    this.record.bupetimes = bupe.times = times;
-    this.record.bupehigh = `${((bupe.highpct || 0)).toFixed(0)}%`;
-    this.record.bupefamper = `${(bupe.per || 0).toFixed(2)}%`
-
-    // Carisoprodol
-    const { cariso } = Base.aigData;
-    aig = getAigByReference(aigReference.cariso);
-    this.record.carisoprodol = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.carisodumonth = cariso.month = du;
-    this.record.carisotimes = cariso.times = times;
-    this.record.carisohigh = `${((cariso.highpct || 0)).toFixed(0)}%`;
-
-    // Fentanyl
-    const { fent } = Base.aigData;
-    aig = getAigByReference(aigReference.fent);
-    this.record.fentanyl = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.fentdumonth = fent.month = du;
-    this.record.fenttimes = fent.times = times;
-    this.record.fenthigh = `${((fent.highpct || 0)).toFixed(0)}%`;
-    this.record.fentmedhigh = fent.highmed;
-    this.record.fentmedlow = fent.lowmed;
-
-    // Hydrocodone Family
-    const { hydroco } = Base.aigData;
-    aig = getAigByReference(aigReference.hydroco);
-    this.record.hydrocofam = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.hydrocodumonth = hydroco.month = du;
-    this.record.hydrocotimes = hydroco.times = times;
-    this.record.hydrocohigh = `${((hydroco.highpct || 0)).toFixed(0)}%`;
-    this.record.hydrocomedhigh = hydroco.highmed;
-    this.record.hydrocomedlow = hydroco.lowmed;
-
-    // Hydrocodone 10/325mg
-    const { hydroco10 } = Base.aigData;
-    aig = getAigByReference(aigReference.hydroco10);
-    this.record['hydroco10/325'] = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.hydroco10dumonth = hydroco10.month = du;
-    this.record.hydroco10times = hydroco10.times = times;
-    this.record.hydroco10high = `${((hydroco10.highpct || 0)).toFixed(0)}%`;
-    this.record.hydroco10perc = `${(hydroco10.per || 0).toFixed(2)}%`
-    this.record.hydroco10medhigh = hydroco10.highmed;
-    this.record.hydroco10medlow = hydroco10.lowmed;
-
-    // Hydromorphone
-    const { hydromorph } = Base.aigData;
-    aig = getAigByReference(aigReference.hydromorph);
-    this.record.hydromorph = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.hydromorphdumonth = hydromorph.month = du;
-    this.record.hydromorphtimes = hydromorph.times = times;
-    this.record.hydromorphhigh = `${((hydromorph.highpct || 0)).toFixed(0)}%`;
-    this.record.hydromorphmedhigh = hydromorph.highmed;
-    this.record.hydromorphmedlow = hydromorph.lowmed;
-
-    // Hydromorphone 8mg
-    const { hydromorph8 } = Base.aigData;
-    aig = getAigByReference(aigReference.hydromorph8);
-    this.record.hydromorph8 = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.hydromorph8dumonth = hydromorph8.month = du;
-    this.record.hydromorph8times = hydromorph8.times = times;
-    this.record.hydromorph8high = `${((hydromorph8.highpct || 0)).toFixed(0)}%`;
-    this.record.hydromorph8medhigh = hydromorph8.highmed;
-    this.record.hydromorph8medlow = hydromorph8.lowmed;
-
-    // Lisdexamfetamine
-    const { lisdex } = Base.aigData;
-    aig = getAigByReference(aigReference.lisdex);
-    this.record.lisdex = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.lisdexdumonth = lisdex.month = du;
-    this.record.lisdextimes = lisdex.times = times;
-    this.record.lisdexhigh = `${((lisdex.highpct || 0)).toFixed(0)}%`;
-
-    // Methadone
-    const { metha } = Base.aigData;
-    aig = getAigByReference(aigReference.metha);
-    this.record.methadone = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.methadumonth = metha.month = du;
-    this.record.methatimes = metha.times = times;
-    this.record.methahigh = `${((metha.highpct || 0)).toFixed(0)}%`;
-    this.record.methamedhigh = metha.highmed;
-    this.record.methamedlow = metha.lowmed;
-
-    // Methylphenidate
-    const { methyl } = Base.aigData;
-    aig = getAigByReference(aigReference.methyl);
-    this.record.methylphen = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.methyldumonth = methyl.month = du;
-    this.record.methyltimes = methyl.times = times;
-    this.record.methylhigh = `${((methyl.highpct || 0)).toFixed(0)}%`;
-
-    // Morphine
-    const { morph } = Base.aigData;
-    aig = getAigByReference(aigReference.morph);
-    this.record.morphine = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.morphdumonth = morph.month = du;
-    this.record.morphtimes = morph.times = times;
-    this.record.morphhigh = `${((morph.highpct || 0)).toFixed(0)}%`;
-    this.record.morphmedhigh = morph.highmed;
-    this.record.morphmedlow = morph.lowmed;
-
-    // Oxycodone Family
-    const { oxy } = Base.aigData;
-    aig = getAigByReference(aigReference.oxy);
-    this.record.oxycodone = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.oxydumonth = oxy.month = du;
-    this.record.oxytimes = oxy.times = times;
-    this.record.oxyhigh = `${((oxy.highpct || 0)).toFixed(0)}%`;
-    this.record.oxymedhigh = oxy.highmed;
-    this.record.oxymedlow = oxy.lowmed;
-
-    // Oxycodone 15mg
-    const { oxy15 } = Base.aigData;
-    aig = getAigByReference(aigReference.oxy15);
-    this.record.oxy15 = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.oxy15dumonth = oxy15.month = du;
-    this.record.oxy15times = oxy15.times = times;
-    this.record.oxy15high = `${((oxy15.highpct || 0)).toFixed(0)}%`;
-    this.record.oxy15medhigh = oxy15.highmed;
-    this.record.oxy15medlow = oxy15.lowmed;
-
-    // Oxycodone 30mg
-    const { oxy30 } = Base.aigData;
-    aig = getAigByReference(aigReference.oxy30);
-    this.record.oxy30 = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.oxy30dumonth = oxy30.month = du;
-    this.record.oxy30times = oxy30.times = times;
-    this.record.oxy30high = `${((oxy30.highpct || 0)).toFixed(0)}%`;
-    this.record.oxy30medhigh = oxy30.highmed;
-    this.record.oxy30medlow = oxy30.lowmed;
-
-    // Oxycodone 10/325mg
-    const { oxy10 } = Base.aigData;
-    aig = getAigByReference(aigReference.oxy10);
-    this.record['oxy10/325'] = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.oxy10dumonth = oxy10.month = du;
-    this.record.oxy10times = oxy10.times = times;
-    this.record.oxy10high = `${((oxy10.highpct || 0)).toFixed(0)}%`;
-    this.record.oxy10medhigh = oxy10.highmed;
-    this.record.oxy10medlow = oxy10.lowmed;
-
-    // Oxymorphone
-    const { oxymorph } = Base.aigData;
-    aig = getAigByReference(aigReference.oxymorph);
-    this.record.oxymorph = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.oxymorphdumonth = oxymorph.month = du;
-    this.record.oxymorphtimes = oxymorph.times = times;
-    this.record.oxymorphhigh = `${((oxymorph.highpct || 0)).toFixed(0)}%`;
-    this.record.oxymorphmedhigh = oxymorph.highmed;
-    this.record.oxymorphmedlow = oxymorph.lowmed;
-
-    // Tramadol
-    const { tram } = Base.aigData;
-    aig = getAigByReference(aigReference.tram);
-    this.record.tramadol = aig.label;
-    [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
-    this.record.tramdumonth = tram.month = du;
-    this.record.tramtimes = tram.times = times;
-    this.record.tramhigh = `${((tram.highpct || 0)).toFixed(0)}%`;
-    this.record.trammedhigh = tram.highmed;
-    this.record.trammedlow = tram.lowmed;
+    // Handle all AIG values
+    for (let i = 1; i <= Object.keys(aigLookup).length; i++) {
+      this.processAigData(aigLookup[i]);
+    }
   }
 
   async prevdate() {
@@ -551,12 +326,6 @@ export class common extends Base {
     await this.highmed();
     await this.highmedpres();
     await this.spatial();
-    await this.csphyphys();
-    await this.phyphys();
-    await this.csphypt();
-    await this.phypt();
-    await this.csphyspt();
-    await this.physpt();
 
     this.setStaticValues();
 

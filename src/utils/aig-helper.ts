@@ -10,10 +10,11 @@ export interface IaigDef {
   med?: number;
   aigSheetNum: number;
   aigReference: aigReference;
+  base?: string;
 }
 
 export enum aigReference {
-  alpraz = 'alpraz',
+  alprazfam = 'alprazfam',
   alpraz2 = 'alpraz2',
   amphet = 'amphet',
   bupe = 'bupe',
@@ -43,7 +44,7 @@ export const aigLookup: Record<number, IaigDef> = {
     high: 4,
     duMonthCell: 'Alprazolam Family ALL Tabs',
     aigSheetNum: 1,
-    aigReference: aigReference.alpraz
+    aigReference: aigReference.alprazfam
   },
   2: {
     label: 'Alprazolam 2mg',
@@ -61,7 +62,8 @@ export const aigLookup: Record<number, IaigDef> = {
     high: 40,
     duMonthCell: 'Amphetamine Tabs',
     aigSheetNum: 3,
-    aigReference: aigReference.amphet
+    aigReference: aigReference.amphet,
+    base: 'amphetamine'
   },
   4: {
     label: 'Buprenorphine 8mg',
@@ -81,7 +83,8 @@ export const aigLookup: Record<number, IaigDef> = {
     high: 1400,
     duMonthCell: 'Carisoprodol Tabs',
     aigSheetNum: 5,
-    aigReference: aigReference.cariso
+    aigReference: aigReference.cariso,
+    base: 'carisoprodol'
   },
   6: {
     label: 'Fentanyl',
@@ -91,7 +94,8 @@ export const aigLookup: Record<number, IaigDef> = {
     med: 2.4,
     duMonthCell: 'Fentanyl Tabs',
     aigSheetNum: 6,
-    aigReference: aigReference.fent
+    aigReference: aigReference.fent,
+    base: 'fentanyl'
   },
   7: {
     label: 'Hydrocodone Family',
@@ -101,7 +105,8 @@ export const aigLookup: Record<number, IaigDef> = {
     med: 1,
     duMonthCell: 'Hydrocodone Family ALL Tabs',
     aigSheetNum: 7,
-    aigReference: aigReference.hydroco
+    aigReference: aigReference.hydroco,
+    base: 'hydrocofam'
   },
   8: {
     label: 'Hydrocodone 10/325mg',
@@ -113,7 +118,8 @@ export const aigLookup: Record<number, IaigDef> = {
     med: 1,
     duMonthCell: 'Hydrocodone 10/325mg Tabs',
     aigSheetNum: 8,
-    aigReference: aigReference.hydroco10
+    aigReference: aigReference.hydroco10,
+    base: 'hydroco10/325'
   },
   9: {
     label: 'Hydromorphone',
@@ -153,7 +159,8 @@ export const aigLookup: Record<number, IaigDef> = {
     med: 4,
     duMonthCell: 'Methadone Tabs',
     aigSheetNum: 12,
-    aigReference: aigReference.metha
+    aigReference: aigReference.metha,
+    base: 'methadone'
   },
   13: {
     label: 'Methylphenidate',
@@ -162,7 +169,8 @@ export const aigLookup: Record<number, IaigDef> = {
     high: 60,
     duMonthCell: 'Methylphenidate Tabs',
     aigSheetNum: 13,
-    aigReference: aigReference.methyl
+    aigReference: aigReference.methyl,
+    base: 'methylphen'
   },
   14: {
     label: 'Morphine',
@@ -172,7 +180,8 @@ export const aigLookup: Record<number, IaigDef> = {
     med: 1,
     duMonthCell: 'Morphine Tabs',
     aigSheetNum: 14,
-    aigReference: aigReference.morph
+    aigReference: aigReference.morph,
+    base: 'morphine'
   },
   15: {
     label: 'Oxycodone Family',
@@ -182,7 +191,8 @@ export const aigLookup: Record<number, IaigDef> = {
     med: 1.5,
     duMonthCell: 'Oxycodone Family ALL DU',
     aigSheetNum: 15,
-    aigReference: aigReference.oxy
+    aigReference: aigReference.oxy,
+    base: 'oxycodone'
   },
   16: {
     label: 'Oxycodone 15mg',
@@ -215,7 +225,8 @@ export const aigLookup: Record<number, IaigDef> = {
     med: 1.5,
     duMonthCell: 'Oxycodone 10/325mg tabs DU',
     aigSheetNum: 18,
-    aigReference: aigReference.oxy10
+    aigReference: aigReference.oxy10,
+    base: 'oxy10/325'
   },
   19: {
     label: 'Oxymorphone',
@@ -235,13 +246,14 @@ export const aigLookup: Record<number, IaigDef> = {
     med: 0.2,
     duMonthCell: 'Tramadol Tabs',
     aigSheetNum: 20,
-    aigReference: aigReference.tram
+    aigReference: aigReference.tram,
+    base: 'tramadol'
   },
 }
 
 export const getAigByReference = (aig: aigReference): IaigDef => {
   switch (aig) {
-    case aigReference.alpraz: return aigLookup[1];
+    case aigReference.alprazfam: return aigLookup[1];
     case aigReference.alpraz2: return aigLookup[2];
     case aigReference.amphet: return aigLookup[3];
     case aigReference.bupe: return aigLookup[4];

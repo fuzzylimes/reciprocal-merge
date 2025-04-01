@@ -7,6 +7,7 @@ import { common } from "./sheet-classes/common";
 import { cscash } from "./sheet-classes/cscash";
 import { deaconcern } from "./sheet-classes/deaconcern";
 import { top10cs } from "./sheet-classes/top10cs";
+import { sheetOrder } from "./sheets";
 import { TableData } from "./word";
 import { utils, WorkBook } from 'xlsx';
 
@@ -38,6 +39,9 @@ export const generateInputFile = async (
   for (const sheet of sheets) {
     await sheet.build();
   }
+
+  const updatedOrder = sheetOrder.filter(name => outData.SheetNames.includes(name));
+  outData.SheetNames = [...updatedOrder];
 
   return outData;
 }

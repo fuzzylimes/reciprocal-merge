@@ -184,12 +184,13 @@ export class TableData {
    * @param exactMatch Whether to require an exact match (default false)
    * @returns The cell value as a string, or undefined if not found
    */
-  getCellByRowLabel(label: string, columnIndex = 1, exactMatch = false): string | undefined {
+  getCellByRowLabel(label: string, columnIndex = 1, exactMatch = false, num = false): string | number | undefined {
     const column0Values = this.getColumnValues(0);
 
     for (let rowIndex = 0; rowIndex < column0Values.length; rowIndex++) {
       const rowLabel = column0Values[rowIndex];
       if (exactMatch ? rowLabel === label : rowLabel.toLowerCase().includes(label.toLowerCase())) {
+        if (num) return this.getNumericValueByIndex(rowIndex, columnIndex);
         return this.getCellByIndex(rowIndex, columnIndex);
       }
     }

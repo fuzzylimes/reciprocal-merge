@@ -8,7 +8,7 @@ export class aigtable extends Base {
   record: aigTableRecord[] | undefined;
 
   constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
-    super(outData, report, calculations, practitioners, 'aigTable', headers.aigTable);
+    super(outData, report, calculations, practitioners, 'aigtable', headers.aigTable);
   }
 
   async build() {
