@@ -1,5 +1,4 @@
 import { WorkBook, utils } from 'xlsx';
-import { TableData } from '../word';
 import { getCellValue, sumColumn } from '../excel';
 import { Base } from './Base';
 import { CalcKeys, commonRecord, irSheet, medSheet, multipracSheet, ReportSheets as rs, trinitySheet } from '../sheets';
@@ -14,13 +13,13 @@ export class common extends Base {
   filteredHighMedRows: medSheet[] = [];
   record: commonRecord = {};
 
-  constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
-    super(outData, report, calculations, practitioners, 'common', headers.common);
+  constructor(outData: WorkBook) {
+    super(outData, 'common', headers.common);
   }
 
   async name() {
     try {
-      const cellValue = this.calculations.getCellValue('A1');
+      const cellValue = Base.calculations.getCellValue('A1');
       this.record.name = cellValue?.split(/(\w{2}\d{7})/g)[0].trim();
     } catch (error) {
       console.error(error);
@@ -29,7 +28,7 @@ export class common extends Base {
 
   async dea() {
     try {
-      const cellValue = getCellValue(this.report, rs.summary, 'A3');
+      const cellValue = getCellValue(Base.report, rs.summary, 'A3');
       this.record.dea = cellValue?.split('#: ')[1].trim();
     } catch (error) {
       console.error(error);
@@ -38,7 +37,7 @@ export class common extends Base {
 
   async daterange() {
     const regex = /Data Range: (\d{4}-\d{2}-\d{2}) thru (\d{4}-\d{2}-\d{2})/;
-    const cellValue = getCellValue(this.report, rs.summary, 'A1');
+    const cellValue = getCellValue(Base.report, rs.summary, 'A1');
     const match = cellValue?.match(regex);
 
     let value = null;
@@ -60,24 +59,23 @@ export class common extends Base {
   }
 
   async cashnoncs() {
-    const cellValue = getCellValue(this.report, rs.summary, 'C15');
+    const cellValue = getCellValue(Base.report, rs.summary, 'C15');
     // this is returned as a decimal, so we need to convert it to a percentage
     this.record.cashnoncs = cellValue ? `${(Number(cellValue) * 100).toFixed(0)}%` : '';
   }
 
   async cashcs() {
-    const cellValue = getCellValue(this.report, rs.summary, 'C14');
+    const cellValue = getCellValue(Base.report, rs.summary, 'C14');
     // this is returned as a decimal, so we need to convert it to a percentage
     this.record.cashcs = cellValue ? `${(Number(cellValue) * 100).toFixed(0)}%` : '';
   }
 
   async top10csnum() {
-    // total number of rows in top10cs
-    this.record.top10csnum = 'TODO';
+    this.record.top10csnum = Base.top10Count;
   }
 
   async trinity() {
-    const sheet = this.report.Sheets[rs.trinityConcerns];
+    const sheet = Base.report.Sheets[rs.trinityConcerns];
     const rows = utils.sheet_to_json<trinitySheet>(sheet);
     if (!rows) {
       return;
@@ -111,7 +109,7 @@ export class common extends Base {
   }
 
   async imm() {
-    const sheet = this.report.Sheets[rs.immediateRelease];
+    const sheet = Base.report.Sheets[rs.immediateRelease];
     const rows = utils.sheet_to_json<irSheet>(sheet, { blankrows: true });
     if (!rows) {
       return;
@@ -150,7 +148,7 @@ export class common extends Base {
   }
 
   async multiprac() {
-    const sheet = this.report.Sheets[rs.multiPractioner];
+    const sheet = Base.report.Sheets[rs.multiPractioner];
     const rows = utils.sheet_to_json<multipracSheet>(sheet);
     if (!rows) {
       return;
@@ -170,7 +168,7 @@ export class common extends Base {
   }
 
   async highmed() {
-    const sheet = this.report.Sheets[rs.medWatch];
+    const sheet = Base.report.Sheets[rs.medWatch];
     const rows = utils.sheet_to_json<medSheet>(sheet, { blankrows: true });
     if (!rows) {
       return;
@@ -228,7 +226,7 @@ export class common extends Base {
   // Handles all values from the spatial sheet
   // Uses direct cell references because multiple tables on the page
   async spatial() {
-    const sheet = this.report.Sheets[rs.spatial];
+    const sheet = Base.report.Sheets[rs.spatial];
     const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(6, 9);
     if (!rows) {
       return;
@@ -271,7 +269,7 @@ export class common extends Base {
     const data = Base.aigData[reference];
 
     this.record[(aig.base ? aig.base : reference) as keyof commonRecord] = aig.label;
-    const [du, times] = this.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
+    const [du, times] = Base.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
     this.record[`${reference}dumonth` as keyof commonRecord] = data.month = du;
     this.record[`${reference}times` as keyof commonRecord] = data.times = times;
     this.record[`${reference}high` as keyof commonRecord] = `${((data.highpct || 0)).toFixed(0)}%`;
@@ -282,17 +280,17 @@ export class common extends Base {
   }
 
   setStaticValues() {
-    const address = getCellValue(this.report, rs.summary, 'A8');
-    const cityStateZip = getCellValue(this.report, rs.summary, 'A9');
+    const address = getCellValue(Base.report, rs.summary, 'A8');
+    const cityStateZip = getCellValue(Base.report, rs.summary, 'A9');
     this.record.address = `${address}\n${cityStateZip}`;
 
-    this.record.account = this.calculations.getCellByRowLabel(CalcKeys.account);
-    this.record.rxday = this.calculations.getCellByRowLabel(CalcKeys.rxday, 1, false, true);
-    this.record.rxmonth = this.calculations.getCellByRowLabel(CalcKeys.rxmonth, 1, false, true);
-    this.record.csrxvol = this.calculations.getCellByRowLabel(CalcKeys.csrxvol);
-    this.record.csdu = this.calculations.getCellByRowLabel(CalcKeys.csdu);
-    this.record.purchase = this.calculations.getCellByRowLabel(CalcKeys.purchase);
-    this.record.cspurchase = this.calculations.getCellByRowLabel(CalcKeys.cspurchase);
+    this.record.account = Base.calculations.getCellByRowLabel(CalcKeys.account);
+    this.record.rxday = Base.calculations.getCellByRowLabel(CalcKeys.rxday, 1, false, true);
+    this.record.rxmonth = Base.calculations.getCellByRowLabel(CalcKeys.rxmonth, 1, false, true);
+    this.record.csrxvol = Base.calculations.getCellByRowLabel(CalcKeys.csrxvol);
+    this.record.csdu = Base.calculations.getCellByRowLabel(CalcKeys.csdu);
+    this.record.purchase = Base.calculations.getCellByRowLabel(CalcKeys.purchase);
+    this.record.cspurchase = Base.calculations.getCellByRowLabel(CalcKeys.cspurchase);
 
     // Handle all AIG values
     for (let i = 1; i <= Object.keys(aigLookup).length; i++) {

@@ -1,5 +1,4 @@
 import { WorkBook } from "xlsx";
-import { TableData } from "../word";
 import { Base } from "./Base";
 import { aigTableRecord, headers } from "../sheets";
 import { aigLookup } from "../aig-helper";
@@ -7,8 +6,8 @@ import { aigLookup } from "../aig-helper";
 export class aigtable extends Base {
   record: aigTableRecord[] | undefined;
 
-  constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
-    super(outData, report, calculations, practitioners, 'aigtable', headers.aigTable);
+  constructor(outData: WorkBook) {
+    super(outData, 'aigtable', headers.aigTable);
   }
 
   async build() {
@@ -21,13 +20,11 @@ export class aigtable extends Base {
 
       if (currentdate < 2.0) continue;
 
-      // TODO: prevdate & prevdoeses - upload another word doc for prevcalculations
-      // Need to get the corresponding values from prevcalculations
-
+      const [Prevdate, Prevdoses] = Base.prevCalculations.getDuAndTimesByRowLabel(aig.duMonthCell);
       const atr: aigTableRecord = {
         AIG: aig.label,
-        Prevdate: undefined,
-        Prevdoses: undefined,
+        Prevdate,
+        Prevdoses,
         currentdate,
         currentdoses: aigData.month ?? 0,
         Change: { t: 'f', f: `IFS($B${i + 1}>$D${i + 1},"LOWER",$B${i + 1}<$D${i + 1},"HIGHER",$B${i + 1}=$D${i + 1},"NO CHANGE")` },

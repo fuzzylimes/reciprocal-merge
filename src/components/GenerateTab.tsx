@@ -17,6 +17,7 @@ import { saveExcelFile } from '../utils/excel';
 function GenerateTab() {
   const [reportFilePath, setReportFilePath] = useState<string>('');
   const [calculationsFilePath, setCalculationsFilePath] = useState<string>('');
+  const [prevCalculationsFilePath, setPrevCalculationsFilePath] = useState<string>('');
   const [practitionersFilePath, setPractitionersFilePath] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [notification, setNotification] = useState<{
@@ -57,6 +58,7 @@ function GenerateTab() {
       const generatedWorkbook = await generateInputFile(
         reportFilePath,
         calculationsFilePath,
+        prevCalculationsFilePath,
         practitionersFilePath
       );
 
@@ -120,6 +122,19 @@ function GenerateTab() {
             value={calculationsFilePath}
             disabled={isProcessing}
             onChange={setCalculationsFilePath}
+            fileTypes={[{
+              name: 'Word Files',
+              extensions: ['docx']
+            }]}
+            onError={handleFileSelectionError}
+          />
+
+          {/* Previous Calculations File Section */}
+          <FileSelector
+            label="Previous Calculations Word File"
+            value={prevCalculationsFilePath}
+            disabled={isProcessing}
+            onChange={setPrevCalculationsFilePath}
             fileTypes={[{
               name: 'Word Files',
               extensions: ['docx']

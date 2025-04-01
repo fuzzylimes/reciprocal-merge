@@ -1,5 +1,4 @@
 import { utils, WorkBook } from "xlsx";
-import { TableData } from "../word";
 import { Base } from "./Base";
 import { aigRecord, allrxSheet, csrxSheet, ReportSheets as rs } from '../sheets';
 import { PractitionerSheets as ps } from "../sheets";
@@ -32,17 +31,17 @@ export class aig extends Base {
   aigDetails: IaigDef;
   top5: aigRecord[] = [];
 
-  constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook, sheetNumber: number) {
-    super(outData, report, calculations, practitioners, `aig${sheetNumber}`, headers.aig);
+  constructor(outData: WorkBook, sheetNumber: number) {
+    super(outData, `aig${sheetNumber}`, headers.aig);
     this.aigNum = sheetNumber;
     this.aigDetails = aigLookup[sheetNumber]
   }
 
-  static buildAll(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
+  static buildAll(outData: WorkBook) {
     const sheets: aig[] = [];
 
     for (let i = 1; i <= 20; i++) {
-      sheets.push(new aig(outData, report, calculations, practitioners, i));
+      sheets.push(new aig(outData, i));
     }
 
     return sheets;
@@ -113,7 +112,7 @@ export class aig extends Base {
       Base.aigData[this.aigDetails.aigReference].lowmed = hlv.low;
     }
 
-    const sheet = this.report.Sheets[rs.csrx];
+    const sheet = Base.report.Sheets[rs.csrx];
     const rows = utils.sheet_to_json<csrxSheet>(sheet, { blankrows: true });
     if (!rows) {
       return;
@@ -157,7 +156,7 @@ export class aig extends Base {
     }
 
     // Multiple checks to get the DEA numbers. First check is to pull back value from the calculations sheet and see if it's > 300
-    const duValue = this.calculations.getNumericValue(duField);
+    const duValue = Base.calculations.getNumericValue(duField);
     const over300 = Number(duValue) > 300;
 
     // Need to sum all values in order to get "top 5" prescribers
@@ -181,12 +180,12 @@ export class aig extends Base {
     const top5 = top5Prescribers.map(p => p[0])
 
     // pull in all Rx tab
-    const allrx = this.report.Sheets[rs.allrx];
+    const allrx = Base.report.Sheets[rs.allrx];
     const allrxRows = utils.sheet_to_json<allrxSheet>(allrx);
 
     // Fetch the top5 details from practitioner file
     for (const dea of top5) {
-      const pracWorkSheet = this.practitioners.Sheets[ps.ref];
+      const pracWorkSheet = Base.practitioners.Sheets[ps.ref];
       // TODO: Go back and remove this
       let p;
       try {

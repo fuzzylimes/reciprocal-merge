@@ -1,12 +1,11 @@
 import { WorkBook } from "xlsx";
-import { TableData } from "../word";
 import { Base } from "./Base";
 import { headers, topdrRecord } from "../sheets";
 
 export class topdr extends Base {
   record: topdrRecord[] | undefined;
-  constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
-    super(outData, report, calculations, practitioners, 'topdr', headers.topdr);
+  constructor(outData: WorkBook) {
+    super(outData, 'topdr', headers.topdr);
   }
 
   async build() {
