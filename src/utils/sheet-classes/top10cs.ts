@@ -1,15 +1,44 @@
 import { WorkBook } from "xlsx";
-import { TableData } from "../word";
 import { Base } from "./Base";
-import { headers, top10csRecord } from "../sheets";
+import { headers, top10csRecord, ReportSheets as rs } from "../sheets";
+import { getCellValue } from "../excel";
+import { toPercent } from "../format";
 
 export class top10cs extends Base {
   record: top10csRecord[] | undefined;
-  constructor(outData: WorkBook, report: WorkBook, calculations: TableData, practitioners: WorkBook) {
-    super(outData, report, calculations, practitioners, 'top10cs', headers.top10cs);
+  constructor(outData: WorkBook) {
+    super(outData, 'top10cs', headers.top10cs);
   }
 
   async build() {
+    const totalcsnum = getCellValue(Base.report, rs.analysis, `J62`);
+    const totaldosenum = Base.calculations.getNumericValue('B4');
+    const top10 = [];
+    for (let i = 0; i < 10; i++) {
+      const row = 19 + i;
+      // If there's in indicator in the column to the left, then we know we need to handle it.
+      if (getCellValue(Base.report, rs.analysis, `A${row}`)) {
+        const drug = getCellValue(Base.report, rs.analysis, `B${row}`);
+        const number = i + 1;
+        const csdosenum = getCellValue(Base.report, rs.analysis, `C${row}`);
+        const csdoseper = (csdosenum && totalcsnum) ? Number(csdosenum) / Number(totalcsnum) : 0;
+        const totaldoseperc = (csdosenum && totaldosenum) ? Number(csdosenum) / totaldosenum : 0;
+
+        const topRecord = {
+          drug,
+          number,
+          csdoseper: toPercent(csdoseper),
+          totaldoseperc: toPercent(totaldoseperc),
+          csdosenum,
+          totalcsnum,
+          totaldosenum
+        }
+
+        top10.push(topRecord);
+      }
+    }
+    this.record = top10;
+    Base.top10Count = this.record?.length ?? 0;
     this.data = this.getDataObject();
 
     await super.build();
