@@ -8,13 +8,12 @@ import { pracRefSheet } from './sheets';
  * @param filePath Path to the Excel file
  * @returns Promise resolving to the parsed Excel workbook
  */
-export const loadExcelFile = async (filePath: string, styles = false): Promise<WorkBook> => {
+export const loadExcelFile = async (filePath: string): Promise<WorkBook> => {
   const excelContent = await readFile(filePath);
   const workbook = read(excelContent, {
     type: 'array',
     cellDates: true,  // Convert date cells to JS dates
     cellNF: true,     // Keep number formats
-    cellStyles: styles,
   });
 
   return workbook;
@@ -52,6 +51,13 @@ export const getCellValue = (workbook: WorkBook, sheetName: string, cell: string
   return cellValue.v;
 }
 
+/**
+ * Note: this doesn't actually work with the free version.
+ * @param workbook 
+ * @param sheetName 
+ * @param cell 
+ * @returns 
+ */
 export const doesCellHaveColor = (workbook: WorkBook, sheetName: string, cell: string): boolean => {
   const sheet = workbook.Sheets[sheetName];
   if (!sheet) {

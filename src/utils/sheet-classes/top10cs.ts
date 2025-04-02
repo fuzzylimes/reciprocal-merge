@@ -1,7 +1,7 @@
 import { WorkBook } from "xlsx";
 import { Base } from "./Base";
 import { headers, top10csRecord, ReportSheets as rs } from "../sheets";
-import { doesCellHaveColor, getCellValue } from "../excel";
+import { getCellValue } from "../excel";
 import { toPercent } from "../format";
 
 export class top10cs extends Base {
@@ -15,7 +15,8 @@ export class top10cs extends Base {
     const totaldosenum = Base.calculations.getNumericValue('B4');
     for (let i = 0; i < 10; i++) {
       const row = 19 + i;
-      if (doesCellHaveColor(Base.report, rs.analysis, `B${row}`)) {
+      // If there's in indicator in the column to the left, then we know we need to handle it.
+      if (getCellValue(Base.report, rs.analysis, `A${row}`)) {
         const drug = getCellValue(Base.report, rs.analysis, `B${row}`);
         const number = i + 1;
         const csdosenum = getCellValue(Base.report, rs.analysis, `C${row}`);

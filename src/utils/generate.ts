@@ -18,7 +18,7 @@ export const generateInputFile = async (
   prevCalculationsFilePath: string,
   practitionersFilePath: string
 ) => {
-  Base.report = await loadExcelFile(reportFilePath, true);
+  Base.report = await loadExcelFile(reportFilePath);
   Base.calculations = await TableData.fromDocx(calculationsFilePath);
   Base.prevCalculations = await TableData.fromDocx(prevCalculationsFilePath);
   Base.practitioners = await loadExcelFile(practitionersFilePath);
@@ -26,13 +26,13 @@ export const generateInputFile = async (
   const outData = utils.book_new();
 
   const sheets: Base[] = [
+    new topdr(outData),
     ...aig.buildAll(outData),
     new top10cs(outData),
     new common(outData),
     new deaconcern(outData),
     new cscash(outData),
     new arcos(outData),
-    new topdr(outData),
     new aigtable(outData),
   ];
 

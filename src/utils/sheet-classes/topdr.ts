@@ -13,7 +13,7 @@ export class topdr extends Base {
 
   async build() {
     const sheet = Base.report.Sheets[rs.spatial];
-    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(6, 9);
+    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(1, 2);
     if (!rows) {
       return;
     }
@@ -21,11 +21,13 @@ export class topdr extends Base {
     // collect the DEA numbers for top 10
     const top10: string[] = [];
     for (const col of c.cthrul) {
-      top10.push(rows[1][col] as string);
+      top10.push(rows[0][col] as string);
     }
 
-    Base.top10dea = top10;
+    console.log(top10)
 
+    Base.top10dea = top10;
+    const drRecords = [];
     // build out details for each dea number
     for (const [i, dr] of top10.entries()) {
       // pull in practitioner details like AIG
@@ -56,6 +58,7 @@ export class topdr extends Base {
       }
 
       const drRecord: topdrRecord = {
+        Number: i + 1,
         DEA: dr,
         Name: p.Practitioner,
         PracticeLocation: p.PracticeLocation,
@@ -68,10 +71,10 @@ export class topdr extends Base {
         Discipline: p.Discipline,
         Miles: 'Over _ miles'
       };
-
-      this.record?.push(drRecord);
+      drRecords.push(drRecord);
     }
 
+    this.record = drRecords;
 
     this.data = this.getDataObject();
 
