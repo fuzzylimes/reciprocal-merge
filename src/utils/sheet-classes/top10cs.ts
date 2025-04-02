@@ -13,6 +13,7 @@ export class top10cs extends Base {
   async build() {
     const totalcsnum = getCellValue(Base.report, rs.analysis, `J62`);
     const totaldosenum = Base.calculations.getNumericValue('B4');
+    const top10 = [];
     for (let i = 0; i < 10; i++) {
       const row = 19 + i;
       // If there's in indicator in the column to the left, then we know we need to handle it.
@@ -33,9 +34,10 @@ export class top10cs extends Base {
           totaldosenum
         }
 
-        this.record?.push(topRecord);
+        top10.push(topRecord);
       }
     }
+    this.record = top10;
     Base.top10Count = this.record?.length ?? 0;
     this.data = this.getDataObject();
 

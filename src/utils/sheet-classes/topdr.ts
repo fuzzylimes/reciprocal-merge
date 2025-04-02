@@ -24,8 +24,6 @@ export class topdr extends Base {
       top10.push(rows[0][col] as string);
     }
 
-    console.log(top10)
-
     Base.top10dea = top10;
     const drRecords = [];
     // build out details for each dea number
