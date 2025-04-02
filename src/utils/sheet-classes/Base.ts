@@ -7,12 +7,12 @@ export class Base {
   headers: string[] = [];
   data: unknown[][] = [[]];
   sheet: string;
+  // Static properties - shared across ALL instances
   static report: WorkBook;
   static calculations: TableData;
   static prevCalculations: TableData;
   static practitioners: WorkBook;
   static top10Count: number = 0;
-  // Static property - shared across ALL instances
   static aigData: Record<aigReference, Partial<aigTracking>> = Object.fromEntries(
     Object.values(aigReference).map(key => [key, {}])
   ) as Record<aigReference, Partial<aigTracking>>;

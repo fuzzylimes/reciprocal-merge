@@ -235,7 +235,7 @@ export class common extends Base {
     // look against the specific distances (C - L)
     let count = 0;
     for (const row of rows) {
-      for (const col of ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']) {
+      for (const col of c.cthrul) {
         if (row[col]) count++;
       }
     }

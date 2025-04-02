@@ -186,7 +186,7 @@ export class aig extends Base {
     // Fetch the top5 details from practitioner file
     for (const dea of top5) {
       const pracWorkSheet = Base.practitioners.Sheets[ps.ref];
-      // TODO: Go back and remove this
+      // TODO: Go back and remove this?
       let p;
       try {
         p = findPractitionerByDea(pracWorkSheet, dea);
@@ -233,7 +233,7 @@ export class aig extends Base {
         numCS,
         totalRx,
         CSP: csp ? `${csp.toFixed(0)}%` : null,
-        CSCash: csCash,
+        CSCash: csCash ? `${csCash.toFixed(0)}%` : null,
         numpt: uniquePatients.size,
         Miles: 'Over _ miles'
       }

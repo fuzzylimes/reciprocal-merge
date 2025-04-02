@@ -252,7 +252,7 @@ export type aigRecord = {
   numCS: number | null;
   totalRx: number | null;
   CSP: string | null;
-  CSCash: number | null;
+  CSCash: string | null;
   numpt: number | null;
   Miles?: string;
 }
