@@ -8,12 +8,13 @@ import { pracRefSheet } from './sheets';
  * @param filePath Path to the Excel file
  * @returns Promise resolving to the parsed Excel workbook
  */
-export const loadExcelFile = async (filePath: string): Promise<WorkBook> => {
+export const loadExcelFile = async (filePath: string, styles = false): Promise<WorkBook> => {
   const excelContent = await readFile(filePath);
   const workbook = read(excelContent, {
     type: 'array',
     cellDates: true,  // Convert date cells to JS dates
-    cellNF: true      // Keep number formats
+    cellNF: true,     // Keep number formats
+    cellStyles: styles,
   });
 
   return workbook;
@@ -49,6 +50,52 @@ export const getCellValue = (workbook: WorkBook, sheetName: string, cell: string
 
   // return value off of cell object
   return cellValue.v;
+}
+
+export const doesCellHaveColor = (workbook: WorkBook, sheetName: string, cell: string): boolean => {
+  const sheet = workbook.Sheets[sheetName];
+  if (!sheet) {
+    console.error(`Sheet ${sheetName} not found in workbook`);
+    return false;
+  }
+
+  const cellValue = sheet[cell];
+  if (!cellValue) {
+    console.error(`Cell ${cell} not found in sheet ${sheetName}`);
+    return false;
+  }
+
+  // Check if the cell has style information with a fill
+  if (cellValue.s && cellValue.s.fill) {
+    // Check if there's a fill pattern type that's not 'none'
+    if (cellValue.s.fill.patternType && cellValue.s.fill.patternType !== 'none') {
+      return true;
+    }
+
+    // Check foreground color (if available)
+    if (cellValue.s.fill.fgColor) {
+      // If RGB or theme is specified, it likely has a color
+      if (cellValue.s.fill.fgColor.rgb && cellValue.s.fill.fgColor.rgb !== 'FFFFFF') {
+        return true;
+      }
+      if (cellValue.s.fill.fgColor.theme !== undefined) {
+        return true;
+      }
+    }
+
+    // Check background color (if available)
+    if (cellValue.s.fill.bgColor) {
+      // If RGB or theme is specified, it likely has a color
+      if (cellValue.s.fill.bgColor.rgb && cellValue.s.fill.bgColor.rgb !== 'FFFFFF') {
+        return true;
+      }
+      if (cellValue.s.fill.bgColor.theme !== undefined) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 export const sumColumn = (sheet: WorkSheet, rStart: number, rEnd: number, col: string): number => {

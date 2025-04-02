@@ -1,6 +1,8 @@
 import { WorkBook } from "xlsx";
 import { Base } from "./Base";
-import { headers, top10csRecord } from "../sheets";
+import { headers, top10csRecord, ReportSheets as rs } from "../sheets";
+import { doesCellHaveColor, getCellValue } from "../excel";
+import { toPercent } from "../format";
 
 export class top10cs extends Base {
   record: top10csRecord[] | undefined;
@@ -9,7 +11,31 @@ export class top10cs extends Base {
   }
 
   async build() {
-    // See notes on top10csRecord
+    const totalcsnum = getCellValue(Base.report, rs.analysis, `J62`);
+    const totaldosenum = Base.calculations.getNumericValue('B4');
+    for (let i = 0; i < 10; i++) {
+      const row = 19 + i;
+      if (doesCellHaveColor(Base.report, rs.analysis, `B${row}`)) {
+        const drug = getCellValue(Base.report, rs.analysis, `B${row}`);
+        const number = i + 1;
+        const csdosenum = getCellValue(Base.report, rs.analysis, `C${row}`);
+        const csdoseper = (csdosenum && totalcsnum) ? Number(csdosenum) / Number(totalcsnum) : 0;
+        const totaldoseperc = (csdosenum && totaldosenum) ? Number(csdosenum) / totaldosenum : 0;
+
+        const topRecord = {
+          drug,
+          number,
+          csdoseper: toPercent(csdoseper),
+          totaldoseperc: toPercent(totaldoseperc),
+          csdosenum,
+          totalcsnum,
+          totaldosenum
+        }
+
+        this.record?.push(topRecord);
+      }
+    }
+    Base.top10Count = this.record?.length ?? 0;
     this.data = this.getDataObject();
 
     await super.build();

@@ -24,6 +24,8 @@ export class topdr extends Base {
       top10.push(rows[1][col] as string);
     }
 
+    Base.top10dea = top10;
+
     // build out details for each dea number
     for (const [i, dr] of top10.entries()) {
       // pull in practitioner details like AIG

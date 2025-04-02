@@ -18,7 +18,7 @@ export const generateInputFile = async (
   prevCalculationsFilePath: string,
   practitionersFilePath: string
 ) => {
-  Base.report = await loadExcelFile(reportFilePath);
+  Base.report = await loadExcelFile(reportFilePath, true);
   Base.calculations = await TableData.fromDocx(calculationsFilePath);
   Base.prevCalculations = await TableData.fromDocx(prevCalculationsFilePath);
   Base.practitioners = await loadExcelFile(practitionersFilePath);

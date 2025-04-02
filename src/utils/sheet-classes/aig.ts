@@ -225,6 +225,7 @@ export class aig extends Base {
 
       const record: aigRecord = {
         Name: p.Practitioner ?? '',
+        isTop10: Base.top10dea.includes(dea),
         Specialty: p.Specialty ?? '',
         PracticeLocation: p.PracticeLocation ?? '',
         DEA: dea,
