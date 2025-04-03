@@ -207,8 +207,9 @@ export class TableData {
     for (let rowIndex = 0; rowIndex < column0Values.length; rowIndex++) {
       const rowLabel = column0Values[rowIndex];
       if (exactMatch ? rowLabel === label : rowLabel.toLowerCase().includes(label.toLowerCase())) {
-        const du = this.getNumericValueByIndex(rowIndex, columnIndex);
-        const times = this.getNumericValueByIndex(rowIndex + 2, columnIndex);
+        // Assuming this is the first instance matched, du will be 1 down, and times will be 3 down
+        const du = this.getNumericValueByIndex(rowIndex + 1, columnIndex);
+        const times = this.getNumericValueByIndex(rowIndex + 3, columnIndex);
         return [du, times];
       }
     }
