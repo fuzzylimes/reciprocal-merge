@@ -1,4 +1,3 @@
-import { readFile } from '@tauri-apps/plugin-fs';
 import PizZip from 'pizzip';
 
 export class TableData {
@@ -17,13 +16,10 @@ export class TableData {
    * @param tableIndex Index of the table to extract (0 for first table)
    * @returns TableData object containing the table content
    */
-  static async fromDocx(filePath: string, tableIndex = 0): Promise<TableData> {
+  static async fromDocx(fileContent: Uint8Array, tableIndex = 0): Promise<TableData> {
     try {
-      // Read the docx file
-      const docBuffer = await readFile(filePath);
-
       // Unzip the docx file
-      const zip = new PizZip(docBuffer);
+      const zip = new PizZip(fileContent);
 
       // Get the main document content
       const contentXml = zip.files['word/document.xml']?.asText();

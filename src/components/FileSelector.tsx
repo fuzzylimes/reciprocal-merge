@@ -1,19 +1,18 @@
-import { open } from '@tauri-apps/plugin-dialog';
+import { useState } from 'react';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid2';
 import InputAdornment from '@mui/material/InputAdornment';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import { readFile } from '../utils/file-system-service';
 
 interface FileSelectorProps {
   label: string;
   value: string;
   disabled?: boolean;
-  onChange: (filePath: string) => void;
-  fileTypes?: Array<{
-    name: string;
-    extensions: string[];
-  }>;
+  onChange: (filePath: string, fileContent: Uint8Array) => void;
+  fileTypes?: string[];
+  fileDescription?: string;
   onError?: (error: unknown) => void;
 }
 
@@ -23,24 +22,32 @@ function FileSelector({
   disabled = false,
   onChange,
   fileTypes = [],
+  fileDescription,
   onError
 }: FileSelectorProps) {
+  const [isSelecting, setIsSelecting] = useState(false);
 
   const handleSelectFile = async () => {
+    if (isSelecting) return; // Prevent multiple selections at once
+
+    setIsSelecting(true);
     try {
-      const selected = await open({
-        multiple: false,
-        filters: fileTypes.length > 0 ? fileTypes : undefined
+      const selectedFile = await readFile({
+        extensions: fileTypes,
+        description: fileDescription
       });
 
-      if (selected && !Array.isArray(selected)) {
-        onChange(selected);
+      if (selectedFile) {
+        // Pass both the file path and content to the parent component
+        onChange(selectedFile.path, selectedFile.content);
       }
     } catch (error) {
       console.error(`Failed to select file for ${label}:`, error);
       if (onError) {
         onError(error);
       }
+    } finally {
+      setIsSelecting(false);
     }
   };
 
@@ -67,9 +74,9 @@ function FileSelector({
         variant="contained"
         onClick={handleSelectFile}
         sx={{ mt: 1 }}
-        disabled={disabled}
+        disabled={disabled || isSelecting}
       >
-        Select
+        {isSelecting ? 'Selecting...' : 'Select'}
       </Button>
     </Grid>
   );

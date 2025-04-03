@@ -11,14 +11,17 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import FileSelector from './FileSelector';
 import { generateInputFile } from '../utils/generate';
-import { save } from '@tauri-apps/plugin-dialog';
 import { saveExcelFile } from '../utils/excel';
+import { Ifile } from '../utils/file-system-service';
+import ProcessLocation from './ProcessLocation';
+import { isTauriEnv } from '../utils/environment';
 
 function GenerateTab() {
-  const [reportFilePath, setReportFilePath] = useState<string>('');
-  const [calculationsFilePath, setCalculationsFilePath] = useState<string>('');
-  const [prevCalculationsFilePath, setPrevCalculationsFilePath] = useState<string>('');
-  const [practitionersFilePath, setPractitionersFilePath] = useState<string>('');
+  const [reportFile, setReportFile] = useState<Ifile>({ path: '', content: null })
+  const [calculationsFile, setCalculationsFile] = useState<Ifile>({ path: '', content: null })
+  const [prevCalculationsFile, setPrevCalculationsFile] = useState<Ifile>({ path: '', content: null });
+  const [practitionersFile, setPractitionersFile] = useState<Ifile>({ path: '', content: null })
+
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [notification, setNotification] = useState<{
     open: boolean;
@@ -47,32 +50,47 @@ function GenerateTab() {
     setNotification({ ...notification, open: false });
   };
 
+  const handleReportFileChange = (path: string, content: Uint8Array) => {
+    setReportFile({ path, content });
+  };
+
+  const handleCalculationsFileChange = (path: string, content: Uint8Array) => {
+    setCalculationsFile({ path, content });
+  };
+
+  const handlePrevCalculationsFileChange = (path: string, content: Uint8Array) => {
+    setPrevCalculationsFile({ path, content });
+  };
+
+  const handlePractitionersFileChange = (path: string, content: Uint8Array) => {
+    setPractitionersFile({ path, content });
+  };
+
   // Main generate handler
   const handleGenerate = async () => {
-    if (!practitionersFilePath || !reportFilePath || !calculationsFilePath) return;
+    if (!practitionersFile.content || !reportFile.content || !calculationsFile.content || !prevCalculationsFile.content) return;
 
     setIsProcessing(true);
 
     try {
       // Generate the template Excel file
       const generatedWorkbook = await generateInputFile(
-        reportFilePath,
-        calculationsFilePath,
-        prevCalculationsFilePath,
-        practitionersFilePath
+        reportFile,
+        calculationsFile,
+        prevCalculationsFile,
+        practitionersFile
       );
 
-      // Show file save dialog
-      const savePath = await save({
-        filters: [{
-          name: 'Excel Files',
-          extensions: ['xlsx']
-        }]
-      });
+      // In browser environment, use automatic download
+      // Get a reasonable filename based on the report file
+      const fileName = reportFile.path.split(/[\\/]/).pop() || 'generated';
+      const outputName = `${fileName.replace(/\.[^/.]+$/, '')}_template.xlsx`;
 
-      if (savePath) {
-        // Save the generated Excel file
-        await saveExcelFile(generatedWorkbook, savePath);
+      const success = await saveExcelFile(generatedWorkbook, outputName);
+
+      if (!isTauriEnv()) showNotification('Document saved or cancelled', 'info');
+
+      if (success) {
         showNotification('Template Excel file successfully generated!', 'success');
       } else {
         showNotification('Save operation cancelled', 'info');
@@ -90,7 +108,7 @@ function GenerateTab() {
   };
 
   // Check if all required files are selected and not processing
-  const isGenerateEnabled = reportFilePath !== '' && calculationsFilePath !== '' && practitionersFilePath !== '' && !isProcessing;
+  const isGenerateEnabled = reportFile.path !== '' && calculationsFile.path !== '' && prevCalculationsFile.path !== '' && practitionersFile.path !== '' && !isProcessing;
 
   return (
     <Box
@@ -102,56 +120,49 @@ function GenerateTab() {
         <Typography variant="h6" component="h2" gutterBottom>
           Generate Template Input File
         </Typography>
+        <ProcessLocation />
         <Grid container spacing={3}>
           {/* Report File Section */}
           <FileSelector
             label="Report Excel File"
-            value={reportFilePath}
+            value={reportFile.path}
             disabled={isProcessing}
-            onChange={setReportFilePath}
-            fileTypes={[{
-              name: 'Excel Files',
-              extensions: ['xlsx', 'xls', 'xlsm']
-            }]}
+            onChange={handleReportFileChange}
+            fileTypes={['xlsx', 'xls', 'xlsm']}
+            fileDescription='Excel Files'
             onError={handleFileSelectionError}
           />
 
           {/* Calculations File Section */}
           <FileSelector
             label="Calculations Word File"
-            value={calculationsFilePath}
+            value={calculationsFile.path}
             disabled={isProcessing}
-            onChange={setCalculationsFilePath}
-            fileTypes={[{
-              name: 'Word Files',
-              extensions: ['docx']
-            }]}
+            onChange={handleCalculationsFileChange}
+            fileTypes={['docx']}
+            fileDescription='Word Files'
             onError={handleFileSelectionError}
           />
 
           {/* Previous Calculations File Section */}
           <FileSelector
             label="Previous Calculations Word File"
-            value={prevCalculationsFilePath}
+            value={prevCalculationsFile.path}
             disabled={isProcessing}
-            onChange={setPrevCalculationsFilePath}
-            fileTypes={[{
-              name: 'Word Files',
-              extensions: ['docx']
-            }]}
+            onChange={handlePrevCalculationsFileChange}
+            fileTypes={['docx']}
+            fileDescription='Word Files'
             onError={handleFileSelectionError}
           />
 
           {/* Practitioners File Section */}
           <FileSelector
             label="Practitioners Excel File"
-            value={practitionersFilePath}
+            value={practitionersFile.path}
             disabled={isProcessing}
-            onChange={setPractitionersFilePath}
-            fileTypes={[{
-              name: 'Excel Files',
-              extensions: ['xlsx', 'xls', 'xlsm']
-            }]}
+            onChange={handlePractitionersFileChange}
+            fileTypes={['xlsx', 'xls', 'xlsm']}
+            fileDescription='Excel Files'
             onError={handleFileSelectionError}
           />
 

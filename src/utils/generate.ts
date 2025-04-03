@@ -1,4 +1,5 @@
 import { loadExcelFile } from "./excel"
+import { Ifile } from "./file-system-service";
 import { aig } from "./sheet-classes/aig";
 import { aigtable } from "./sheet-classes/aigtable";
 import { arcos } from "./sheet-classes/arcos";
@@ -13,15 +14,15 @@ import { TableData } from "./word";
 import { utils } from 'xlsx';
 
 export const generateInputFile = async (
-  reportFilePath: string,
-  calculationsFilePath: string,
-  prevCalculationsFilePath: string,
-  practitionersFilePath: string
+  reportFile: Ifile,
+  calculationsFile: Ifile,
+  prevCalculationsFile: Ifile,
+  practitionersFile: Ifile
 ) => {
-  Base.report = await loadExcelFile(reportFilePath);
-  Base.calculations = await TableData.fromDocx(calculationsFilePath);
-  Base.prevCalculations = await TableData.fromDocx(prevCalculationsFilePath);
-  Base.practitioners = await loadExcelFile(practitionersFilePath);
+  Base.report = await loadExcelFile(reportFile.content!);
+  Base.calculations = await TableData.fromDocx(calculationsFile.content!);
+  Base.prevCalculations = await TableData.fromDocx(prevCalculationsFile.content!);
+  Base.practitioners = await loadExcelFile(practitionersFile.content!);
 
   const outData = utils.book_new();
 
