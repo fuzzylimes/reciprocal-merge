@@ -54,6 +54,7 @@ export enum PractitionerSheets {
 }
 
 export type pracRefSheet = {
+  'Last Name First': string;
   Practitioner: string;
   Specialty: string;
   PracticeLocation: string;
