@@ -20,15 +20,16 @@ export class aigtable extends Base {
 
       if (currentdate < 2.0) continue;
 
-      const [Prevdate, Prevdoses] = Base.prevCalculations.getDuAndTimesByRowLabel(aig.duMonthCell);
+      const rl = rows.length + 2;
+      const [Prevdoses, Prevdate] = Base.prevCalculations.getDuAndTimesByRowLabel(aig.duMonthCell);
       const atr: aigTableRecord = {
         AIG: aig.label,
         Prevdate,
         Prevdoses,
         currentdate,
         currentdoses: aigData.month ?? 0,
-        Change: { t: 'f', f: `IFS($B${i + 1}>$D${i + 1},"LOWER",$B${i + 1}<$D${i + 1},"HIGHER",$B${i + 1}=$D${i + 1},"NO CHANGE")` },
-        Changedose: { t: 'f', f: `IFS($C${i + 1}>$E${i + 1},"LOWER",$C${i + 1}<$E${i + 1},"HIGHER",$C${i + 1}=$E${i + 1},"NO CHANGE")` },
+        Change: { t: 'f', f: `IFS($B${rl}>$D${rl},"LOWER",$B${rl}<$D${rl},"HIGHER",$B${rl}=$D${rl},"NO CHANGE")` },
+        Changedose: { t: 'f', f: `IFS($C${rl}>$E${rl},"LOWER",$C${rl}<$E${rl},"HIGHER",$C${rl}=$E${rl},"NO CHANGE")` },
       }
       rows.push(atr);
     }
