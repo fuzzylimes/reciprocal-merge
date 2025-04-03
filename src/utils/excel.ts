@@ -1,15 +1,14 @@
-import { readFile, writeFile } from '@tauri-apps/plugin-fs';
 import { WorkBook, WorkSheet, read, utils, write } from 'xlsx';
 import { row } from './sheet-classes/common';
 import { pracRefSheet } from './sheets';
+import { saveFile } from './file-system-service';
 
 /**
  * Loads and parses an Excel file
- * @param filePath Path to the Excel file
+ * @param excelContent Excel file content
  * @returns Promise resolving to the parsed Excel workbook
  */
-export const loadExcelFile = async (filePath: string): Promise<WorkBook> => {
-  const excelContent = await readFile(filePath);
+export const loadExcelFile = async (excelContent: Uint8Array): Promise<WorkBook> => {
   const workbook = read(excelContent, {
     type: 'array',
     cellDates: true,  // Convert date cells to JS dates
@@ -20,19 +19,33 @@ export const loadExcelFile = async (filePath: string): Promise<WorkBook> => {
 };
 
 /**
- * Saves a workbook to an Excel file
+ * Saves a workbook to an Excel file using the unified file system service
  * @param workbook The workbook to save
- * @param filePath Path where to save the file
+ * @param fileName Suggested file name or path to save to
+ * @returns Promise resolving to a boolean indicating success
  */
-export const saveExcelFile = async (workbook: WorkBook, filePath: string): Promise<void> => {
-  // Write workbook to binary string
+export const saveExcelFile = async (workbook: WorkBook, fileName: string): Promise<boolean> => {
+  // Convert workbook to binary format
   const excelData = write(workbook, {
     bookType: 'xlsx',
     type: 'array'
   });
 
-  await writeFile(filePath, excelData);
-};
+  // Convert the output to Uint8Array if it isn't already
+  const binaryData = excelData instanceof Uint8Array
+    ? excelData
+    : new Uint8Array(excelData);
+
+  // Use the unified file system service to save the file
+  return await saveFile(
+    binaryData,
+    fileName.endsWith('.xlsx') ? fileName : `${fileName}.xlsx`,
+    {
+      extensions: ['xlsx'],
+      description: 'Excel Files'
+    }
+  );
+}
 
 export const getCellValue = (workbook: WorkBook, sheetName: string, cell: string): string | undefined => {
   const sheet = workbook.Sheets[sheetName];

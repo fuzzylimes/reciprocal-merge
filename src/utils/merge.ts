@@ -1,18 +1,25 @@
-import { readFile } from '@tauri-apps/plugin-fs';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import * as XLSX from 'xlsx';
 import expressionParser from 'docxtemplater/expressions.js';
-import { loadExcelFile } from './excel';
 
-// Document merging function
-export const mergeExcel = async (templatePath: string, excelPath: string) => {
+/**
+ * Merge Excel data with a Word template
+ * @param templateContent Word template file content as Uint8Array
+ * @param excelContent Excel file content as Uint8Array
+ * @returns Merged document as Uint8Array
+ */
+export const mergeExcel = async (
+  templateContent: Uint8Array,
+  excelContent: Uint8Array
+): Promise<Uint8Array> => {
   try {
-    // Read the template file
-    const templateContent = await readFile(templatePath);
-
-    // Read and process the Excel file
-    const workbook = await loadExcelFile(excelPath);
+    // Process the Excel content
+    const workbook = XLSX.read(excelContent, {
+      type: 'array',
+      cellDates: true,  // Convert date cells to JS dates
+      cellNF: true      // Keep number formats
+    });
 
     // Convert Excel data to JSON
     const jsonData: Record<string, unknown> = {};

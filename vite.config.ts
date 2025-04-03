@@ -1,13 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
   plugins: [react()],
-
+  // Set the base path to match GitHub Pages repository structure when building for web
+  base: process.env.VITE_BASE_PATH || '/',
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent vite from obscuring rust errors
@@ -19,14 +19,31 @@ export default defineConfig(async () => ({
     host: host || false,
     hmr: host
       ? {
-          protocol: "ws",
-          host,
-          port: 1421,
-        }
+        protocol: "ws",
+        host,
+        port: 1421,
+      }
       : undefined,
     watch: {
       // 3. tell vite to ignore watching `src-tauri`
       ignored: ["**/src-tauri/**"],
     },
+  },
+  build: {
+    // Ensure source maps are generated for better debugging
+    sourcemap: true,
+
+    // Customize output for web vs. Tauri
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor code for better caching in web environments
+          react: ['react', 'react-dom'],
+          mui: ['@mui/icons-material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
+          word: ['docxtemplater', 'pizzip', 'angular-expressions'],
+          excel: ['xlsx']
+        }
+      }
+    }
   },
 }));
