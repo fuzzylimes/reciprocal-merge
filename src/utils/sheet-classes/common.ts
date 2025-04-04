@@ -282,7 +282,7 @@ export class common extends Base {
   setStaticValues() {
     const address = getCellValue(Base.report, rs.summary, 'A8');
     const cityStateZip = getCellValue(Base.report, rs.summary, 'A9');
-    this.record.address = `${address}\n${cityStateZip}`;
+    this.record.address = `${address}${String.fromCharCode(10)}${cityStateZip}`;
 
     this.record.account = Base.calculations.getCellByRowLabel(CalcKeys.account);
     this.record.rxday = Base.calculations.getCellByRowLabel(CalcKeys.rxday, 1, false, true);
