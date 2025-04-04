@@ -162,7 +162,7 @@ export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practition
   if (!match) throw Error(`Practitioner ${dea} does not exist in practitioner DB.`);
 
   const prac: Practitioner = {
-    Practitioner: String(match['Last Name First'] ?? ''),
+    Practitioner: String(match.Practitioner.split(' (')[0] ?? ''),
     Specialty: String(match.Specialty ?? ''),
     PracticeLocation: String(match.PracticeLocation ?? ''),
     DEA: dea,
