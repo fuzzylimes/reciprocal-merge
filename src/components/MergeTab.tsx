@@ -13,6 +13,7 @@ import { mergeExcel } from '../utils/merge';
 import { Ifile, saveFile } from '../utils/file-system-service';
 import ProcessLocation from './ProcessLocation';
 import { isTauriEnv } from '../utils/environment';
+import { getCellValue, loadExcelFile } from '../utils/excel';
 
 function MergeTab() {
   const [excelFile, setExcelFile] = useState<Ifile>({ path: '', content: null });
@@ -63,8 +64,12 @@ function MergeTab() {
       // Perform the merge using the file contents directly
       const mergedContent = await mergeExcel(templateFile.content, excelFile.content);
 
-      // Get the output filename based on the input files
-      const outputFileName = getOutputFileName(excelFile.path, templateFile.path);
+      // Build filename from content in template workbook
+      const templateWorkbook = await loadExcelFile(mergedContent);
+      const pharmacyName = getCellValue(templateWorkbook, 'common', 'A2');
+      const dateRange = getCellValue(templateWorkbook, 'common', 'E2');
+      const endDate = dateRange?.split(' - ')[1];
+      const outputFileName = `${pharmacyName ?? ''} notes ${endDate ?? ''}.docx`
 
       // Save the file using our unified file system service
       const saved = await saveFile(
@@ -73,7 +78,10 @@ function MergeTab() {
         { extensions: ['docx'], description: 'Word Documents' }
       );
 
-      if (!isTauriEnv()) showNotification('Document saved or cancelled', 'info');
+      if (!isTauriEnv()) {
+        showNotification('Document saved or cancelled', 'info');
+        return;
+      }
 
       if (saved) {
         showNotification('Document successfully merged and saved!', 'success');
@@ -86,18 +94,6 @@ function MergeTab() {
     } finally {
       setIsProcessing(false);
     }
-  };
-
-  // Helper function to generate output filename
-  const getOutputFileName = (excelPath: string, templatePath: string): string => {
-    // Extract just the filename without extension from the Excel file
-    const excelName = excelPath.split(/[/\\]/).pop()?.replace(/\.[^/.]+$/, '') || 'data';
-
-    // Extract just the filename without extension from the template file
-    const templateName = templatePath.split(/[/\\]/).pop()?.replace(/\.[^/.]+$/, '') || 'template';
-
-    // Combine them with a timestamp
-    return `${excelName}_${templateName}_merged.docx`;
   };
 
   // Check if both files are selected to enable the merge button
