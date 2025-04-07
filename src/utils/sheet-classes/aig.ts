@@ -156,8 +156,8 @@ export class aig extends Base {
     }
 
     // Multiple checks to get the DEA numbers. First check is to pull back value from the calculations sheet and see if it's > 300
-    const duValue = Base.calculations.getNumericValue(duField);
-    const over300 = Number(duValue) > 300;
+    const [duValue] = Base.calculations.getDuAndTimesByRowLabel(duField);
+    const over300 = (duValue ?? 0) > 300;
 
     // Need to sum all values in order to get "top 5" prescribers
     // If over 300, use the filtered drugRows, otherwise use the full set (overRows)
