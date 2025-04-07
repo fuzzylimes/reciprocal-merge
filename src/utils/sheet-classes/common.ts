@@ -337,9 +337,8 @@ export class common extends Base {
     await super.build();
 
     const cellAddress = utils.encode_cell({ r: 1, c: this.headers.indexOf('address') });
-    const cellTrinity = utils.encode_cell({ r: 1, c: this.headers.indexOf('trinity') });
     const worksheet = this.outData.Sheets[this.sheet];
-    for (const cell of [cellAddress, cellTrinity]) {
+    for (const cell of [cellAddress]) {
       if (!worksheet[cell].s) worksheet[cell].s = {};
       worksheet[cell].s.alignment = { wrapText: true };
     }
