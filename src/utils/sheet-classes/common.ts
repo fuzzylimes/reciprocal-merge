@@ -299,8 +299,8 @@ export class common extends Base {
   }
 
   setStaticValues() {
-    const address = (getCellValue(Base.report, rs.summary, 'A8') ?? '').split('#1:')[1].trim();
-    const cityStateZip = (getCellValue(Base.report, rs.summary, 'A9') ?? '').split('Zip:')[1].trim();
+    const address = (getCellValue(Base.report, rs.summary, 'A8') ?? '').split('#1:')?.[1].trim() ?? '';
+    const cityStateZip = (getCellValue(Base.report, rs.summary, 'A9') ?? '').split('Zip:')?.[1].trim() ?? '';
     this.record.address = `${address}\n${cityStateZip}`;
 
     this.record.account = Base.calculations.getCellByRowLabel(CalcKeys.account);
