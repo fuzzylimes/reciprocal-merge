@@ -20,6 +20,7 @@ jobs:
     uses: fuzzylimes/reciprocal-merge/.github/workflows/lint.yml@main
 
   build:
+    needs: lint
     runs-on: ubuntu-latest
     
     steps:

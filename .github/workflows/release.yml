@@ -14,6 +14,7 @@ jobs:
     uses: fuzzylimes/reciprocal-merge/.github/workflows/lint.yml@main
 
   publish-tauri:
+    needs: lint
     permissions:
       contents: write
     strategy:
