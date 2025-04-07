@@ -1,13 +1,18 @@
-name: 'release'
+name: Release version
 
+# This workflow will trigger on each push to the `release` branch to create or update a GitHub release, build your app, and upload the artifacts to the release.
 on:
   push:
     branches:
       - release
 
-# This workflow will trigger on each push to the `release` branch to create or update a GitHub release, build your app, and upload the artifacts to the release.
+permissions:
+  actions: read
 
 jobs:
+  lint:
+    uses: fuzzylimes/reciprocal-merge/.github/workflows/lint.yml@main
+
   publish-tauri:
     permissions:
       contents: write

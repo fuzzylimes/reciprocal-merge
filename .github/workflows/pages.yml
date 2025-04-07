@@ -5,6 +5,7 @@ on:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -15,6 +16,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    uses: fuzzylimes/reciprocal-merge/.github/workflows/lint.yml@main
+
   build:
     runs-on: ubuntu-latest
     
