@@ -28,8 +28,8 @@ export class aigtable extends Base {
         Prevdoses,
         currentdate,
         currentdoses: aigData.month ?? 0,
-        Change: { t: 'f', f: `IFS($B${rl}>$D${rl},"LOWER",$B${rl}<$D${rl},"HIGHER",$B${rl}=$D${rl},"NO CHANGE")` },
-        Changedose: { t: 'f', f: `IFS($C${rl}>$E${rl},"LOWER",$C${rl}<$E${rl},"HIGHER",$C${rl}=$E${rl},"NO CHANGE")` },
+        Change: { t: 'f', f: `IFS(B${rl}>D${rl},"LOWER",B${rl}<D${rl},"HIGHER",B${rl}=D${rl},"NO CHANGE")` },
+        Changedose: { t: 'f', f: `IFS(C${rl}>E${rl},"LOWER",C${rl}<E${rl},"HIGHER",C${rl}=E${rl},"NO CHANGE")` },
       }
       rows.push(atr);
     }

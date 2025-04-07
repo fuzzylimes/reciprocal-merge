@@ -78,6 +78,8 @@ export class common extends Base {
     const sheet = Base.report.Sheets[rs.trinityConcerns];
     const rows = utils.sheet_to_json<trinitySheet>(sheet);
     if (!rows) {
+      this.record.trinitynum = 0;
+      this.record.trinity = 'None';
       return;
     }
 
@@ -105,13 +107,24 @@ export class common extends Base {
 
     this.record.trinitynum = carisoprodolCount + amphetamineCount;
 
-    this.record.trinity = `${carisoprodolCount} ${c.carisoprodol} patients (${carisoprodolKeys.join(', ')})\n${amphetamineCount} ${c.amphetamine} patients (${amphetamineKeys.join(', ')})`;
+    let trinityString = '';
+    if (carisoprodolCount) {
+      trinityString += `${carisoprodolCount} ${c.carisoprodol} patient${carisoprodolCount > 1 ? 's' : ''} (${carisoprodolKeys.map(k => `#${k}`).join(', ')})`;
+    }
+    if (amphetamineCount) {
+      if (trinityString) trinityString += ` and `;
+      trinityString += `${amphetamineCount} ${c.amphetamine} patient${amphetamineCount > 1 ? 's' : ''} (${amphetamineKeys.map(k => `#${k}`).join(', ')})`;
+    }
+
+    this.record.trinity = trinityString || 'None';
   }
 
   async imm() {
     const sheet = Base.report.Sheets[rs.immediateRelease];
     const rows = utils.sheet_to_json<irSheet>(sheet, { blankrows: true });
     if (!rows) {
+      this.record.immednum = 0;
+      this.record.imm = 'None';
       return;
     }
 
@@ -139,10 +152,10 @@ export class common extends Base {
       }
     })
 
-    let value = '';
+    this.record.immednum = patientsList.length;
+    let value = 'None';
     if (patientsList.length) {
-      this.record.immednum = patientsList.length;
-      value = `${this.record.immednum} patients (${patientsList.join(', ')})`;
+      value = `${this.record.immednum} patient${patientsList.length > 1 ? 's' : ''} (${patientsList.map(p => `#${p}`).join(', ')})`;
     }
     this.record.imm = value;
   }
@@ -151,6 +164,8 @@ export class common extends Base {
     const sheet = Base.report.Sheets[rs.multiPractioner];
     const rows = utils.sheet_to_json<multipracSheet>(sheet);
     if (!rows) {
+      this.record.multipracnum = 0;
+      this.record.multiprac = 'None';
       return;
     }
 
@@ -163,8 +178,11 @@ export class common extends Base {
 
     const patientIds = Object.keys(mapping);
     this.record.multipracnum = patientIds.length;
-
-    this.record.multiprac = `${this.record.multipracnum} patients (${patientIds.join(', ')})`;
+    let multipracString = 'None';
+    if (patientIds.length) {
+      multipracString = `${this.record.multipracnum} patient${Number(this.record.multipracnum) > 1 ? 's' : ''} (${patientIds.map(p => `#${p}`).join(', ')})`;
+    }
+    this.record.multiprac = multipracString;
   }
 
   async highmed() {
@@ -175,14 +193,14 @@ export class common extends Base {
     }
 
     this.filteredHighMedRows = rows.filter(row => row['Daily M.E.D per Prescription'] && Number(row['Daily M.E.D per Prescription']) >= 120)
-    const perscriptionCount = this.filteredHighMedRows.length;
+    const prescriptionCount = this.filteredHighMedRows.length;
     const uniquePatients = new Set(this.filteredHighMedRows.map(row => row['Patient ID']));
     const patientCount = uniquePatients.size;
 
-    this.record.highmednum = perscriptionCount;
+    this.record.highmednum = prescriptionCount;
     let value = '';
-    if (perscriptionCount) {
-      value = `There are ${perscriptionCount} perscriptions between ${patientCount} patients with an MED of 120 or higher`;
+    if (prescriptionCount) {
+      value = `There are ${prescriptionCount} prescription${prescriptionCount > 1 ? 's' : ''} between ${patientCount} patient${patientCount > 1 ? 's' : ''} with an MED of 120 or higher`;
     }
     this.record.highmed = value;
   }
@@ -192,34 +210,35 @@ export class common extends Base {
       return;
     }
 
-    // Need to find the perscriber with the most perscriptions, then get the count and Id of the patients
-    const mapping: Record<string, Record<number, boolean>> = {};
+    // Need to find the prescriber with the most prescriptions, then get the count and Id of the patients
+    const mapping: Record<string, Record<number, string>> = {};
     for (const row of this.filteredHighMedRows) {
-      const perscriber = row['DEA#'];
+      const prescriber = row['DEA#'];
+      const prescriberName = row['Physician Name'];
       const patientId = row['Patient ID'];
 
-      if (mapping[perscriber]) {
-        if (!mapping[perscriber][patientId]) {
-          mapping[perscriber][patientId] = true;
+      if (mapping[prescriber]) {
+        if (!mapping[prescriber][patientId]) {
+          mapping[prescriber][patientId] = prescriberName;
         }
       } else {
-        mapping[perscriber] = { [patientId]: true };
+        mapping[prescriber] = { [patientId]: prescriberName };
       }
     }
 
-    let maxPerscriber = '';
+    let maxPrescriber = '';
     let maxCount = 0;
     let maxPatients: number[] = [];
-    Object.entries(mapping).forEach(([perscriber, patients]) => {
+    Object.entries(mapping).forEach(([, patients]) => {
       const patientIds = Object.keys(patients);
       if (patientIds.length > maxCount) {
         maxCount = patientIds.length;
-        maxPerscriber = perscriber;
+        maxPrescriber = patients[Number(patientIds[0])];
         maxPatients = [...new Set(patientIds.map(id => Number(id)))];
       }
     });
 
-    const value = `The most prolific prescriber is ${maxPerscriber} with ${maxCount} perscriptions between ${maxPatients.length} patients`;
+    const value = `The most prolific prescriber is ${maxPrescriber} with ${maxCount} prescription${maxCount > 1 ? 's' : ''} between ${maxPatients.length} patient${maxPatients.length > 1 ? 's' : ''}`;
     this.record.highmedpres = value;
   }
 
@@ -280,9 +299,9 @@ export class common extends Base {
   }
 
   setStaticValues() {
-    const address = getCellValue(Base.report, rs.summary, 'A8');
-    const cityStateZip = getCellValue(Base.report, rs.summary, 'A9');
-    this.record.address = `${address}${String.fromCharCode(10)}${cityStateZip}`;
+    const address = (getCellValue(Base.report, rs.summary, 'A8') ?? '').split('#1:')?.[1].trim() ?? '';
+    const cityStateZip = (getCellValue(Base.report, rs.summary, 'A9') ?? '').split('Zip:')?.[1].trim() ?? '';
+    this.record.address = `${address}\n${cityStateZip}`;
 
     this.record.account = Base.calculations.getCellByRowLabel(CalcKeys.account);
     this.record.rxday = Base.calculations.getCellByRowLabel(CalcKeys.rxday, 1, false, true);
@@ -316,6 +335,13 @@ export class common extends Base {
 
     this.data = this.getDataObject();
     await super.build();
+
+    const cellAddress = utils.encode_cell({ r: 1, c: this.headers.indexOf('address') });
+    const worksheet = this.outData.Sheets[this.sheet];
+    for (const cell of [cellAddress]) {
+      if (!worksheet[cell].s) worksheet[cell].s = {};
+      worksheet[cell].s.alignment = { wrapText: true };
+    }
   }
 
   getDataObject() {
