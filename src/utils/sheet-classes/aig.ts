@@ -117,7 +117,7 @@ export class aig extends Base {
     if (!rows) {
       return;
     }
-    const { names, family, per, med, duMonthCell: duField } = this.aigDetails;
+    const { names, family, per, med, duMonthCell: duField, label } = this.aigDetails;
 
     let drugRows: csrxSheet[] = rows;
 
@@ -134,7 +134,7 @@ export class aig extends Base {
     }
 
     // filter out liquids
-    drugRows = drugRows.filter(row => !String(row["Drug Name"]).toLowerCase().endsWith(' ml'));
+    drugRows = drugRows.filter(row => !String(row["Drug Name"]).toLowerCase().endsWith('ml'));
 
     const overRows = drugRows.filter(row => applyOperation(Number(row["mg/day"]), this.aigDetails));
     const ratio = overRows.length / drugRows.length * 100;
@@ -184,7 +184,7 @@ export class aig extends Base {
     const allrxRows = utils.sheet_to_json<allrxSheet>(allrx);
 
     // Fetch the top5 details from practitioner file
-    for (const dea of top5) {
+    for (const [i, dea] of top5.entries()) {
       const pracWorkSheet = Base.practitioners.Sheets[ps.ref];
       // TODO: Go back and remove this?
       let p;
@@ -224,6 +224,7 @@ export class aig extends Base {
       // TODO: Calculate milage between two points (how can we do this?)
 
       const record: aigRecord = {
+        AIG: i === 0 ? label : '',
         Name: p.Practitioner ?? '',
         isTop10: Base.top10dea.includes(dea),
         Specialty: p.Specialty ?? '',
