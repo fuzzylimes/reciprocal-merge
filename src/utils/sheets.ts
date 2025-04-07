@@ -28,6 +28,7 @@ export type medSheet = {
   'Daily M.E.D per Prescription': string;
   'Patient ID': number;
   'DEA#': string;
+  'Physician Name': string;
 }
 
 // Spatial will continue to use dirrect cell references due to the way the page is setup
