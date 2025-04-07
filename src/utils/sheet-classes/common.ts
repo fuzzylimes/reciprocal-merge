@@ -299,8 +299,17 @@ export class common extends Base {
   }
 
   setStaticValues() {
-    const address = (getCellValue(Base.report, rs.summary, 'A8') ?? '').split('#1:')?.[1].trim() ?? '';
-    const cityStateZip = (getCellValue(Base.report, rs.summary, 'A9') ?? '').split('Zip:')?.[1].trim() ?? '';
+    const rawAddress = getCellValue(Base.report, rs.summary, 'A8') ?? '';
+    const rawCityStateZip = getCellValue(Base.report, rs.summary, 'A9') ?? '';
+    let address, cityStateZip;
+    if (rawAddress) {
+      const split = rawAddress.split(':');
+      address = split[1] ? split[1].trim() : '';
+    }
+    if (rawCityStateZip) {
+      const split = rawCityStateZip.split(':');
+      cityStateZip = split[1] ? split[1].trim() : '';
+    }
     this.record.address = `${address}\n${cityStateZip}`;
 
     this.record.account = Base.calculations.getCellByRowLabel(CalcKeys.account);
