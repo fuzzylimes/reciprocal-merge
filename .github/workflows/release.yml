@@ -6,15 +6,8 @@ on:
     branches:
       - release
 
-permissions:
-  actions: read
-
 jobs:
-  lint:
-    uses: fuzzylimes/reciprocal-merge/.github/workflows/lint.yml@main
-
   publish-tauri:
-    needs: lint
     permissions:
       contents: write
     strategy:
@@ -42,7 +35,10 @@ jobs:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
       - name: install frontend dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Run ESLint
+        run: npx eslint "src/**/*.{ts,tsx}"
 
       - uses: tauri-apps/tauri-action@v0
         env:
