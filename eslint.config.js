@@ -8,5 +8,8 @@ export default tseslint.config(
   tseslint.configs.recommended,
   {
     ignores: ['node_modules', 'dist', 'src-tauri'],
+  },
+  {
+    files: ['**/*.{ts,tsx}'],
   }
 );
