@@ -258,7 +258,7 @@ export type aigRecord = {
   CSP: string | null;
   CSCash: string | null;
   numpt: number | null;
-  Miles?: string;
+  Miles?: unknown;
 }
 
 export type deaconcernRecord = {

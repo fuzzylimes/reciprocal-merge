@@ -59,7 +59,7 @@ export class common extends Base {
   }
 
   prevDate() {
-    const cell = Base.calculations.getCellByIndex(0, 0) ?? '';
+    const cell = Base.prevCalculations.getCellByIndex(0, 0) ?? '';
     const [, prevDate] = cell.split(' Calculations ');
     this.record.prevdate = prevDate;
   }
