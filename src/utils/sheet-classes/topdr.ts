@@ -3,7 +3,7 @@ import { Base } from "./Base";
 import { headers, topdrRecord, ReportSheets as rs, PractitionerSheets as ps } from "../sheets";
 import { row } from "./common";
 import * as c from '../constants';
-import { findPractitionerByDea, getCellValue } from "../excel";
+import { findPractitionerByDea, getCellValue, Practitioner } from "../excel";
 
 export class topdr extends Base {
   record: topdrRecord[] | undefined;
@@ -31,12 +31,10 @@ export class topdr extends Base {
       // pull in practitioner details like AIG
       const pracWorkSheet = Base.practitioners.Sheets[ps.ref];
       // TODO: Go back and remove this?
-      let p;
+      let p: Partial<Practitioner> = {};
       try {
         p = findPractitionerByDea(pracWorkSheet, dr);
-      } catch {
-        p = {};
-      }
+      } catch { /* empty */ }
 
       // get csrx and totalrx from analysis page (K & L)
       const csrx = Number(getCellValue(Base.report, rs.analysis, `K${7 + i}`));

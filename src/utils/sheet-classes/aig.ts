@@ -2,7 +2,7 @@ import { utils, WorkBook } from "xlsx";
 import { Base } from "./Base";
 import { aigRecord, allrxSheet, csrxSheet, ReportSheets as rs } from '../sheets';
 import { PractitionerSheets as ps } from "../sheets";
-import { findPractitionerByDea } from "../excel";
+import { findPractitionerByDea, Practitioner } from "../excel";
 import { headers } from "../sheets";
 import { aigLookup, IaigDef } from "../aig-helper";
 
@@ -186,12 +186,11 @@ export class aig extends Base {
     // Fetch the top5 details from practitioner file
     for (const [i, dea] of top5.entries()) {
       const pracWorkSheet = Base.practitioners.Sheets[ps.ref];
-      // TODO: Go back and remove this?
-      let p;
+      let p: Partial<Practitioner> = {};
       try {
         p = findPractitionerByDea(pracWorkSheet, dea);
       } catch {
-        p = {};
+        Base.missingDea.push(dea);
       }
 
       // filter allrxRows by the dea number (J)

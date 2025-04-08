@@ -15,6 +15,7 @@ export class Base {
   static top10Count: number = 0;
   static top10dea: string[] = [];
   static deaMiles: string[] = [];
+  static missingDea: string[] = [];
   static aigData: Record<aigReference, Partial<aigTracking>> = Object.fromEntries(
     Object.values(aigReference).map(key => [key, {}])
   ) as Record<aigReference, Partial<aigTracking>>;
@@ -23,6 +24,16 @@ export class Base {
     this.outData = outData;
     this.sheet = sheet;
     this.headers = headers;
+  }
+
+  static reset() {
+    Base.top10Count = 0;
+    Base.top10dea = [];
+    Base.deaMiles = [];
+    Base.missingDea = [];
+    Base.aigData = Object.fromEntries(
+      Object.values(aigReference).map(key => [key, {}])
+    ) as Record<aigReference, Partial<aigTracking>>;
   }
 
   async build() {
