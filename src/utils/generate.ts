@@ -41,6 +41,9 @@ export const generateInputFile = async (
     await sheet.build();
   }
 
+  // We need values on Base to be set before we can finally build this
+  await (sheets[0] as topdr).superbuild();
+
   const updatedOrder = sheetOrder.filter(name => outData.SheetNames.includes(name));
   outData.SheetNames = [...updatedOrder];
 

@@ -67,15 +67,24 @@ export class topdr extends Base {
         CSP: csp ? `${csp.toFixed(0)}%` : null,
         CSCash: csCash ? `${csCash.toFixed(0)}%` : null,
         Discipline: p.Discipline,
-        Miles: 'Over _ miles'
+        Miles: '_____'
       };
       drRecords.push(drRecord);
     }
 
     this.record = drRecords;
+  }
+
+  // We need to wait on the actual build until after common has been built (depedencies)
+  async superbuild() {
+    for (const dea of Base.deaMiles) {
+      const r = this.record?.find(d => d.DEA === dea);
+      if (r) {
+        r.Miles = 'Over _ miles';
+      }
+    }
 
     this.data = this.getDataObject();
-
     await super.build();
   }
 

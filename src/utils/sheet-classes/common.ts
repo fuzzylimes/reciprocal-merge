@@ -58,6 +58,12 @@ export class common extends Base {
     this.record.daterange = value;
   }
 
+  prevDate() {
+    const cell = Base.calculations.getCellByIndex(0, 0) ?? '';
+    const [, prevDate] = cell.split(' Calculations ');
+    this.record.prevdate = prevDate;
+  }
+
   async cashnoncs() {
     const cellValue = getCellValue(Base.report, rs.summary, 'C15');
     // this is returned as a decimal, so we need to convert it to a percentage
@@ -246,16 +252,17 @@ export class common extends Base {
   // Uses direct cell references because multiple tables on the page
   async spatial() {
     const sheet = Base.report.Sheets[rs.spatial];
-    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(6, 9);
-    if (!rows) {
-      return;
-    }
+    const deas = utils.sheet_to_json<row>(sheet, { header: "A" })?.slice(1, 2)?.[0] ?? [];
+    const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(6, 9) ?? [];
 
     // look against the specific distances (C - L)
     let count = 0;
     for (const row of rows) {
       for (const col of c.cthrul) {
-        if (row[col]) count++;
+        if (row[col]) {
+          count++;
+          Base.deaMiles.push(String(deas[col]));
+        }
       }
     }
 
@@ -336,6 +343,7 @@ export class common extends Base {
     await this.name();
     await this.dea();
     await this.daterange();
+    this.prevDate();
     await this.cashnoncs();
     await this.cashcs();
     await this.top10csnum();
