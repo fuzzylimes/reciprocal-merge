@@ -15,7 +15,7 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import FileSelector from './FileSelector';
 import { generateInputFile } from '../utils/generate';
-import { saveExcelFile } from '../utils/excel';
+import { getCellValue, saveExcelFile } from '../utils/excel';
 import { Ifile } from '../utils/file-system-service';
 import ProcessLocation from './ProcessLocation';
 import { isTauriEnv } from '../utils/environment';
@@ -79,12 +79,17 @@ function GenerateTab() {
   const saveGeneratedFile = async (workbook: WorkBook) => {
     try {
       // Get a reasonable filename based on the report file
-      const fileName = reportFile.path.split(/[\\/]/).pop() || 'generated';
-      const outputName = `${fileName.replace(/\.[^/.]+$/, '')}_template.xlsx`;
+      const pharmacyName = getCellValue(workbook, 'common', 'A2');
+      const dateRange = getCellValue(workbook, 'common', 'E2');
+      const endDate = dateRange?.split(' - ')[1];
+      const outputName = `${pharmacyName ?? ''} input ${endDate ?? ''}.xlsx`
 
       const success = await saveExcelFile(workbook, outputName);
 
-      if (!isTauriEnv()) showNotification('Document saved or cancelled', 'info');
+      if (!isTauriEnv()) {
+        showNotification('Document saved or cancelled', 'info');
+        return;
+      }
 
       if (success) {
         showNotification('Template Excel file successfully generated!', 'success');
