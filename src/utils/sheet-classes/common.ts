@@ -300,11 +300,17 @@ export class common extends Base {
 
   setStaticValues() {
     const rawAddress = getCellValue(Base.report, rs.summary, 'A8') ?? '';
-    const rawCityStateZip = getCellValue(Base.report, rs.summary, 'A9') ?? '';
+    let rawCityStateZip = getCellValue(Base.report, rs.summary, 'A9') ?? '';
     let address, cityStateZip;
     if (rawAddress) {
-      const split = rawAddress.split(':');
+      const split = rawAddress.split('#1:');
       address = split[1] ? split[1].trim() : '';
+    }
+    // It's possible that there will be a second address line. If so, it needs to be added to the address and
+    // we need to grab the city/state/zip from the next line
+    if (rawCityStateZip && !rawCityStateZip.toLowerCase().includes('zip:')) {
+      address += ` ${rawCityStateZip}`;
+      rawCityStateZip = getCellValue(Base.report, rs.summary, 'A10') ?? '';
     }
     if (rawCityStateZip) {
       const split = rawCityStateZip.split(':');
