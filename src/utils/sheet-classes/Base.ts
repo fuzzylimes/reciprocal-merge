@@ -14,6 +14,7 @@ export class Base {
   static practitioners: WorkBook;
   static top10Count: number = 0;
   static top10dea: string[] = [];
+  static deaMiles: string[] = [];
   static aigData: Record<aigReference, Partial<aigTracking>> = Object.fromEntries(
     Object.values(aigReference).map(key => [key, {}])
   ) as Record<aigReference, Partial<aigTracking>>;

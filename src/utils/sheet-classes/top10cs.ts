@@ -24,10 +24,10 @@ export class top10cs extends Base {
         const csdoseper = (csdosenum && totalcsnum) ? Number(csdosenum) / Number(totalcsnum) : 0;
         const totaldoseperc = (csdosenum && totaldosenum) ? Number(csdosenum) / totaldosenum : 0;
 
-        const topRecord = {
+        const topRecord: top10csRecord = {
           drug,
           number,
-          csdoseper: toPercent(csdoseper),
+          csdoseperc: toPercent(csdoseper),
           totaldoseperc: toPercent(totaldoseperc),
           csdosenum,
           totalcsnum,
