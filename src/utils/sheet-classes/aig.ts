@@ -222,16 +222,16 @@ export class aig extends Base {
       const uniquePatients = new Set(filteredDEA.map(r => r["Patient ID"]));
 
       // TODO: Calculate milage between two points (how can we do this?)
-      const isTop10 = Base.top10dea.indexOf(dea);
+      const top10Position = Base.top10dea.indexOf(dea) + 1;
       let miles: unknown = 'Over _ miles';
-      if (isTop10 >= 0) {
-        miles = { t: 'f', f: `topdr!L${i + 1}` }
+      if (top10Position > 0) {
+        miles = { t: 'f', f: `topdr!L${top10Position + 1}` }
       }
 
       const record: aigRecord = {
         AIG: i === 0 ? label : '',
         Name: p.Practitioner ?? '',
-        isTop10: !!isTop10,
+        isTop10: !!top10Position,
         Specialty: p.Specialty ?? '',
         PracticeLocation: p.PracticeLocation ?? '',
         DEA: dea,
