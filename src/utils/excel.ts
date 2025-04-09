@@ -64,6 +64,11 @@ export const getCellValue = (workbook: WorkBook, sheetName: string, cell: string
   return cellValue.v;
 }
 
+export const getCellNumericValue = (workbook: WorkBook, sheetName: string, cell: string) => {
+  const r = getCellValue(workbook, sheetName, cell);
+  return r ? Number(r) : undefined;
+}
+
 /**
  * Note: this doesn't actually work with the free version.
  * @param workbook 

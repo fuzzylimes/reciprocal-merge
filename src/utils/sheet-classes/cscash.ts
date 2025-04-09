@@ -1,29 +1,28 @@
 import { WorkBook } from "xlsx";
 import { Base } from "./Base";
 import { cscashRecord, headers, ReportSheets as rs } from "../sheets";
-import { getCellValue } from "../excel";
+import { getCellNumericValue, getCellValue } from "../excel";
 import { toPercent } from "../format";
 
 export class cscash extends Base {
-  record: cscashRecord[] | undefined;
+  record: cscashRecord[] = [];
   constructor(outData: WorkBook) {
     super(outData, 'cscash', headers.cscash);
   }
 
   async build() {
     // only do this if csRX >= 20
-    const cscash = getCellValue(Base.report, rs.summary, 'C14');
+    const cscash = getCellNumericValue(Base.report, rs.summary, 'C14');
 
-    if (Number(cscash) * 100 < 20) {
-      // check values in rows 16-26 to see if Col C >= 20, include A and C if so
-      const vals = [];
-      for (let i = 16; i <= 26; i++) {
-        const v = Number(getCellValue(Base.report, rs.summary, `C${i}`)) * 100;
-        if (v < 20) continue;
+    if (cscash && cscash >= .2) {
+      // check values in rows 16-28 to see if Col C >= 20, include A and C if so
+      for (let i = 16; i <= 28; i++) {
+        const v = getCellNumericValue(Base.report, rs.summary, `C${i}`);
+        if (v && v < .2) continue;
 
         const rawLabel = (getCellValue(Base.report, rs.summary, `A${i}`));
         const label = rawLabel?.replace('$ Pay ', '').replace('Rx', '');
-        vals.push([label, toPercent(v)]);
+        this.record.push({ drug: label, percent: toPercent(v) });
       }
 
       this.data = this.getDataObject();

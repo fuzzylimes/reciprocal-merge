@@ -251,13 +251,13 @@ export type aigRecord = {
   Specialty: string;
   PracticeLocation: string;
   DEA: string;
-  State: string;
-  Discipline: string | null;
-  numCS: number | null;
-  totalRx: number | null;
-  CSP: string | null;
-  CSCash: string | null;
-  numpt: number | null;
+  State?: string;
+  Discipline?: string;
+  numCS?: number;
+  totalRx?: number;
+  CSP?: number;
+  CSCash?: number;
+  numpt?: number;
   Miles?: unknown;
 }
 
@@ -281,13 +281,13 @@ export type arcosRecord = {
 
 // Top 10 Rx's on Analysys
 export type top10csRecord = {
-  drug?: unknown;
-  number?: unknown;
-  csdoseperc?: unknown;
-  totaldoseperc?: unknown;
-  csdosenum?: unknown;
-  totalcsnum?: unknown;
-  totaldosenum?: unknown;
+  drug?: string;
+  number?: number;
+  csdoseperc?: number;
+  totaldoseperc?: number;
+  csdosenum?: number;
+  totalcsnum?: number;
+  totaldosenum?: number;
 }
 
 export type topdrRecord = {

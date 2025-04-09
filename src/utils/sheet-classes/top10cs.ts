@@ -1,7 +1,7 @@
 import { WorkBook } from "xlsx";
 import { Base } from "./Base";
 import { headers, top10csRecord, ReportSheets as rs } from "../sheets";
-import { getCellValue } from "../excel";
+import { getCellNumericValue, getCellValue } from "../excel";
 import { toPercent } from "../format";
 
 export class top10cs extends Base {
@@ -11,7 +11,7 @@ export class top10cs extends Base {
   }
 
   async build() {
-    const totalcsnum = getCellValue(Base.report, rs.analysis, `J62`);
+    const totalcsnum = getCellNumericValue(Base.report, rs.analysis, `J62`);
     const totaldosenum = Base.calculations.getNumericValue('B4');
     const top10 = [];
     for (let i = 0; i < 10; i++) {
@@ -20,9 +20,9 @@ export class top10cs extends Base {
       if (getCellValue(Base.report, rs.analysis, `A${row}`)) {
         const drug = getCellValue(Base.report, rs.analysis, `B${row}`);
         const number = i + 1;
-        const csdosenum = getCellValue(Base.report, rs.analysis, `C${row}`);
-        const csdoseper = (csdosenum && totalcsnum) ? Number(csdosenum) / Number(totalcsnum) : 0;
-        const totaldoseperc = (csdosenum && totaldosenum) ? Number(csdosenum) / totaldosenum : 0;
+        const csdosenum = getCellNumericValue(Base.report, rs.analysis, `C${row}`);
+        const csdoseper = (csdosenum && totalcsnum) ? csdosenum / totalcsnum : 0;
+        const totaldoseperc = (csdosenum && totaldosenum) ? csdosenum / totaldosenum : 0;
 
         const topRecord: top10csRecord = {
           drug,
