@@ -328,10 +328,10 @@ export class common extends Base {
     this.record.account = Base.calculations.getCellByRowLabel(CalcKeys.account);
     this.record.rxday = Base.calculations.getCellByRowLabel(CalcKeys.rxday, 1, false, true);
     this.record.rxmonth = Base.calculations.getCellByRowLabel(CalcKeys.rxmonth, 1, false, true);
-    this.record.csrxvol = Base.calculations.getCellByRowLabel(CalcKeys.csrxvol);
-    this.record.csdu = Base.calculations.getCellByRowLabel(CalcKeys.csdu);
-    this.record.purchase = Base.calculations.getCellByRowLabel(CalcKeys.purchase);
-    this.record.cspurchase = Base.calculations.getCellByRowLabel(CalcKeys.cspurchase);
+    this.record.csrxvol = toPercent(Base.calculations.getCellByRowLabel(CalcKeys.csrxvol, 1, false, true) as number / 100);
+    this.record.csdu = toPercent(Base.calculations.getCellByRowLabel(CalcKeys.csdu, 1, false, true) as number / 100);
+    this.record.purchase = toPercent(Base.calculations.getCellByRowLabel(CalcKeys.purchase, 1, false, true) as number / 100);
+    this.record.cspurchase = toPercent(Base.calculations.getCellByRowLabel(CalcKeys.cspurchase, 1, false, true) as number / 100);
 
     // Handle all AIG values
     for (let i = 1; i <= Object.keys(aigLookup).length; i++) {
