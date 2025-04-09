@@ -64,8 +64,8 @@ function MergeTab() {
       // Perform the merge using the file contents directly
       const mergedContent = await mergeExcel(templateFile.content, excelFile.content);
 
-      // Build filename from content in template workbook
-      const templateWorkbook = await loadExcelFile(mergedContent);
+      // Build filename from content in input workbook
+      const templateWorkbook = await loadExcelFile(excelFile.content);
       const pharmacyName = getCellValue(templateWorkbook, 'common', 'A2');
       const dateRange = getCellValue(templateWorkbook, 'common', 'E2');
       const endDate = dateRange?.split(' - ')[1];
