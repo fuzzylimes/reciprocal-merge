@@ -67,13 +67,13 @@ export class common extends Base {
   async cashnoncs() {
     const cellValue = getCellValue(Base.report, rs.summary, 'C15');
     // this is returned as a decimal, so we need to convert it to a percentage
-    this.record.cashnoncs = cellValue ? `${(Number(cellValue) * 100).toFixed(0)}%` : '';
+    this.record.cashnoncs = toPercent(cellValue);
   }
 
   async cashcs() {
     const cellValue = getCellValue(Base.report, rs.summary, 'C14');
     // this is returned as a decimal, so we need to convert it to a percentage
-    this.record.cashcs = cellValue ? `${(Number(cellValue) * 100).toFixed(0)}%` : '';
+    this.record.cashcs = toPercent(cellValue);
   }
 
   async top10csnum() {
@@ -298,9 +298,9 @@ export class common extends Base {
     const [du, times] = Base.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
     this.record[`${reference}dumonth` as keyof commonRecord] = data.month = du;
     this.record[`${reference}times` as keyof commonRecord] = data.times = times;
-    this.record[`${reference}high` as keyof commonRecord] = `${((data.highpct || 0)).toFixed(0)}%`;
+    this.record[`${reference}high` as keyof commonRecord] = toPercent(data.highpct);
 
-    if (data.per || data.per === 0) this.record[`${reference}per` as keyof commonRecord] = `${(data.per || 0).toFixed(2)}%`
+    if (data.per || data.per === 0) this.record[`${reference}per` as keyof commonRecord] = toPercent(data.per);
     if (data.highmed || data.highmed === 0) this.record[`${reference}medhigh` as keyof commonRecord] = data.highmed;
     if (data.lowmed || data.lowmed === 0) this.record[`${reference}medlow` as keyof commonRecord] = data.lowmed;
   }

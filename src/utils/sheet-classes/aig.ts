@@ -5,6 +5,7 @@ import { PractitionerSheets as ps } from "../sheets";
 import { findPractitionerByDea, Practitioner } from "../excel";
 import { headers } from "../sheets";
 import { aigLookup, IaigDef } from "../aig-helper";
+import { toPercent } from "../format";
 
 const operationMap: Record<string, (value: number, threshold: number) => boolean> = {
   '>': (value, threshold) => value > threshold,
@@ -137,12 +138,12 @@ export class aig extends Base {
     drugRows = drugRows.filter(row => !String(row["Drug Name"]).toLowerCase().endsWith('ml'));
 
     const overRows = drugRows.filter(row => applyOperation(Number(row["mg/day"]), this.aigDetails));
-    const ratio = overRows.length / drugRows.length * 100;
+    const ratio = overRows.length / drugRows.length;
     // Set the values to be used back over in common
     Base.aigData[this.aigDetails.aigReference].highpct = ratio;
 
     if (per && familyCount) {
-      const perVal = drugRows.length / familyCount * 100;
+      const perVal = drugRows.length / familyCount;
       Base.aigData[this.aigDetails.aigReference].per = perVal;
     }
 
@@ -196,26 +197,26 @@ export class aig extends Base {
       // filter allrxRows by the dea number (J)
       const filteredDEA = allrxRows.filter(r => r["DEA#"] && String(r["DEA#"]) === dea);
       // filtered length = totalRx
-      let totalRx: number | null = filteredDEA.length;
+      let totalRx: number | undefined = filteredDEA.length;
       // count non-null values in R = numCS
       const filteredControls = filteredDEA.filter(r => r["DEA Sched"])
-      let numCS: number | null = filteredControls.length;
+      let numCS: number | undefined = filteredControls.length;
       // CSP = numCS / totalRx (%) - only include these if CSP > 20%
-      let csp: number | null = numCS / totalRx * 100;
+      let csp: number | undefined = numCS / totalRx;
       // If CSP > 20%...
       let csCash = null;
-      if (csp > 20) {
+      if (csp > .2) {
         // another filtered list of non-null values in R
         const cash = filteredControls.filter(r => r["Pay Type"]);
         // count non-null values in F / numCS = CSCash - only include if > 20%
-        csCash = cash.length / numCS * 100;
-        if (csCash < 20) {
-          csCash = null;
+        const csCashCheck = cash.length / numCS;
+        if (csCashCheck > .2) {
+          csCash = csCashCheck;
         }
       } else {
-        totalRx = null;
-        numCS = null;
-        csp = null;
+        totalRx = undefined;
+        numCS = undefined;
+        csp = undefined;
       }
 
       const uniquePatients = new Set(filteredDEA.map(r => r["Patient ID"]));
@@ -238,8 +239,8 @@ export class aig extends Base {
         Discipline: p.Discipline ?? '',
         numCS,
         totalRx,
-        CSP: csp ? `${csp.toFixed(0)}%` : null,
-        CSCash: csCash ? `${csCash.toFixed(0)}%` : null,
+        CSP: toPercent(csp),
+        CSCash: toPercent(csCash),
         numpt: uniquePatients.size,
         Miles: miles
       }

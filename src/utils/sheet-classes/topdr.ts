@@ -3,7 +3,8 @@ import { Base } from "./Base";
 import { headers, topdrRecord, ReportSheets as rs, PractitionerSheets as ps } from "../sheets";
 import { row } from "./common";
 import * as c from '../constants';
-import { findPractitionerByDea, getCellValue, Practitioner } from "../excel";
+import { findPractitionerByDea, getCellNumericValue, Practitioner } from "../excel";
+import { toPercent } from "../format";
 
 export class topdr extends Base {
   record: topdrRecord[] | undefined;
@@ -30,25 +31,24 @@ export class topdr extends Base {
     for (const [i, dr] of top10.entries()) {
       // pull in practitioner details like AIG
       const pracWorkSheet = Base.practitioners.Sheets[ps.ref];
-      // TODO: Go back and remove this?
       let p: Partial<Practitioner> = {};
       try {
         p = findPractitionerByDea(pracWorkSheet, dr);
       } catch { /* empty */ }
 
       // get csrx and totalrx from analysis page (K & L)
-      const csrx = Number(getCellValue(Base.report, rs.analysis, `K${7 + i}`));
-      const totalrx = Number(getCellValue(Base.report, rs.analysis, `L${7 + i}`));
+      const csrx = getCellNumericValue(Base.report, rs.analysis, `K${7 + i}`);
+      const totalrx = getCellNumericValue(Base.report, rs.analysis, `L${7 + i}`);
       let csp, csCash;
       if (csrx && totalrx) {
         // CSP = ratio csrx / totalrx - only include if >= 20%
-        const cspCalc = csrx / totalrx * 100;
-        if (cspCalc >= 20) {
+        const cspCalc = csrx / totalrx;
+        if (cspCalc >= .2) {
           csp = cspCalc;
           // CS Cash = O, 7-16, in Analysis - only if CSP >= 20% and Cash >= 20%
-          const cashCell = Number(getCellValue(Base.report, rs.analysis, `O${7 + i}`));
+          const cashCell = getCellNumericValue(Base.report, rs.analysis, `O${7 + i}`);
           if (cashCell && cashCell >= .2) {
-            csCash = cashCell * 100;
+            csCash = cashCell;
           }
         }
       }
@@ -62,8 +62,8 @@ export class topdr extends Base {
         State: p.State,
         csrx: csrx ? csrx : null,
         totalrx: totalrx ? totalrx : null,
-        CSP: csp ? `${csp.toFixed(0)}%` : null,
-        CSCash: csCash ? `${csCash.toFixed(0)}%` : null,
+        CSP: toPercent(csp),
+        CSCash: toPercent(csCash),
         Discipline: p.Discipline,
         Miles: '_____'
       };
