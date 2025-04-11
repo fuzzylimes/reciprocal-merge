@@ -1,4 +1,6 @@
-import { utils, WorkBook } from "xlsx";
+import { utils } from "xlsx";
+import { loadExcelFile } from "../../utils/excel";
+import { Ifile } from "../../utils/file-system-service";
 
 export enum PractitionerSheets {
   ref = 'Reference'
@@ -30,7 +32,8 @@ export type Practitioner = {
 export class PractitionersFile {
   private pracSheet: practitionerSheet[];
 
-  constructor(workbook: WorkBook) {
+  constructor(file: Ifile) {
+    const workbook = loadExcelFile(file.content!);
     this.pracSheet = utils.sheet_to_json<practitionerSheet>(workbook.Sheets[PractitionerSheets.ref], { blankrows: true });
   }
 

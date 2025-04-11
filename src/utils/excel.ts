@@ -1,21 +1,21 @@
-import { WorkBook, WorkSheet, read, utils, write } from 'xlsx';
+import { ParsingOptions, WorkBook, WorkSheet, read, utils, write } from 'xlsx';
 import { row } from './sheet-classes/common';
-import { pracRefSheet } from './sheets';
+import { practitionerSheet } from "../template-engine/files/PractitionersFile";
 import { saveFile } from './file-system-service';
 
 /**
  * Loads and parses an Excel file
  * @param excelContent Excel file content
+ * @param opts Additional parsing options
  * @returns Promise resolving to the parsed Excel workbook
  */
-export const loadExcelFile = async (excelContent: Uint8Array): Promise<WorkBook> => {
-  const workbook = read(excelContent, {
+export const loadExcelFile = (excelContent: Uint8Array, opts?: ParsingOptions): WorkBook => {
+  return read(excelContent, {
     type: 'array',
     cellDates: true,  // Convert date cells to JS dates
     cellNF: true,     // Keep number formats
+    ...opts
   });
-
-  return workbook;
 };
 
 /**
@@ -69,59 +69,6 @@ export const getCellNumericValue = (workbook: WorkBook, sheetName: string, cell:
   return r ? Number(r) : undefined;
 }
 
-/**
- * Note: this doesn't actually work with the free version.
- * @param workbook 
- * @param sheetName 
- * @param cell 
- * @returns 
- */
-export const doesCellHaveColor = (workbook: WorkBook, sheetName: string, cell: string): boolean => {
-  const sheet = workbook.Sheets[sheetName];
-  if (!sheet) {
-    console.error(`Sheet ${sheetName} not found in workbook`);
-    return false;
-  }
-
-  const cellValue = sheet[cell];
-  if (!cellValue) {
-    console.error(`Cell ${cell} not found in sheet ${sheetName}`);
-    return false;
-  }
-
-  // Check if the cell has style information with a fill
-  if (cellValue.s && cellValue.s.fill) {
-    // Check if there's a fill pattern type that's not 'none'
-    if (cellValue.s.fill.patternType && cellValue.s.fill.patternType !== 'none') {
-      return true;
-    }
-
-    // Check foreground color (if available)
-    if (cellValue.s.fill.fgColor) {
-      // If RGB or theme is specified, it likely has a color
-      if (cellValue.s.fill.fgColor.rgb && cellValue.s.fill.fgColor.rgb !== 'FFFFFF') {
-        return true;
-      }
-      if (cellValue.s.fill.fgColor.theme !== undefined) {
-        return true;
-      }
-    }
-
-    // Check background color (if available)
-    if (cellValue.s.fill.bgColor) {
-      // If RGB or theme is specified, it likely has a color
-      if (cellValue.s.fill.bgColor.rgb && cellValue.s.fill.bgColor.rgb !== 'FFFFFF') {
-        return true;
-      }
-      if (cellValue.s.fill.bgColor.theme !== undefined) {
-        return true;
-      }
-    }
-  }
-
-  return false;
-}
-
 export const sumColumn = (sheet: WorkSheet, rStart: number, rEnd: number, col: string): number => {
   const rows = utils.sheet_to_json<row>(sheet, { header: "A", blankrows: true })?.slice(rStart, rEnd);
   if (!rows) {
@@ -155,7 +102,7 @@ export type Practitioner = {
  * @throws Error if practitioner doesn't exist in DB
  */
 export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practitioner => {
-  const rows = utils.sheet_to_json<pracRefSheet>(sheet, { blankrows: true });
+  const rows = utils.sheet_to_json<practitionerSheet>(sheet, { blankrows: true });
   if (!rows) {
     throw Error(`Practitioner DB is empty.`)
   }

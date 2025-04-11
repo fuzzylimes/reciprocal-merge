@@ -1,6 +1,7 @@
 import { utils, WorkBook } from "xlsx";
 import { Base } from "./Base";
-import { headers, topdrRecord, ReportSheets as rs, PractitionerSheets as ps } from "../sheets";
+import { headers, topdrRecord, ReportSheets as rs } from "../sheets";
+import { PractitionerSheets as ps } from "../../template-engine/files/PractitionersFile";
 import { row } from "./common";
 import * as c from '../constants';
 import { findPractitionerByDea, getCellNumericValue, Practitioner } from "../excel";

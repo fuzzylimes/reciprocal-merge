@@ -1,7 +1,7 @@
 import { utils, WorkBook } from "xlsx";
 import { Base } from "./Base";
 import { aigRecord, allrxSheet, csrxSheet, ReportSheets as rs } from '../sheets';
-import { PractitionerSheets as ps } from "../sheets";
+import { PractitionerSheets as ps } from "../../template-engine/files/PractitionersFile";
 import { findPractitionerByDea, Practitioner } from "../excel";
 import { headers } from "../sheets";
 import { aigLookup, IaigDef } from "../aig-helper";
