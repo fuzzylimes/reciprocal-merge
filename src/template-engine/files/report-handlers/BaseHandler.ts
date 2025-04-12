@@ -1,5 +1,6 @@
-import { WorkBook, WorkSheet } from "xlsx";
+import { Sheet2JSONOpts, utils, WorkBook, WorkSheet } from "xlsx";
 import { ReportSheets } from "../ReportFile";
+import { row } from "../../../utils/sheet-classes/common";
 
 export class BaseReportHandler {
   _sheet: WorkSheet;
@@ -21,6 +22,29 @@ export class BaseReportHandler {
   getCellPercent(cellRef: string) {
     const v = this.getCellNumber(cellRef);
     return Math.round(v * 100) / 100
+  }
+
+  getRows(start: number, end: number, opts?: Sheet2JSONOpts) {
+    return utils.sheet_to_json<row>(this._sheet, opts)?.slice(start, end) ?? [];
+  }
+
+  getRowsAsColumns(start: number, end: number, cols: string[], opts?: Sheet2JSONOpts) {
+    const rows = this.getRows(start, end, opts);
+    const colValues: Map<string, unknown[]> = new Map();
+
+    // Initialize the column map
+    for (const col of cols) {
+      colValues.set(col, []);
+    }
+
+    // Iterate and populate each of the columns
+    for (const row of rows) {
+      for (const col of cols) {
+        colValues.get(col)!.push(row[col]);
+      }
+    }
+
+    return colValues;
   }
 
 }

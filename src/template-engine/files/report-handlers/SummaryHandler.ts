@@ -1,7 +1,7 @@
 import { WorkBook } from "xlsx";
 import { ReportSheets } from "../ReportFile";
 import { BaseReportHandler } from "./BaseHandler";
-import { toPercent } from "../../../utils/format";
+import { toDecimalPercent } from "../../../utils/format";
 
 // Interface for strongly-typed summary data
 interface SummaryValues {
@@ -96,7 +96,7 @@ export class SummaryHandler extends BaseReportHandler {
 
         const rawLabel = this.getCellValue(`A${i}`) ?? '';
         const label = rawLabel.replace('$ Pay ', '').replace('Rx', '');
-        res.push({ drug: label, percent: toPercent(v) });
+        res.push({ drug: label, percent: toDecimalPercent(v) });
       }
 
     }

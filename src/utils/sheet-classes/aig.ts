@@ -5,7 +5,7 @@ import { PractitionerSheets as ps } from "../../template-engine/files/Practition
 import { findPractitionerByDea, Practitioner } from "../excel";
 import { headers } from "../sheets";
 import { aigLookup, IaigDef } from "../aig-helper";
-import { toPercent } from "../format";
+import { toDecimalPercent } from "../format";
 
 const operationMap: Record<string, (value: number, threshold: number) => boolean> = {
   '>': (value, threshold) => value > threshold,
@@ -239,8 +239,8 @@ export class aig extends Base {
         Discipline: p.Discipline ?? '',
         numCS,
         totalRx,
-        CSP: toPercent(csp),
-        CSCash: toPercent(csCash),
+        CSP: toDecimalPercent(csp),
+        CSCash: toDecimalPercent(csCash),
         numpt: uniquePatients.size,
         Miles: miles
       }
