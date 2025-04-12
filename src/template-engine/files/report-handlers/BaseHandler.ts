@@ -2,8 +2,9 @@ import { Sheet2JSONOpts, utils, WorkBook, WorkSheet } from "xlsx";
 import { ReportSheets } from "../ReportFile";
 import { row } from "../../../utils/sheet-classes/common";
 
-export class BaseReportHandler {
+export class BaseReportHandler<T = row> {
   _sheet: WorkSheet;
+  private _cachedRows: T[] | null = null;
 
   constructor(private readonly _workbook: WorkBook, sheet: ReportSheets) {
     this._sheet = this._workbook.Sheets[sheet];
@@ -24,7 +25,22 @@ export class BaseReportHandler {
     return Math.round(v * 100) / 100
   }
 
-  getRows(start: number, end: number, opts?: Sheet2JSONOpts) {
+  getAllRows(opts?: Sheet2JSONOpts): T[] {
+    // Return cached rows if available and no special options provided
+    if (this._cachedRows) {
+      return this._cachedRows;
+    }
+
+    // Parse the sheet
+    const result = utils.sheet_to_json<T>(this._sheet, opts) || [];
+
+    // Cache the result
+    this._cachedRows = result;
+
+    return result;
+  }
+
+  getRows(start: number, end: number, opts?: Sheet2JSONOpts): row[] {
     return utils.sheet_to_json<row>(this._sheet, opts)?.slice(start, end) ?? [];
   }
 
@@ -47,4 +63,8 @@ export class BaseReportHandler {
     return colValues;
   }
 
+  // Optional method to clear the cache if needed
+  clearCache() {
+    this._cachedRows = null;
+  }
 }
