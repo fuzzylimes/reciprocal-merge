@@ -5,14 +5,14 @@ import { multipracSheet } from "../../../utils/sheets";
 
 interface MultiPracValues {
   uniquePats: Set<number>;
- }
+}
 
 export class MultiPracHandler extends BaseReportHandler<multipracSheet> {
   private _multiPracCalculated = false;
   private _multiPracValues: Partial<MultiPracValues> = {};
 
   constructor(_workbook: WorkBook) {
-    super(_workbook, ReportSheets.spatial);
+    super(_workbook, ReportSheets.multiPractioner);
   }
 
   calculateMultiPracValues() {

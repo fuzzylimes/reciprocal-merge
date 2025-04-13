@@ -12,7 +12,7 @@ export class TrinityHandler extends BaseReportHandler<trinitySheet> {
   private _trinityValues: Partial<TrinityValues> = {};
 
   constructor(_workbook: WorkBook) {
-    super(_workbook, ReportSheets.spatial);
+    super(_workbook, ReportSheets.trinityConcerns);
   }
 
   calculateTrinityValues() {

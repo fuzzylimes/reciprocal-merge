@@ -1,21 +1,15 @@
 import { WorkBook } from "xlsx";
 import { ReportSheets } from "../ReportFile";
 import { BaseReportHandler } from "./BaseHandler";
+import { allrxSheet } from "../../../utils/sheets";
 
-interface AllRxValues { }
-
-export class AllRxHandler extends BaseReportHandler {
-  private _allRxCalculated = false;
-  private _allRxValues: Partial<AllRxValues> = {};
-
+export class AllRxHandler extends BaseReportHandler<allrxSheet> {
   constructor(_workbook: WorkBook) {
-    super(_workbook, ReportSheets.spatial);
+    super(_workbook, ReportSheets.allrx);
   }
 
-  calculateAllRxValues() {
-    if (this._allRxCalculated) return;
-
-    this._allRxCalculated = true;
+  get allRxRows(): allrxSheet[] {
+    return this.getAllRows() || [];
   }
 
 }

@@ -1,21 +1,16 @@
 import { WorkBook } from "xlsx";
 import { ReportSheets } from "../ReportFile";
 import { BaseReportHandler } from "./BaseHandler";
+import { csrxSheet } from "../../../utils/sheets";
 
-interface CsRxValues { }
-
-export class CsRxHandler extends BaseReportHandler {
-  private _csRxCalculated = false;
-  private _csRxValues: Partial<CsRxValues> = {};
+export class CsRxHandler extends BaseReportHandler<csrxSheet> {
 
   constructor(_workbook: WorkBook) {
-    super(_workbook, ReportSheets.spatial);
+    super(_workbook, ReportSheets.csrx);
   }
 
-  calculateCsRxValues() {
-    if (this._csRxCalculated) return;
-
-    this._csRxCalculated = true;
+  get csrxRows(): csrxSheet[] {
+    return this.getAllRows() || [];
   }
 
 }

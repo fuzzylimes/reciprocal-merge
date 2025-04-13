@@ -13,7 +13,7 @@ export class MedHandler extends BaseReportHandler<medSheet> {
   private _medValues: Partial<MedValues> = {};
 
   constructor(_workbook: WorkBook) {
-    super(_workbook, ReportSheets.spatial);
+    super(_workbook, ReportSheets.medWatch);
   }
 
   calculateMedValues() {
