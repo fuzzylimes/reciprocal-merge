@@ -1,7 +1,13 @@
 import { WorkBook } from "xlsx";
 import { ReportSheets } from "../ReportFile";
 import { BaseReportHandler } from "./BaseHandler";
-import { medSheet } from "../../../utils/sheets";
+
+type medSheet = {
+  'Daily M.E.D per Prescription': string;
+  'Patient ID': number;
+  'DEA#': string;
+  'Physician Name': string;
+}
 
 interface MedValues {
   medData: medSheet[];

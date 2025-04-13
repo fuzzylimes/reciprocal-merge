@@ -1,7 +1,11 @@
 import { WorkBook } from "xlsx";
 import { ReportSheets } from "../ReportFile";
 import { BaseReportHandler } from "./BaseHandler";
-import { irSheet } from "../../../utils/sheets";
+
+type irSheet = {
+  'Drug Name': string;
+  'Patient ID': number;
+}
 
 interface ImmediateReleaseValues {
   patToDrugMap: Record<number, Set<string>>;

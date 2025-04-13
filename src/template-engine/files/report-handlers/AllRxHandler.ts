@@ -1,7 +1,14 @@
 import { WorkBook } from "xlsx";
 import { ReportSheets } from "../ReportFile";
 import { BaseReportHandler } from "./BaseHandler";
-import { allrxSheet } from "../../../utils/sheets";
+
+type allrxSheet = {
+  'DEA#': string;
+  'DEA Sched': string;
+  'Days Supply': number;
+  'Patient ID': number;
+  'Pay Type': string;
+}
 
 export class AllRxHandler extends BaseReportHandler<allrxSheet> {
   constructor(_workbook: WorkBook) {

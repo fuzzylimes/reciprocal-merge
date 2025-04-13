@@ -1,7 +1,11 @@
 import { WorkBook } from "xlsx";
 import { ReportSheets } from "../ReportFile";
 import { BaseReportHandler } from "./BaseHandler";
-import { trinitySheet } from "../../../utils/sheets";
+
+type trinitySheet = {
+  'Patient ID': number;
+  'Family': string;
+}
 
 interface TrinityValues {
   drugFamilyToPatientsMapping: Record<string, Record<number, boolean>>;

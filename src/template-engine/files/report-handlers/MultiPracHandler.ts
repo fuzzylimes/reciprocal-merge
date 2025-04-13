@@ -1,7 +1,10 @@
 import { WorkBook } from "xlsx";
 import { ReportSheets } from "../ReportFile";
 import { BaseReportHandler } from "./BaseHandler";
-import { multipracSheet } from "../../../utils/sheets";
+
+type multipracSheet = {
+  'Patient ID': number;
+}
 
 interface MultiPracValues {
   uniquePats: Set<number>;
