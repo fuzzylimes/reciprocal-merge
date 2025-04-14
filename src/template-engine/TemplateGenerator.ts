@@ -33,7 +33,7 @@ export class TemplateGenerator {
   top10Count: number = 0;
   top10dea: string[] = [];
   deaMiles: string[] = [];
-  missingDea: string[] = [];
+  missingDea: Set<string> = new Set();
   aigData: Record<aigReference, Partial<aigTracking>> = Object.fromEntries(
     Object.values(aigReference).map(key => [key, {}])
   ) as Record<aigReference, Partial<aigTracking>>;

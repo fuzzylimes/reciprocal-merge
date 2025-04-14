@@ -5,7 +5,8 @@ import { SheetManager } from "./sheet-managers/SheetManager";
 import { TopDrSheetManager } from "./sheet-managers/TopDrSheetmanager";
 
 export class SheetManagerController {
-  private sheets: Map<string, SheetManager> = new Map();
+  private _sheets: Map<string, SheetManager> = new Map();
+  private _missingDea: Set<string> = new Set();
 
   // Shared data that sheets might need to access
 
@@ -31,14 +32,21 @@ export class SheetManagerController {
   }
 
   private registerSheet(manager: SheetManager): void {
-    this.sheets.set(manager.sheetName, manager);
+    this._sheets.set(manager.sheetName, manager);
   }
 
   // Get a specific sheet manager (for direct access if needed)
   getSheet<T extends SheetManager>(name: string): T {
-    return this.sheets.get(name) as T;
+    return this._sheets.get(name) as T;
   }
 
+  addMissingDea(dea: string) {
+    this._missingDea.add(dea);
+  }
+
+  get missingDea(): string[] {
+    return Array.from(this._missingDea || []);
+  }
 
   // Utility method to build array of data array to be used when adding a sheet
   buildDataArray<T>(record: T[], headers: string[]) {
@@ -59,14 +67,14 @@ export class SheetManagerController {
 
   // Execute collection phase for all sheets
   async collectAll(): Promise<void> {
-    for (const manager of this.sheets.values()) {
+    for (const manager of this._sheets.values()) {
       await manager.collect();
     }
   }
 
   // Execute generation phase for all sheets
   async generateAll(): Promise<void> {
-    for (const manager of this.sheets.values()) {
+    for (const manager of this._sheets.values()) {
       await manager.generate();
     }
   }
