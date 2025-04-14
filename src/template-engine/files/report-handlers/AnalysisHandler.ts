@@ -9,9 +9,9 @@ interface AnalysisValues {
 }
 
 interface TopCs {
-  totalCsRx: number;
-  totalRx: number;
-  percentCsPaid: number;
+  totalCsRx: number; // K
+  totalRx: number; // L
+  percentCsPaid: number; // O
 }
 
 interface TopRx {

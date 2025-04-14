@@ -37,15 +37,15 @@ export class PractitionersFile {
     this.pracSheet = utils.sheet_to_json<practitionerSheet>(workbook.Sheets[PractitionerSheets.ref], { blankrows: true });
   }
 
-  findPractionersByDea = (...dea: string[]): Practitioner[] => {
+  findPractionersByDeaList = (...dea: string[]): Record<string, Practitioner> => {
     if (!this.pracSheet || !this.pracSheet.length) {
       throw Error(`Practitioner DB is empty.`)
     }
 
-    const practitioners: Practitioner[] = [];
+    const practitioners: Record<string, Practitioner> = {};
     for (const p of this.pracSheet) {
       if (dea.includes(p.DEA)) {
-        practitioners.push({
+        practitioners[p.DEA] = {
           Practitioner: String(p.Practitioner.split(' (')[0] ?? ''),
           Specialty: String(p.Specialty ?? ''),
           PracticeLocation: String(p.PracticeLocation ?? ''),
@@ -54,7 +54,7 @@ export class PractitionersFile {
           Discipline: p.Discipline ? String(p.Discipline) : undefined,
           Note: p['PC Note - Pharm'] ? String(p['PC Note - Pharm']) : undefined,
           Date: p['PC Notes Date'] ? p['PC Notes Date'] : undefined
-        });
+        };
       }
     }
 
@@ -62,7 +62,7 @@ export class PractitionersFile {
   }
 
   findPractitionerByDea = (dea: string): Practitioner => {
-    const practitioners = this.findPractionersByDea(dea);
+    const practitioners = this.findPractionersByDeaList(dea);
     return practitioners[0];
   }
 
