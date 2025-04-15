@@ -1,5 +1,6 @@
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
+import { headers, sheetNames } from "./constants";
 import { SheetManager } from "./SheetManager";
 
 type arcosRecord = {
@@ -8,13 +9,12 @@ type arcosRecord = {
   supplier2?: unknown;
   supplier3?: unknown;
 }
-const colHeaders = ['drug', 'Mutual', 'supplier2', 'supplier3'];
 
 export class ArcosSheetManager extends SheetManager {
   private data: arcosRecord[] = [];
 
   constructor(generator: TemplateGenerator, controller: SheetManagerController) {
-    super(generator, controller, 'arcos', colHeaders);
+    super(generator, controller, sheetNames.arcos, headers.arcos);
   }
 
   async collect(): Promise<void> {

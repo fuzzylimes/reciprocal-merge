@@ -4,6 +4,7 @@ import { csrxSheet } from "../../../utils/sheets";
 import { Practitioner } from "../../files/PractitionersFile";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
+import { headers, sheetNames } from "./constants";
 import { SheetManager } from "./SheetManager";
 
 type aigRecord = {
@@ -30,8 +31,6 @@ type aigCommon = {
   lowmed?: number;
 }
 
-const colHeaders = ['AIG', 'Name', 'isTop10', 'Specialty', 'PracticeLocation', 'DEA', 'State', 'numCS', 'totalRx', 'CSP', 'CSCash', 'Discipline', 'Miles', 'numpt'];
-
 export class AigSheetManager extends SheetManager {
   private _aigNum: number;
   private data: aigRecord[] = [];
@@ -42,7 +41,7 @@ export class AigSheetManager extends SheetManager {
     controller: SheetManagerController,
     aigNumber: number
   ) {
-    super(generator, controller, `aig${aigNumber}`, colHeaders);
+    super(generator, controller, `${sheetNames.aig}${aigNumber}`, headers.aig);
     this._aigNum = aigNumber;
   }
 
@@ -84,7 +83,7 @@ export class AigSheetManager extends SheetManager {
 
     if (per && familyCount) {
       const perVal = csRxRows.length / familyCount;
-      this.common.per = perVal;
+      this.common.per = toDecimalPercent(perVal);
     }
 
     if (med) {
@@ -278,5 +277,9 @@ export class AigSheetManager extends SheetManager {
     }
 
     return op(value, def.high);
+  }
+
+  get commonData(): aigCommon {
+    return this.common;
   }
 }

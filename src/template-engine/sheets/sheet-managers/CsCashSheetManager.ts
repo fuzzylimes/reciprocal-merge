@@ -1,18 +1,18 @@
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
+import { headers, sheetNames } from "./constants";
 import { SheetManager } from "./SheetManager";
 
 type cscashRecord = {
   drug?: unknown;
   percent?: unknown;
 }
-const colHeaders = ['drug', 'percent'];
 
 export class CsCashSheetManager extends SheetManager {
   private data: cscashRecord[] = [];
 
   constructor(generator: TemplateGenerator, controller: SheetManagerController) {
-    super(generator, controller, 'cscash', colHeaders);
+    super(generator, controller, sheetNames.cscash, headers.cscash);
   }
 
   async collect(): Promise<void> {

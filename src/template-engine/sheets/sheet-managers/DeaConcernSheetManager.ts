@@ -1,5 +1,6 @@
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
+import { headers, sheetNames } from "./constants";
 import { SheetManager } from "./SheetManager";
 
 type deaconcernRecord = {
@@ -7,13 +8,12 @@ type deaconcernRecord = {
   Name?: unknown;
   Problem?: unknown;
 }
-const colHeaders = ['DEAnumber', 'Name', 'Problem'];
 
 export class DeaConcernSheetManager extends SheetManager {
   private data: deaconcernRecord[] = [];
 
   constructor(generator: TemplateGenerator, controller: SheetManagerController) {
-    super(generator, controller, 'deaconcern', colHeaders);
+    super(generator, controller, sheetNames.deaconcern, headers.deaconcern);
   }
 
   async collect(): Promise<void> {

@@ -1,10 +1,9 @@
 import { utils, WorkBook } from "xlsx";
-import { TemplateData } from "./models/TemplateData";
-import { aigReference, aigTracking } from "../utils/aig-helper";
 import { ReportFile } from "./files/ReportFile";
 import { CalculationsFile } from "./files/CalculationsFile";
 import { PractitionersFile } from "./files/PractitionersFile";
 import { sheetOrder } from "../utils/sheets";
+import { SheetManagerController } from "./sheets/SheetManagerController";
 
 // Main generator class that orchestrates the process
 export class TemplateGenerator {
@@ -13,30 +12,10 @@ export class TemplateGenerator {
   calculations: CalculationsFile;
   prevCalculations: CalculationsFile;
   practitioners: PractitionersFile;
+  sheetManager: SheetManagerController;
 
   // Output workbook
   outputWorkbook: WorkBook;
-
-  // Structured container for all collected data
-  data: TemplateData = {
-    commonData: {},
-    top10Records: [],
-    aigRecords: {},
-    topDrRecords: [],
-    deaConcernRecords: [],
-    cscashRecords: [],
-    arcosRecords: [],
-    aigTableRecords: []
-  };
-
-  // Utility data (currently in Base static properties)
-  top10Count: number = 0;
-  top10dea: string[] = [];
-  deaMiles: string[] = [];
-  missingDea: Set<string> = new Set();
-  aigData: Record<aigReference, Partial<aigTracking>> = Object.fromEntries(
-    Object.values(aigReference).map(key => [key, {}])
-  ) as Record<aigReference, Partial<aigTracking>>;
 
   constructor(
     report: ReportFile,
@@ -49,28 +28,21 @@ export class TemplateGenerator {
     this.prevCalculations = prevCalculations;
     this.practitioners = practitioners;
     this.outputWorkbook = utils.book_new();
+    this.sheetManager = new SheetManagerController(this);
   }
 
   // Main generation method
   async generate(): Promise<WorkBook> {
     // 1. Collect all data using collector classes
-    await this.collectAllData();
+    await this.sheetManager.collectAll();
 
     // 2. Generate all sheets using generator classes
-    await this.generateAllSheets();
+    await this.sheetManager.generateAll();
 
     // 3. Reorder sheets
     this.reorderSheets();
 
     return this.outputWorkbook;
-  }
-
-  private async collectAllData(): Promise<void> {
-    // etc.
-  }
-
-  private async generateAllSheets(): Promise<void> {
-    // etc.
   }
 
   // Utility method to add a sheet to the workbook

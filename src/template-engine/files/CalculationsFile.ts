@@ -30,28 +30,29 @@ enum SectionIdentifiers {
 
 interface Pharmacy {
   name: string;
+  date: string;
   id: string;
   location: string;
 }
 
 interface Totals {
-  tcdud: number;
-  tadud: number;
-  tacdup: number;
-  tadup: number;
+  totalCUDispensed: number;
+  totallAUDispensed: number;
+  totalACUPurchased: number;
+  totalAPurchased: number;
 }
 
 interface Percents {
-  dup: number;
-  cdup: number;
-  dbd: number;
-  dbrx: number;
+  perPurchasedFrom: number;
+  perCUPurchasedFrom: number;
+  cPerDisByDU: number;
+  cPerDisByRx: number;
 }
 
 interface Rxs {
-  trx: number;
-  rxpm: number;
-  rxd: number;
+  totalRx: number;
+  rxPerMonth: number;
+  rxDaily: number;
   multiple: number;
 }
 
@@ -132,6 +133,7 @@ export class CalculationsFile {
       // Handle the fixed cells at the top
       if (ri === 0) {
         this.pharmacy.name = this.getPharmacyName(label);
+        this.pharmacy.date = this.getReportDate(label);
         this.pharmacy.id = value;
         continue;
       } else if (ri === 1) {
@@ -165,27 +167,27 @@ export class CalculationsFile {
 
   collectTotalValues(rows: HTMLCollectionOf<Element>, ri: number) {
     this.totals = {
-      tcdud: this.getRowValueAsNumber(rows[ri]),
-      tadud: this.getRowValueAsNumber(rows[++ri]),
-      tacdup: this.getRowValueAsNumber(rows[++ri]),
-      tadup: this.getRowValueAsNumber(rows[++ri])
+      totalCUDispensed: this.getRowValueAsNumber(rows[ri]),
+      totallAUDispensed: this.getRowValueAsNumber(rows[++ri]),
+      totalACUPurchased: this.getRowValueAsNumber(rows[++ri]),
+      totalAPurchased: this.getRowValueAsNumber(rows[++ri])
     }
   }
 
   collectPercentValues(rows: HTMLCollectionOf<Element>, ri: number) {
     this.percents = {
-      dup: this.getRowValueAsPercent(rows[ri]),
-      cdup: this.getRowValueAsPercent(rows[++ri]),
-      dbd: this.getRowValueAsPercent(rows[++ri]),
-      dbrx: this.getRowValueAsPercent(rows[++ri])
+      perPurchasedFrom: this.getRowValueAsPercent(rows[ri]),
+      perCUPurchasedFrom: this.getRowValueAsPercent(rows[++ri]),
+      cPerDisByDU: this.getRowValueAsPercent(rows[++ri]),
+      cPerDisByRx: this.getRowValueAsPercent(rows[++ri])
     }
   }
 
   collectRxValues(rows: HTMLCollectionOf<Element>, ri: number): void {
     this.rxs = {
-      trx: this.getRowValueAsNumber(rows[ri]),
-      rxpm: this.getRowValueAsNumber(rows[++ri]),
-      rxd: this.getRowValueAsNumber(rows[++ri]),
+      totalRx: this.getRowValueAsNumber(rows[ri]),
+      rxPerMonth: this.getRowValueAsNumber(rows[++ri]),
+      rxDaily: this.getRowValueAsNumber(rows[++ri]),
       multiple: this.getRowValueAsNumber(rows[++ri]),
     }
   }
@@ -236,6 +238,11 @@ export class CalculationsFile {
 
   getPharmacyName(value: string | undefined) {
     return value?.split(/(\w{2}\d{7})/g)[0].trim();
+  }
+
+  getReportDate(value: string) {
+    const [, date] = value.split(' Calculations ');
+    return date;
   }
 
 }

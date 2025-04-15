@@ -1,6 +1,7 @@
 import { toDecimalPercent } from "../../../utils/format";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
+import { headers, sheetNames } from "./constants";
 import { SheetManager } from "./SheetManager";
 
 type topdrRecord = {
@@ -17,13 +18,12 @@ type topdrRecord = {
   Discipline?: unknown;
   Miles?: unknown;
 }
-const colHeaders = ['Number', 'Name', 'Specialty', 'PracticeLocation', 'DEA', 'State', 'csrx', 'totalrx', 'CSP', 'CSCash', 'Discipline', 'Miles'];
 
 export class TopDrSheetManager extends SheetManager {
   private data: topdrRecord[] = [];
 
   constructor(generator: TemplateGenerator, controller: SheetManagerController) {
-    super(generator, controller, 'topdr', colHeaders);
+    super(generator, controller, sheetNames.topdr, headers.topdr);
   }
 
   async collect(): Promise<void> {

@@ -1,6 +1,7 @@
 import { toDecimalPercent } from "../../../utils/format";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
+import { headers, sheetNames } from "./constants";
 import { SheetManager } from "./SheetManager";
 
 // Top 10 Rx's on Analysys
@@ -13,19 +14,18 @@ type top10csRecord = {
   totalcsnum?: number;
   totaldosenum?: number;
 }
-const colHeaders = ['drug', 'number', 'csdoseperc', 'totaldoseperc', 'csdosenum', 'totalcsnum', 'totaldosenum'];
 
-export class CsCashSheetManager extends SheetManager {
+export class Top10CsSheetManager extends SheetManager {
   private data: top10csRecord[] = [];
 
   constructor(generator: TemplateGenerator, controller: SheetManagerController) {
-    super(generator, controller, 'top10cs', colHeaders);
+    super(generator, controller, sheetNames.top10cs, headers.top10cs);
   }
 
   async collect(): Promise<void> {
     const analysisData = this.generator.report.analysis;
     const totalcsnum = analysisData.totalCsNum;
-    const totaldosenum = this.generator.calculations.totals.tadud;
+    const totaldosenum = this.generator.calculations.totals.totallAUDispensed;
     const rxInTop10 = analysisData.top10rx;
 
     for (const rx of rxInTop10) {

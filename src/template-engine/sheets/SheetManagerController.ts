@@ -1,7 +1,12 @@
 import { TemplateGenerator } from "../TemplateGenerator";
+import { AigSheetManager } from "./sheet-managers/AigSheetManager";
+import { AigTableSheetManager } from "./sheet-managers/AigTableSheetManager";
 import { ArcosSheetManager } from "./sheet-managers/ArcosSheetManager";
+import { CommonSheetManager } from "./sheet-managers/CommonSheetManager";
+import { CsCashSheetManager } from "./sheet-managers/CsCashSheetManager";
 import { DeaConcernSheetManager } from "./sheet-managers/DeaConcernSheetManager";
 import { SheetManager } from "./sheet-managers/SheetManager";
+import { Top10CsSheetManager } from "./sheet-managers/Top10CsSheetManager";
 import { TopDrSheetManager } from "./sheet-managers/TopDrSheetmanager";
 
 export class SheetManagerController {
@@ -18,17 +23,17 @@ export class SheetManagerController {
     // Create and register all sheet managers
     this.registerSheet(new ArcosSheetManager(this.generator, this));
     this.registerSheet(new DeaConcernSheetManager(this.generator, this));
-    // this.registerSheet(new CommonSheetManager(this.generator, this));
+    this.registerSheet(new CommonSheetManager(this.generator, this));
+    this.registerSheet(new CsCashSheetManager(this.generator, this));
     this.registerSheet(new TopDrSheetManager(this.generator, this));
-    // this.registerSheet(new Top10CsSheetManager(this.generator, this));
+    this.registerSheet(new Top10CsSheetManager(this.generator, this));
 
     // Create AIG sheets (1-20)
     for (let i = 1; i <= 20; i++) {
-      // this.registerSheet(new AigSheetManager(this.generator, this, i));
+      this.registerSheet(new AigSheetManager(this.generator, this, i));
     }
 
-    // this.registerSheet(new AigTableSheetManager(this.generator, this));
-    // Register other sheets...
+    this.registerSheet(new AigTableSheetManager(this.generator, this));
   }
 
   private registerSheet(manager: SheetManager): void {
@@ -78,6 +83,4 @@ export class SheetManagerController {
       await manager.generate();
     }
   }
-
-  // Other shared methods...
 }
