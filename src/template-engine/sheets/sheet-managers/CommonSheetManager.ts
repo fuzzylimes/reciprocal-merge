@@ -229,7 +229,7 @@ export class CommonSheetManager extends SheetManager {
     // Step through each of the patients and see if they have more than one drug name
     const patientsList: number[] = [];
     Object.entries(mapping).forEach(([id, drugs]) => {
-      if (Object.keys(drugs).length > 1) {
+      if (drugs.size > 1) {
         patientsList.push(Number(id));
       }
     })
@@ -320,13 +320,11 @@ export class CommonSheetManager extends SheetManager {
       pharmToPhys[3]!.csRxPercent,
       pharmToPhys[4]!.csRxPercent,
       pharmToPhys[5]!.csRxPercent,
-      pharmToPhys[6]!.csRxPercent
     )
     this.data.phyphys = sum(
       pharmToPhys[3]!.nonCsRxPercent,
       pharmToPhys[4]!.nonCsRxPercent,
       pharmToPhys[5]!.nonCsRxPercent,
-      pharmToPhys[6]!.nonCsRxPercent
     )
 
     // pharm to pat
@@ -335,13 +333,11 @@ export class CommonSheetManager extends SheetManager {
       pharmToPat[3]!.csRxPercent,
       pharmToPat[4]!.csRxPercent,
       pharmToPat[5]!.csRxPercent,
-      pharmToPat[6]!.csRxPercent
     )
     this.data.phypt = sum(
       pharmToPat[3]!.nonCsRxPercent,
       pharmToPat[4]!.nonCsRxPercent,
       pharmToPat[5]!.nonCsRxPercent,
-      pharmToPat[6]!.nonCsRxPercent
     )
 
     // phys to pat
@@ -350,13 +346,11 @@ export class CommonSheetManager extends SheetManager {
       physToPat[3]!.csRxPercent,
       physToPat[4]!.csRxPercent,
       physToPat[5]!.csRxPercent,
-      physToPat[6]!.csRxPercent
     )
     this.data.physpt = sum(
       physToPat[3]!.nonCsRxPercent,
       physToPat[4]!.nonCsRxPercent,
       physToPat[5]!.nonCsRxPercent,
-      physToPat[6]!.nonCsRxPercent
     )
   }
 

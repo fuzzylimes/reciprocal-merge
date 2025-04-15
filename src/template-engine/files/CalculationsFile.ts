@@ -4,7 +4,7 @@ import { GetDocContent } from "../../utils/word";
 
 enum SectionIdentifiers {
   total = 'total control',
-  percent = '% control dosage units purchased',
+  percent = '% dosage units purchased',
   rxs = "of rx's",
   alprazfam = 'Alprazolam',
   alpraz2 = 'Alprazolam 2mg',
@@ -144,7 +144,7 @@ export class CalculationsFile {
       // Find and process matching section
       for (const [identifier, handler] of remainingHandlers.entries()) {
         if (label.toLowerCase().includes(identifier.toLowerCase())) {
-          handler(ri);
+          ri = handler(ri);
           remainingHandlers.delete(identifier);
           break;
         }
@@ -156,13 +156,14 @@ export class CalculationsFile {
       }
     }
   }
-  collectDrugValues(rows: HTMLCollectionOf<Element>, ri: number, drugName: string): void {
+  collectDrugValues(rows: HTMLCollectionOf<Element>, ri: number, drugName: string) {
     this.drugs.set(drugName, {
       total: this.getRowValueAsNumber(rows[ri]),
       duMonth: this.getRowValueAsNumber(rows[++ri]),
       expDuMonth: this.getRowValueAsNumber(rows[++ri]),
       multiple: this.getRowValueAsNumber(rows[++ri])
-    })
+    });
+    return ri;
   }
 
   collectTotalValues(rows: HTMLCollectionOf<Element>, ri: number) {
@@ -172,6 +173,7 @@ export class CalculationsFile {
       totalACUPurchased: this.getRowValueAsNumber(rows[++ri]),
       totalAPurchased: this.getRowValueAsNumber(rows[++ri])
     }
+    return ri;
   }
 
   collectPercentValues(rows: HTMLCollectionOf<Element>, ri: number) {
@@ -181,15 +183,17 @@ export class CalculationsFile {
       cPerDisByDU: this.getRowValueAsPercent(rows[++ri]),
       cPerDisByRx: this.getRowValueAsPercent(rows[++ri])
     }
+    return ri;
   }
 
-  collectRxValues(rows: HTMLCollectionOf<Element>, ri: number): void {
+  collectRxValues(rows: HTMLCollectionOf<Element>, ri: number) {
     this.rxs = {
       totalRx: this.getRowValueAsNumber(rows[ri]),
       rxPerMonth: this.getRowValueAsNumber(rows[++ri]),
       rxDaily: this.getRowValueAsNumber(rows[++ri]),
       multiple: this.getRowValueAsNumber(rows[++ri]),
     }
+    return ri;
   }
 
   getLabelAndValue(row: Element) {

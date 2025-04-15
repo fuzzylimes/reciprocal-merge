@@ -1,3 +1,4 @@
-export const toDecimalPercent = (v: unknown) => {
-  return isNaN(Number(v)) ? 0 : Math.round(Number(v) * 100) / 100;
+export const toDecimalPercent = (v: unknown): number => {
+  if (isNaN(Number(v))) return 0;
+  return Number(Number(v).toFixed(2));
 }

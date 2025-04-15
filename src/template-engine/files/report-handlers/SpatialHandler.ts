@@ -43,9 +43,13 @@ interface SpatialDistance {
 export class SpatialHandler extends BaseReportHandler {
   private _spatialCalculated = false;
   private _spatialValues: Partial<SpatialValues> = {};
+  private _startBand: number;
+  private _endBand: number;
 
-  constructor(_workbook: WorkBook) {
+  constructor(_workbook: WorkBook, start: number = 1, end: number = 6) {
     super(_workbook, ReportSheets.spatial);
+    this._startBand = start;
+    this._endBand = end;
   }
 
   private calculateSpatialValues(): void {
@@ -57,9 +61,14 @@ export class SpatialHandler extends BaseReportHandler {
     const top10columns = this.getRowsAsColumns(1, 10, Top10Columns, { header: "A", blankrows: true });
     for (const k of Top10Columns) {
       const v = top10columns.get(k) ?? [];
+      console.log(v);
       const dea = String(v[0]);
-      const sum = v.slice(2, 8).reduce((partialSum: number, a) => partialSum + Number(a), 0);
-      const isCounted = !!sum;
+      const start = 2 + this._startBand - 1;
+      const end = 2 + this._endBand;
+      const s = v.slice(start, end);
+      console.log(s);
+      const sum = s.reduce((partialSum: number, a) => partialSum + Number(a), 0);
+      const isCounted = sum > 0;
       top10d.push({
         dea,
         totalApplicable: sum,
@@ -76,19 +85,20 @@ export class SpatialHandler extends BaseReportHandler {
         spatialDeas.push(dea)
       }
     }
+    console.log(top10d);
     this._spatialValues.top10Distances = top10d;
     this._spatialValues.spatialDeas = spatialDeas;
 
     // Collect spatial distances
-    const pharmToPhysColumns = this.getRowsAsColumns(36, 42, RxDistanceColumns, { header: "A" });
+    const pharmToPhysColumns = this.getRowsAsColumns(36 + (this._startBand - 1), 36 + this._endBand, RxDistanceColumns, { header: "A" });
     const pharmToPhys = this.calculateDistanceColumn(pharmToPhysColumns);
     this._spatialValues.pharmToPhys = pharmToPhys;
 
-    const pharmToPatColumns = this.getRowsAsColumns(49, 55, RxDistanceColumns, { header: "A" });
+    const pharmToPatColumns = this.getRowsAsColumns(49 + (this._startBand - 1), 49 + this._endBand, RxDistanceColumns, { header: "A" });
     const pharmToPat = this.calculateDistanceColumn(pharmToPatColumns);
     this._spatialValues.pharmToPat = pharmToPat;
 
-    const physToPatColumns = this.getRowsAsColumns(62, 68, RxDistanceColumns, { header: "A" });
+    const physToPatColumns = this.getRowsAsColumns(62 + (this._startBand - 1), 62 + this._endBand, RxDistanceColumns, { header: "A" });
     const physToPat = this.calculateDistanceColumn(physToPatColumns);
     this._spatialValues.physToPat = physToPat;
 

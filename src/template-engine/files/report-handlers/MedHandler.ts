@@ -27,7 +27,7 @@ export class MedHandler extends BaseReportHandler<medSheet> {
 
     const rows = this.getAllRows({ blankrows: true });
     const cleaned = rows.filter(r => r["DEA#"]);
-    const highmedRows = cleaned.filter(r => Number(r["Daily M.E.D per Prescription"]) > 120)
+    const highmedRows = cleaned.filter(r => Number(r["Daily M.E.D per Prescription"]) >= 120)
     this._medValues.medData = cleaned;
     this._medValues.highMedData = highmedRows;
 

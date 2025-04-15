@@ -41,7 +41,7 @@ export class ReportFile {
 
     this.summary = new SummaryHandler(this._workbook);
     this.analysis = new AnalysisHandler(this._workbook);
-    this.spatial = new SpatialHandler(this._workbook);
+    this.spatial = new SpatialHandler(this._workbook, 3, 5);
     this.trinity = new TrinityHandler(this._workbook);
     this.ir = new ImmediateReleaseHandler(this._workbook);
     this.multiPrac = new MultiPracHandler(this._workbook);

@@ -110,7 +110,7 @@ export class AigSheetManager extends SheetManager {
     // Process each DEA in top 5
     for (const [i, dea] of top5Deas.entries()) {
       // Get practitioner data
-      let practitioner: Partial<Practitioner> = practitionerDetails[i];
+      let practitioner: Partial<Practitioner> = practitionerDetails[dea];
       if (!practitioner) {
         this.controller.addMissingDea(dea);
         practitioner = {};
