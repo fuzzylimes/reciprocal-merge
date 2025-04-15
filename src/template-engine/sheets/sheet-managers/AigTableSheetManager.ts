@@ -18,7 +18,7 @@ export class AigTableSheetManager extends SheetManager {
   private data: aigTableRecord[] = [];
 
   constructor(generator: TemplateGenerator, controller: SheetManagerController) {
-    super(generator, controller, sheetNames.aigTable, headers.aig);
+    super(generator, controller, sheetNames.aigTable, headers.aigTable);
   }
 
   async collect(): Promise<void> {
@@ -29,7 +29,7 @@ export class AigTableSheetManager extends SheetManager {
       const key = aigLookup[i + 1].duMonthCell;
       const { duMonth: currentdoses, multiple: currentdate } = (calcFile.drugs.get(key) || {});
 
-      if (currentdate && currentdate < 2.0) continue;
+      if (!currentdate || currentdate < 2.0) continue;
 
       const rowNumber = this.data.length + 2;
       const { duMonth: Prevdoses, multiple: Prevdate } = (prevCalcFile.drugs.get(key) || {});

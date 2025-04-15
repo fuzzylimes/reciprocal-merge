@@ -6,11 +6,19 @@ import { toDecimalPercent } from "../../../utils/format";
 const Top10Columns = ['C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 const RxDistanceColumns = ['E', 'G'];
 
+// TODO: Redo these so that they're set to the calculated value objects, or something like it...
+
 interface SpatialValues {
   top10Distances: Top10Distance[];
-  pharmToPhys: Partial<SpatialDistances>;
-  pharmToPat: Partial<SpatialDistances>;
-  physToPat: Partial<SpatialDistances>;
+  pharmToPhys: SpatialDistances;
+  pharmToPhysCsSum: number;
+  pharmToPhysSum: number;
+  pharmToPat: SpatialDistances;
+  pharmToPatCsSum: number;
+  pharmToPatSum: number;
+  physToPat: SpatialDistances;
+  physToPatCsSum: number;
+  physToPatSum: number;
   spatialDeas: string[];
 }
 
@@ -91,30 +99,44 @@ export class SpatialHandler extends BaseReportHandler {
 
     // Collect spatial distances
     const pharmToPhysColumns = this.getRowsAsColumns(36 + (this._startBand - 1), 36 + this._endBand, RxDistanceColumns, { header: "A" });
-    const pharmToPhys = this.calculateDistanceColumn(pharmToPhysColumns);
+    const { sd: pharmToPhys, csRxPercentSum: pharmToPhysCsSum, nonCsRxPercentSum: pharmToPhysSum } = this.calculateDistanceColumn(pharmToPhysColumns);
     this._spatialValues.pharmToPhys = pharmToPhys;
+    this._spatialValues.pharmToPhysCsSum = pharmToPhysCsSum;
+    this._spatialValues.pharmToPhysSum = pharmToPhysSum;
 
     const pharmToPatColumns = this.getRowsAsColumns(49 + (this._startBand - 1), 49 + this._endBand, RxDistanceColumns, { header: "A" });
-    const pharmToPat = this.calculateDistanceColumn(pharmToPatColumns);
+    const { sd: pharmToPat, csRxPercentSum: pharmToPatCsSum, nonCsRxPercentSum: pharmToPatSum } = this.calculateDistanceColumn(pharmToPatColumns);
     this._spatialValues.pharmToPat = pharmToPat;
+    this._spatialValues.pharmToPatCsSum = pharmToPatCsSum;
+    this._spatialValues.pharmToPatSum = pharmToPatSum;
 
     const physToPatColumns = this.getRowsAsColumns(62 + (this._startBand - 1), 62 + this._endBand, RxDistanceColumns, { header: "A" });
-    const physToPat = this.calculateDistanceColumn(physToPatColumns);
+    const { sd: physToPat, csRxPercentSum: physToPatCsSum, nonCsRxPercentSum: physToPatSum } = this.calculateDistanceColumn(physToPatColumns);
     this._spatialValues.physToPat = physToPat;
+    this._spatialValues.physToPatCsSum = physToPatCsSum;
+    this._spatialValues.physToPatSum = physToPatSum;
 
     this._spatialCalculated = true;
   }
 
-  private calculateDistanceColumn(columns: Map<string, unknown[]>): Partial<SpatialDistances> {
-    const sd: Partial<SpatialDistances> = {};
+  private calculateDistanceColumn(columns: Map<string, unknown[]>) {
+    const sd: SpatialDistances = {} as SpatialDistances;
+    let csRxPercentSum = 0;
+    let nonCsRxPercentSum = 0;
     for (const i of [1, 2, 3, 4, 5, 6]) {
+      const csRxPercent = toDecimalPercent(columns.get('E')?.[i - 1]);
+      const nonCsRxPercent = toDecimalPercent(columns.get('G')?.[i - 1])
       sd[i as keyof SpatialDistances] = {
-        csRxPercent: toDecimalPercent(columns.get('E')?.[i - 1]),
-        nonCsRxPercent: toDecimalPercent(columns.get('G')?.[i - 1])
+        csRxPercent,
+        nonCsRxPercent
+      }
+      if (i >= this._startBand && i <= this._endBand) {
+        csRxPercentSum += csRxPercent;
+        nonCsRxPercentSum += nonCsRxPercent;
       }
     }
 
-    return sd;
+    return { sd, csRxPercentSum, nonCsRxPercentSum };
   }
 
   get top10Dea(): string[] {
@@ -142,14 +164,44 @@ export class SpatialHandler extends BaseReportHandler {
     return this._spatialValues.pharmToPhys || {};
   }
 
+  get pharmToPhysCsSum(): number {
+    this.calculateSpatialValues();
+    return this._spatialValues.pharmToPhysCsSum || 0;
+  }
+
+  get pharmToPhysSum(): number {
+    this.calculateSpatialValues();
+    return this._spatialValues.pharmToPhysSum || 0;
+  }
+
   get pharmToPat(): Partial<SpatialDistances> {
     this.calculateSpatialValues();
     return this._spatialValues.pharmToPat || {};
   }
 
+  get pharmToPatCsSum(): number {
+    this.calculateSpatialValues();
+    return this._spatialValues.pharmToPatCsSum || 0;
+  }
+
+  get pharmToPatSum(): number {
+    this.calculateSpatialValues();
+    return this._spatialValues.pharmToPatSum || 0;
+  }
+
   get physToPat(): Partial<SpatialDistances> {
     this.calculateSpatialValues();
     return this._spatialValues.physToPat || {};
+  }
+
+  get physToPatCsSum(): number {
+    this.calculateSpatialValues();
+    return this._spatialValues.physToPatCsSum || 0;
+  }
+
+  get physToPatSum(): number {
+    this.calculateSpatialValues();
+    return this._spatialValues.physToPatSum || 0;
   }
 
 }

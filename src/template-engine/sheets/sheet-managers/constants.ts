@@ -17,5 +17,5 @@ export const sheetNames = {
   arcos: 'arcos',
   top10cs: 'top10cs',
   topdr: 'topdr',
-  aigTable: 'aigTable',
+  aigTable: 'aigtable',
 }

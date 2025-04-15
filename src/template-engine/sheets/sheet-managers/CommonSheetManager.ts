@@ -4,7 +4,6 @@ import { SheetManagerController } from "../SheetManagerController";
 import { headers, sheetNames } from "./constants";
 import { SheetManager } from "./SheetManager";
 import * as c from '../../../utils/constants'
-import { toDecimalPercent } from "../../../utils/format";
 import { aigLookup } from "../../../utils/aig-helper";
 import { AigSheetManager } from "./AigSheetManager";
 
@@ -310,48 +309,17 @@ export class CommonSheetManager extends SheetManager {
     const spatialData = this.generator.report.spatial;
     this.data.spatial = spatialData.spatialCount;
 
-    const sum = (...nums: number[]): number => {
-      const res = nums.reduce((prevVal, currentVal) => prevVal + currentVal, 0);
-      return toDecimalPercent(res);
-    }
     // pharm to phys
-    const pharmToPhys = spatialData.pharmToPhys;
-    this.data.csphyphys = sum(
-      pharmToPhys[3]!.csRxPercent,
-      pharmToPhys[4]!.csRxPercent,
-      pharmToPhys[5]!.csRxPercent,
-    )
-    this.data.phyphys = sum(
-      pharmToPhys[3]!.nonCsRxPercent,
-      pharmToPhys[4]!.nonCsRxPercent,
-      pharmToPhys[5]!.nonCsRxPercent,
-    )
+    this.data.csphyphys = spatialData.pharmToPhysCsSum;
+    this.data.phyphys = spatialData.pharmToPhysSum;
 
     // pharm to pat
-    const pharmToPat = spatialData.pharmToPat;
-    this.data.csphypt = sum(
-      pharmToPat[3]!.csRxPercent,
-      pharmToPat[4]!.csRxPercent,
-      pharmToPat[5]!.csRxPercent,
-    )
-    this.data.phypt = sum(
-      pharmToPat[3]!.nonCsRxPercent,
-      pharmToPat[4]!.nonCsRxPercent,
-      pharmToPat[5]!.nonCsRxPercent,
-    )
+    this.data.csphypt = spatialData.pharmToPatCsSum;
+    this.data.phypt = spatialData.pharmToPatSum;
 
     // phys to pat
-    const physToPat = spatialData.physToPat;
-    this.data.csphyspt = sum(
-      physToPat[3]!.csRxPercent,
-      physToPat[4]!.csRxPercent,
-      physToPat[5]!.csRxPercent,
-    )
-    this.data.physpt = sum(
-      physToPat[3]!.nonCsRxPercent,
-      physToPat[4]!.nonCsRxPercent,
-      physToPat[5]!.nonCsRxPercent,
-    )
+    this.data.csphyspt = spatialData.physToPatCsSum;
+    this.data.physpt = spatialData.physToPatSum;
   }
 
   private generateAig() {
