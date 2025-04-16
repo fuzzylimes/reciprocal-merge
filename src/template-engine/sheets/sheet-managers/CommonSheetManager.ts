@@ -274,29 +274,34 @@ export class CommonSheetManager extends SheetManager {
     if (!highMed.length) return;
 
     // Need to find the prescriber with the most prescriptions, then get the count and Id of the patients
-    const mapping: Record<string, Record<number, string>> = {};
+    interface pData {
+      name: string;
+      patients: number[];
+    }
+    const mapping: Record<string, pData> = {};
     for (const row of highMed) {
       const prescriber = row['DEA#'];
       const prescriberName = row['Physician Name'];
       const patientId = row['Patient ID'];
 
       if (mapping[prescriber]) {
-        if (!mapping[prescriber][patientId]) {
-          mapping[prescriber][patientId] = prescriberName;
-        }
+        mapping[prescriber].patients.push(patientId);
       } else {
-        mapping[prescriber] = { [patientId]: prescriberName };
+        mapping[prescriber] = {
+          name: prescriberName,
+          patients: [patientId]
+        };
       }
     }
 
     let maxPrescriber = '';
     let maxCount = 0;
     let maxPatients: number[] = [];
-    Object.entries(mapping).forEach(([, patients]) => {
-      const patientIds = Object.keys(patients);
+    Object.entries(mapping).forEach(([, pData]) => {
+      const patientIds = pData.patients;
       if (patientIds.length > maxCount) {
         maxCount = patientIds.length;
-        maxPrescriber = patients[Number(patientIds[0])];
+        maxPrescriber = pData.name;
         maxPatients = [...new Set(patientIds.map(id => Number(id)))];
       }
     });

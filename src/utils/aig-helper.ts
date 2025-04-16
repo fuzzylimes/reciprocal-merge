@@ -138,7 +138,7 @@ export const aigLookup: Record<number, IaigDef> = {
     names: ['8 mg'],
     operation: '>=',
     high: 22.5,
-    med: 1,
+    med: 4,
     duMonthCell: drugNames.hydromorph8,
     aigSheetNum: 10,
     aigReference: aigReference.hydromorph8

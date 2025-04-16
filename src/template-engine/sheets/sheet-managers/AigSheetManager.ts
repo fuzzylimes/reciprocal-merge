@@ -76,10 +76,10 @@ export class AigSheetManager extends SheetManager {
 
     // Get rows that match the operation criteria
     const opMatches = csRxRows.filter(row => this.applyOperation(Number(row["mg/day"]), aigDetails));
-    const highMatchRatio = toDecimalPercent(opMatches.length / csRxRows.length);
+    const highMatchRatio = csRxRows.length ? opMatches.length / csRxRows.length : 0;
 
     // Store in shared controller data
-    this.common.highpct = highMatchRatio;
+    this.common.highpct = toDecimalPercent(highMatchRatio);
 
     if (per && familyCount) {
       const perVal = csRxRows.length / familyCount;
@@ -189,7 +189,8 @@ export class AigSheetManager extends SheetManager {
       const rowText = String(row["Drug Name"]).toLowerCase();
       if (word.includes('*')) {
         const parts = word.split('*');
-        return parts.every(part => rowText.includes(part.toLowerCase()));
+        const hasAllParts = parts.every(part => rowText.includes(part.toLowerCase()));
+        return hasAllParts;
       }
       return rowText.includes(word.toLowerCase());
     });
