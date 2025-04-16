@@ -18,7 +18,6 @@ import { getCellValue, saveExcelFile } from '../utils/excel';
 import { Ifile } from '../utils/file-system-service';
 import ProcessLocation from './ProcessLocation';
 import { isTauriEnv } from '../utils/environment';
-import { Base } from '../utils/sheet-classes/Base';
 import { WorkBook } from 'xlsx';
 import { generateInputFile } from '../template-engine';
 
@@ -126,22 +125,22 @@ function GenerateTab() {
     setIsProcessing(true);
 
     try {
-      Base.reset();
       // Generate the template Excel file
-      const workbook = await generateInputFile(
+      const templateGenerator = await generateInputFile(
         reportFile,
         calculationsFile,
         prevCalculationsFile,
         practitionersFile
       );
+      const workbook = await templateGenerator.generate();
 
       // Store the generated workbook for later use
       setGeneratedWorkbook(workbook);
 
       // Check if there are missing DEA IDs
-      if (Base.missingDea && Base.missingDea.length > 0) {
+      if (templateGenerator.sheetManager.missingDea && templateGenerator.sheetManager.missingDea.length > 0) {
         // Show the modal with missing DEA IDs
-        setMissingDeaIds([...Base.missingDea]);
+        setMissingDeaIds([...templateGenerator.sheetManager.missingDea]);
         setModalOpen(true);
         return; // Exit early, wait for user decision
       }
