@@ -17,10 +17,7 @@ export const generateInputFile = async (
   const practitioners = new PractitionersFile(practitionersFile);
 
   // Create generator
-  const generator = new TemplateGenerator(
+  return new TemplateGenerator(
     report, calculations, prevCalculations, practitioners
   );
-
-  // Run generation process
-  return await generator.generate();
 };
