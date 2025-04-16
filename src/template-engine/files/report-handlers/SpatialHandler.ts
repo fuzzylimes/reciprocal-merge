@@ -69,12 +69,10 @@ export class SpatialHandler extends BaseReportHandler {
     const top10columns = this.getRowsAsColumns(1, 10, Top10Columns, { header: "A", blankrows: true });
     for (const k of Top10Columns) {
       const v = top10columns.get(k) ?? [];
-      console.log(v);
       const dea = String(v[0]);
       const start = 2 + this._startBand - 1;
       const end = 2 + this._endBand;
       const s = v.slice(start, end);
-      console.log(s);
       const sum = s.reduce((partialSum: number, a) => partialSum + Number(a), 0);
       const isCounted = sum > 0;
       top10d.push({
@@ -93,24 +91,23 @@ export class SpatialHandler extends BaseReportHandler {
         spatialDeas.push(dea)
       }
     }
-    console.log(top10d);
     this._spatialValues.top10Distances = top10d;
     this._spatialValues.spatialDeas = spatialDeas;
 
     // Collect spatial distances
-    const pharmToPhysColumns = this.getRowsAsColumns(36 + (this._startBand - 1), 36 + this._endBand, RxDistanceColumns, { header: "A" });
+    const pharmToPhysColumns = this.getRowsAsColumns(35, 41, RxDistanceColumns, { header: "A", blankrows: true });
     const { sd: pharmToPhys, csRxPercentSum: pharmToPhysCsSum, nonCsRxPercentSum: pharmToPhysSum } = this.calculateDistanceColumn(pharmToPhysColumns);
     this._spatialValues.pharmToPhys = pharmToPhys;
     this._spatialValues.pharmToPhysCsSum = pharmToPhysCsSum;
     this._spatialValues.pharmToPhysSum = pharmToPhysSum;
 
-    const pharmToPatColumns = this.getRowsAsColumns(49 + (this._startBand - 1), 49 + this._endBand, RxDistanceColumns, { header: "A" });
+    const pharmToPatColumns = this.getRowsAsColumns(48, 54, RxDistanceColumns, { header: "A", blankrows: true });
     const { sd: pharmToPat, csRxPercentSum: pharmToPatCsSum, nonCsRxPercentSum: pharmToPatSum } = this.calculateDistanceColumn(pharmToPatColumns);
     this._spatialValues.pharmToPat = pharmToPat;
     this._spatialValues.pharmToPatCsSum = pharmToPatCsSum;
     this._spatialValues.pharmToPatSum = pharmToPatSum;
 
-    const physToPatColumns = this.getRowsAsColumns(62 + (this._startBand - 1), 62 + this._endBand, RxDistanceColumns, { header: "A" });
+    const physToPatColumns = this.getRowsAsColumns(61, 67, RxDistanceColumns, { header: "A", blankrows: true });
     const { sd: physToPat, csRxPercentSum: physToPatCsSum, nonCsRxPercentSum: physToPatSum } = this.calculateDistanceColumn(physToPatColumns);
     this._spatialValues.physToPat = physToPat;
     this._spatialValues.physToPatCsSum = physToPatCsSum;

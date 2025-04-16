@@ -179,13 +179,13 @@ export class CommonSheetManager extends SheetManager {
     this.data.cashnoncs = reportFile.summary.cashNonCs;
     this.data.cashcs = reportFile.summary.cashCs;
     this.data.top10csnum = reportFile.analysis.top10rx.length;
-    this.generateTrinity();
-    this.generateIR();
+    this.collectTrinity();
+    this.collectIR();
     this.generateMultiPrac();
-    this.generateHighMed();
-    this.generateHighMedPres();
-    this.generateSpatial();
-    this.generateAig();
+    this.collectHighMed();
+    this.collectHighMedPres();
+    this.collectSpatial();
+    this.collectAig();
     this.data.prevdate = prevCalcFile.pharmacy.date;
     this.data.currentdate = reportFile.summary.endDate;
     // Not currently being set
@@ -194,7 +194,7 @@ export class CommonSheetManager extends SheetManager {
     // this.data.arcossupnum
   }
 
-  private generateTrinity() {
+  private collectTrinity() {
     const trinityMapping = this.generator.report.trinity.trinityMapping;
     if (Object.keys(trinityMapping).length === 0) {
       this.data.trinitynum = 0;
@@ -223,7 +223,7 @@ export class CommonSheetManager extends SheetManager {
     this.data.trinity = trinityString || 'None';
   }
 
-  private generateIR() {
+  private collectIR() {
     const mapping = this.generator.report.ir.patToDrugMapping;
     // Step through each of the patients and see if they have more than one drug name
     const patientsList: number[] = [];
@@ -253,7 +253,7 @@ export class CommonSheetManager extends SheetManager {
     this.data.multiprac = multipracString;
   }
 
-  private generateHighMed() {
+  private collectHighMed() {
     const highMed = this.generator.report.med.highMedData;
     if (!highMed.length) return;
 
@@ -269,7 +269,7 @@ export class CommonSheetManager extends SheetManager {
     this.data.highmed = value;
   }
 
-  private generateHighMedPres() {
+  private collectHighMedPres() {
     const highMed = this.generator.report.med.highMedData;
     if (!highMed.length) return;
 
@@ -305,7 +305,7 @@ export class CommonSheetManager extends SheetManager {
     this.data.highmedpres = value;
   }
 
-  private generateSpatial() {
+  private collectSpatial() {
     const spatialData = this.generator.report.spatial;
     this.data.spatial = spatialData.spatialCount;
 
@@ -322,7 +322,7 @@ export class CommonSheetManager extends SheetManager {
     this.data.physpt = spatialData.physToPatSum;
   }
 
-  private generateAig() {
+  private collectAig() {
     const drugData = this.generator.calculations.drugs;
     for (let i = 1; i <= Object.keys(aigLookup).length; i++) {
       const ref = aigLookup[i];

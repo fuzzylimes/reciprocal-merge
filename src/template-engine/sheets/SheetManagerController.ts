@@ -23,15 +23,15 @@ export class SheetManagerController {
     // Create and register all sheet managers
     this.registerSheet(new ArcosSheetManager(this.generator, this));
     this.registerSheet(new DeaConcernSheetManager(this.generator, this));
+    // Create AIG sheets (1-20) - MUST go before common
+    for (let i = 1; i <= 20; i++) {
+      this.registerSheet(new AigSheetManager(this.generator, this, i));
+    }
     this.registerSheet(new CommonSheetManager(this.generator, this));
     this.registerSheet(new CsCashSheetManager(this.generator, this));
     this.registerSheet(new TopDrSheetManager(this.generator, this));
     this.registerSheet(new Top10CsSheetManager(this.generator, this));
 
-    // Create AIG sheets (1-20)
-    for (let i = 1; i <= 20; i++) {
-      this.registerSheet(new AigSheetManager(this.generator, this, i));
-    }
 
     this.registerSheet(new AigTableSheetManager(this.generator, this));
   }

@@ -25,16 +25,16 @@ export class AigTableSheetManager extends SheetManager {
     const calcFile = this.generator.calculations;
     const prevCalcFile = this.generator.prevCalculations;
 
-    for (let i = 0; i < Object.keys(aigLookup).length; i++) {
-      const key = aigLookup[i + 1].duMonthCell;
-      const { duMonth: currentdoses, multiple: currentdate } = (calcFile.drugs.get(key) || {});
+    for (const key of Object.keys(aigLookup)) {
+      const drugKey = aigLookup[Number(key)].duMonthCell;
+      const { duMonth: currentdoses, multiple: currentdate } = (calcFile.drugs.get(drugKey) || {});
 
       if (!currentdate || currentdate < 2.0) continue;
 
       const rowNumber = this.data.length + 2;
-      const { duMonth: Prevdoses, multiple: Prevdate } = (prevCalcFile.drugs.get(key) || {});
+      const { duMonth: Prevdoses, multiple: Prevdate } = (prevCalcFile.drugs.get(drugKey) || {});
       const tableRecord: aigTableRecord = {
-        AIG: key,
+        AIG: drugKey,
         Prevdate,
         Prevdoses,
         currentdate: currentdate ?? 0.0,
