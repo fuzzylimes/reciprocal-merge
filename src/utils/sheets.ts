@@ -322,3 +322,5 @@ export const sheetOrder = [
   'aig16', 'aig17', 'aig18', 'aig19', 'aig20',
   'aigtable'
 ];
+
+export type row = Record<string, unknown>;

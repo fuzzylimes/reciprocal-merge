@@ -1,5 +1,5 @@
 import { ParsingOptions, WorkBook, WorkSheet, read, utils, write } from 'xlsx';
-import { row } from './sheet-classes/common';
+import { row } from './sheets';
 import { practitionerSheet } from "../template-engine/files/PractitionersFile";
 import { saveFile } from './file-system-service';
 

@@ -1,6 +1,6 @@
 import { Sheet2JSONOpts, utils, WorkBook, WorkSheet } from "xlsx";
 import { ReportSheets } from "../ReportFile";
-import { row } from "../../../utils/sheet-classes/common";
+import { row } from "../../../utils/sheets";
 
 export class BaseReportHandler<T = row> {
   _sheet: WorkSheet;
