@@ -2,7 +2,7 @@ import { WorkBook } from "xlsx";
 import { Base } from "./Base";
 import { headers, top10csRecord, ReportSheets as rs } from "../sheets";
 import { getCellNumericValue, getCellValue } from "../excel";
-import { toPercent } from "../format";
+import { toDecimalPercent } from "../format";
 
 export class top10cs extends Base {
   record: top10csRecord[] | undefined;
@@ -27,8 +27,8 @@ export class top10cs extends Base {
         const topRecord: top10csRecord = {
           drug,
           number,
-          csdoseperc: toPercent(csdoseper),
-          totaldoseperc: toPercent(totaldoseperc),
+          csdoseperc: toDecimalPercent(csdoseper),
+          totaldoseperc: toDecimalPercent(totaldoseperc),
           csdosenum,
           totalcsnum,
           totaldosenum

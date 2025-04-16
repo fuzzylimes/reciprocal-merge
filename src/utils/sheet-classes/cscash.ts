@@ -2,7 +2,7 @@ import { WorkBook } from "xlsx";
 import { Base } from "./Base";
 import { cscashRecord, headers, ReportSheets as rs } from "../sheets";
 import { getCellNumericValue, getCellValue } from "../excel";
-import { toPercent } from "../format";
+import { toDecimalPercent } from "../format";
 
 export class cscash extends Base {
   record: cscashRecord[] = [];
@@ -22,7 +22,7 @@ export class cscash extends Base {
 
         const rawLabel = (getCellValue(Base.report, rs.summary, `A${i}`));
         const label = rawLabel?.replace('$ Pay ', '').replace('Rx', '');
-        this.record.push({ drug: label, percent: toPercent(v) });
+        this.record.push({ drug: label, percent: toDecimalPercent(v) });
       }
 
       this.data = this.getDataObject();

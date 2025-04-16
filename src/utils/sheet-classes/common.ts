@@ -5,7 +5,7 @@ import { CalcKeys, commonRecord, irSheet, medSheet, multipracSheet, ReportSheets
 import * as c from '../constants';
 import { headers } from "../sheets";
 import { aigLookup, IaigDef } from '../aig-helper';
-import { toPercent } from '../format';
+import { toDecimalPercent } from '../format';
 
 export type row = Record<string, unknown>;
 
@@ -67,13 +67,13 @@ export class common extends Base {
   async cashnoncs() {
     const cellValue = getCellValue(Base.report, rs.summary, 'C15');
     // this is returned as a decimal, so we need to convert it to a percentage
-    this.record.cashnoncs = toPercent(cellValue);
+    this.record.cashnoncs = toDecimalPercent(cellValue);
   }
 
   async cashcs() {
     const cellValue = getCellValue(Base.report, rs.summary, 'C14');
     // this is returned as a decimal, so we need to convert it to a percentage
-    this.record.cashcs = toPercent(cellValue);
+    this.record.cashcs = toDecimalPercent(cellValue);
   }
 
   async top10csnum() {
@@ -270,22 +270,22 @@ export class common extends Base {
 
     // csphyphys
     let sum = sumColumn(sheet, 38, 41, 'E');
-    this.record.csphyphys = toPercent(sum);
+    this.record.csphyphys = toDecimalPercent(sum);
     // phyphys
     sum = sumColumn(sheet, 38, 41, 'G');
-    this.record.phyphys = toPercent(sum);
+    this.record.phyphys = toDecimalPercent(sum);
     //csphypt
     sum = sumColumn(sheet, 51, 54, 'E');
-    this.record.csphypt = toPercent(sum);
+    this.record.csphypt = toDecimalPercent(sum);
     //phypt
     sum = sumColumn(sheet, 51, 54, 'G');
-    this.record.phypt = toPercent(sum);
+    this.record.phypt = toDecimalPercent(sum);
     // csphyspt
     sum = sumColumn(sheet, 64, 67, 'E');
-    this.record.csphyspt = toPercent(sum);
+    this.record.csphyspt = toDecimalPercent(sum);
     // physpt
     sum = sumColumn(sheet, 64, 67, 'G');
-    this.record.physpt = toPercent(sum);
+    this.record.physpt = toDecimalPercent(sum);
   }
 
   processAigData(
@@ -298,9 +298,9 @@ export class common extends Base {
     const [du, times] = Base.calculations.getDuAndTimesByRowLabel(aig.duMonthCell);
     this.record[`${reference}dumonth` as keyof commonRecord] = data.month = du;
     this.record[`${reference}times` as keyof commonRecord] = data.times = times;
-    this.record[`${reference}high` as keyof commonRecord] = toPercent(data.highpct);
+    this.record[`${reference}high` as keyof commonRecord] = toDecimalPercent(data.highpct);
 
-    if (data.per || data.per === 0) this.record[`${reference}per` as keyof commonRecord] = toPercent(data.per);
+    if (data.per || data.per === 0) this.record[`${reference}per` as keyof commonRecord] = toDecimalPercent(data.per);
     if (data.highmed || data.highmed === 0) this.record[`${reference}medhigh` as keyof commonRecord] = data.highmed;
     if (data.lowmed || data.lowmed === 0) this.record[`${reference}medlow` as keyof commonRecord] = data.lowmed;
   }
@@ -328,10 +328,10 @@ export class common extends Base {
     this.record.account = Base.calculations.getCellByRowLabel(CalcKeys.account);
     this.record.rxday = Base.calculations.getCellByRowLabel(CalcKeys.rxday, 1, false, true);
     this.record.rxmonth = Base.calculations.getCellByRowLabel(CalcKeys.rxmonth, 1, false, true);
-    this.record.csrxvol = toPercent(Base.calculations.getCellByRowLabel(CalcKeys.csrxvol, 1, false, true) as number / 100);
-    this.record.csdu = toPercent(Base.calculations.getCellByRowLabel(CalcKeys.csdu, 1, false, true) as number / 100);
-    this.record.purchase = toPercent(Base.calculations.getCellByRowLabel(CalcKeys.purchase, 1, false, true) as number / 100);
-    this.record.cspurchase = toPercent(Base.calculations.getCellByRowLabel(CalcKeys.cspurchase, 1, false, true) as number / 100);
+    this.record.csrxvol = toDecimalPercent(Base.calculations.getCellByRowLabel(CalcKeys.csrxvol, 1, false, true) as number / 100);
+    this.record.csdu = toDecimalPercent(Base.calculations.getCellByRowLabel(CalcKeys.csdu, 1, false, true) as number / 100);
+    this.record.purchase = toDecimalPercent(Base.calculations.getCellByRowLabel(CalcKeys.purchase, 1, false, true) as number / 100);
+    this.record.cspurchase = toDecimalPercent(Base.calculations.getCellByRowLabel(CalcKeys.cspurchase, 1, false, true) as number / 100);
 
     // Handle all AIG values
     for (let i = 1; i <= Object.keys(aigLookup).length; i++) {

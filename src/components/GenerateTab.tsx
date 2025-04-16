@@ -14,13 +14,13 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import FileSelector from './FileSelector';
-import { generateInputFile } from '../utils/generate';
 import { getCellValue, saveExcelFile } from '../utils/excel';
 import { Ifile } from '../utils/file-system-service';
 import ProcessLocation from './ProcessLocation';
 import { isTauriEnv } from '../utils/environment';
 import { Base } from '../utils/sheet-classes/Base';
 import { WorkBook } from 'xlsx';
+import { generateInputFile } from '../template-engine';
 
 function GenerateTab() {
   const [reportFile, setReportFile] = useState<Ifile>({ path: '', content: null })
