@@ -1,10 +1,10 @@
-import { aigLookup, IaigDef } from "../../../utils/aig-helper";
+import { aigLookup, IaigDef } from "../utils/aig-helper";
 import { toDecimalPercent } from "../../../utils/format";
-import { csrxSheet } from "../../../utils/sheets";
+import { csrxSheet } from "../../files/report-handlers/CsRxHandler";
 import { Practitioner } from "../../files/PractitionersFile";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
-import { headers, sheetNames } from "./constants";
+import { headers, sheetNames } from "../utils/constants";
 import { SheetManager } from "./SheetManager";
 
 type aigRecord = {
@@ -45,7 +45,7 @@ export class AigSheetManager extends SheetManager {
     this._aigNum = aigNumber;
   }
 
-  async collect(): Promise<void> {
+  collect(): void {
     const reportFile = this.generator.report;
     const calcFile = this.generator.calculations;
     const pracFile = this.generator.practitioners;
@@ -173,7 +173,7 @@ export class AigSheetManager extends SheetManager {
     }
   }
 
-  async generate(): Promise<void> {
+  generate(): void {
     // Create the sheet data
     const data = this.data.map(record =>
       this.headers.map(header => record[header as keyof aigRecord])

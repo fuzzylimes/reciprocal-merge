@@ -4,7 +4,7 @@ import { PractitionersFile } from "./files/PractitionersFile";
 import { ReportFile } from "./files/ReportFile";
 import { TemplateGenerator } from "./TemplateGenerator";
 
-export const generateInputFile = async (
+export const generateInputFile = (
   reportFile: Ifile,
   calculationsFile: Ifile,
   prevCalculationsFile: Ifile,

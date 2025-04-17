@@ -4,6 +4,7 @@ import MergeIcon from '@mui/icons-material/MergeType';
 import CreateIcon from '@mui/icons-material/Create';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import React from 'react';
 
 interface NavigationProps {
   currentTab: number;

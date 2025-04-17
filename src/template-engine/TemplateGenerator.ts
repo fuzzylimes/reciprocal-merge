@@ -2,8 +2,8 @@ import { utils, WorkBook } from "xlsx";
 import { ReportFile } from "./files/ReportFile";
 import { CalculationsFile } from "./files/CalculationsFile";
 import { PractitionersFile } from "./files/PractitionersFile";
-import { sheetOrder } from "../utils/sheets";
 import { SheetManagerController } from "./sheets/SheetManagerController";
+import { sheetOrder } from "./sheets/utils/constants";
 
 // Main generator class that orchestrates the process
 export class TemplateGenerator {
@@ -32,12 +32,12 @@ export class TemplateGenerator {
   }
 
   // Main generation method
-  async generate(): Promise<WorkBook> {
+  generate(): WorkBook {
     // 1. Collect all data using collector classes
-    await this.sheetManager.collectAll();
+    this.sheetManager.collectAll();
 
     // 2. Generate all sheets using generator classes
-    await this.sheetManager.generateAll();
+    this.sheetManager.generateAll();
 
     // 3. Reorder sheets
     this.reorderSheets();

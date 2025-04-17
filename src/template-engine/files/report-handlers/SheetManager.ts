@@ -1,5 +1,5 @@
 import { utils, WorkBook, WorkSheet } from "xlsx";
-import { ReportSheets } from "../../../utils/sheets";
+import { ReportSheets } from "../ReportFile";
 
 export class SheetManager {
   private _workbook: WorkBook;

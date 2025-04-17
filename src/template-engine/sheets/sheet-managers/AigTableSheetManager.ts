@@ -1,7 +1,7 @@
-import { aigLookup } from "../../../utils/aig-helper";
+import { aigLookup } from "../utils/aig-helper";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
-import { headers, sheetNames } from "./constants";
+import { headers, sheetNames } from "../utils/constants";
 import { SheetManager } from "./SheetManager";
 
 type aigTableRecord = {
@@ -21,7 +21,7 @@ export class AigTableSheetManager extends SheetManager {
     super(generator, controller, sheetNames.aigTable, headers.aigTable);
   }
 
-  async collect(): Promise<void> {
+  collect(): void {
     const calcFile = this.generator.calculations;
     const prevCalcFile = this.generator.prevCalculations;
 
@@ -47,7 +47,7 @@ export class AigTableSheetManager extends SheetManager {
     }
   }
 
-  async generate(): Promise<void> {
+  generate(): void {
     // Build out the full data array, in header order
     const rowData = this.controller.buildDataArray(this.data, this.headers);
     // Create a new sheet on the base generator

@@ -9,6 +9,6 @@ export abstract class SheetManager {
     readonly headers: string[]
   ) { }
 
-  abstract collect(): Promise<void>;
-  abstract generate(): Promise<void>;
+  abstract collect(): void;
+  abstract generate(): void;
 }

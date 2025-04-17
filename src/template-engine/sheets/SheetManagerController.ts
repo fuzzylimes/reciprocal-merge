@@ -45,6 +45,10 @@ export class SheetManagerController {
     return this._sheets.get(name) as T;
   }
 
+  getAigSheet(sheet: number): AigSheetManager | undefined {
+    return this._sheets.get(`aig${sheet}`) as AigSheetManager;
+  }
+
   addMissingDea(dea: string) {
     this._missingDea.add(dea);
   }
@@ -71,16 +75,16 @@ export class SheetManagerController {
   }
 
   // Execute collection phase for all sheets
-  async collectAll(): Promise<void> {
+  collectAll(): void {
     for (const manager of this._sheets.values()) {
-      await manager.collect();
+      manager.collect();
     }
   }
 
   // Execute generation phase for all sheets
-  async generateAll(): Promise<void> {
+  generateAll(): void {
     for (const manager of this._sheets.values()) {
-      await manager.generate();
+      manager.generate();
     }
   }
 }

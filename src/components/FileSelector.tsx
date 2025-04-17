@@ -32,6 +32,7 @@ function FileSelector({
 
     setIsSelecting(true);
     try {
+      // Use custom readFile method to use correct method depending on browser/Tauri
       const selectedFile = await readFile({
         extensions: fileTypes,
         description: fileDescription

@@ -1,4 +1,4 @@
-import { drugNames } from "./constants";
+import { drugNames } from "../../../utils/constants";
 
 export interface IaigDef {
   label: string;

@@ -1,6 +1,6 @@
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
-import { headers, sheetNames } from "./constants";
+import { headers, sheetNames } from "../utils/constants";
 import { SheetManager } from "./SheetManager";
 
 type arcosRecord = {
@@ -17,11 +17,11 @@ export class ArcosSheetManager extends SheetManager {
     super(generator, controller, sheetNames.arcos, headers.arcos);
   }
 
-  async collect(): Promise<void> {
+  collect(): void {
     // For now, this is a copy/paste effort. May revist at another time.
   }
 
-  async generate(): Promise<void> {
+  generate(): void {
     // Logic to generate the sheet using collected data
     this.generator.addSheet(this.sheetName, this.headers, [this.data]);
   }

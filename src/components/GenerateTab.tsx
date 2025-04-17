@@ -125,14 +125,14 @@ function GenerateTab() {
     setIsProcessing(true);
 
     try {
-      // Generate the template Excel file
-      const templateGenerator = await generateInputFile(
+      // Create an instance of the TemplateGenerator using the uploaded file data and generate workbook
+      const templateGenerator = generateInputFile(
         reportFile,
         calculationsFile,
         prevCalculationsFile,
         practitionersFile
       );
-      const workbook = await templateGenerator.generate();
+      const workbook = templateGenerator.generate();
 
       // Store the generated workbook for later use
       setGeneratedWorkbook(workbook);
