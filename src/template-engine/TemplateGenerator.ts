@@ -51,6 +51,7 @@ export class TemplateGenerator {
     utils.book_append_sheet(this.outputWorkbook, worksheet, name);
   }
 
+  // Reorder the sheets in the workbook
   private reorderSheets(): void {
     const updatedOrder = sheetOrder.filter(name =>
       this.outputWorkbook.SheetNames.includes(name)

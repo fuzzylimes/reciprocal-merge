@@ -1,4 +1,4 @@
-import { drugNames } from "../../utils/constants";
+import { drugNames } from "../../utils/drugNames";
 import { Ifile } from "../../utils/file-system-service";
 import { GetDocContent } from "../../utils/word";
 

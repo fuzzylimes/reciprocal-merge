@@ -29,8 +29,10 @@ export class AigTableSheetManager extends SheetManager {
       const drugKey = aigLookup[Number(key)].duMonthCell;
       const { duMonth: currentdoses, multiple: currentdate } = (calcFile.drugs.get(drugKey) || {});
 
+      // If the multiplier is less than 2, we don't need to add the drug to the table
       if (!currentdate || currentdate < 2.0) continue;
 
+      // We always need to get the next row. So in the case of an empty data, we'd want B2, for length 1 then B3.
       const rowNumber = this.data.length + 2;
       const { duMonth: Prevdoses, multiple: Prevdate } = (prevCalcFile.drugs.get(drugKey) || {});
       const tableRecord: aigTableRecord = {

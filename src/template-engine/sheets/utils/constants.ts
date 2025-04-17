@@ -25,6 +25,7 @@ export const sheetNames = {
   aigTable: 'aigtable',
 }
 
+// Sheet order for final exported excel file
 export const sheetOrder = [
   sheetNames.common,
   sheetNames.deaconcern,

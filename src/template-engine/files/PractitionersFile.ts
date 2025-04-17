@@ -37,6 +37,11 @@ export class PractitionersFile {
     this.pracSheet = utils.sheet_to_json<practitionerSheet>(workbook.Sheets[PractitionerSheets.ref], { blankrows: true });
   }
 
+  /**
+   * Steps through the entire DB and pulls out the practitioner information for the provided Ids
+   * @param dea takes in a list of dea ids
+   * @returns a mapping of dea ids to the practitioner information out of the DB
+   */
   findPractionersByDeaList = (...dea: string[]): Record<string, Practitioner> => {
     if (!this.pracSheet || !this.pracSheet.length) {
       throw Error(`Practitioner DB is empty.`)
