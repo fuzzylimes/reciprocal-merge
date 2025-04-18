@@ -82,7 +82,7 @@ export class AigSheetManager extends SheetManager {
 
     // Get rows that match the operation criteria
     const opMatches = csRxRows.filter(row => this.applyOperation(Number(row["mg/day"]), aigDetails));
-    const highMatchRatio = csRxRows.length ? opMatches.length / csRxRows.length : 0;
+    const highMatchRatio = csRxRows.length ? (opMatches.length / csRxRows.length) : 0;
 
     // Store in shared controller data
     this.common.highpct = toDecimalPercent(highMatchRatio);
