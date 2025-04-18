@@ -38,7 +38,7 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
-        run: npx eslint "src/**/*.{ts,tsx}"
+        run: npm run lint
 
       - uses: tauri-apps/tauri-action@v0
         env:
