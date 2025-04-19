@@ -1,5 +1,6 @@
-import { drugNames } from "./constants";
+import { drugNames } from "../../../utils/drugNames";
 
+// Model of the AIG details
 export interface IaigDef {
   label: string;
   names?: string[];
@@ -11,9 +12,10 @@ export interface IaigDef {
   med?: number;
   aigSheetNum: number;
   aigReference: aigReference;
-  base?: string;
+  base?: string; // Used when the aigReference doesn't match what's used as the base for the common page values
 }
 
+// abbreviations for aig medications. Used when building out the common values (i.e. bupehigh)
 export enum aigReference {
   alprazfam = 'alprazfam',
   alpraz2 = 'alpraz2',
@@ -37,6 +39,16 @@ export enum aigReference {
   tram = 'tram'
 }
 
+
+/**
+ * This is the full mapping information for each of the AIG medications. It's used in order to calculate
+ * both the data on the AIG pages as well as the AIG related common data.
+ * 
+ * The number key corresponds with sheet number for the specific AIG sheet.
+ * Either names or family must be included. If both are provided, both filters will be applied.
+ * per and med values depend on magic. Not all drugs have it.
+ * base is used in the situation where the sheet prefix doesn't match the aigReference
+ */
 export const aigLookup: Record<number, IaigDef> = {
   1: {
     label: 'Alprazolam Family',
@@ -250,39 +262,4 @@ export const aigLookup: Record<number, IaigDef> = {
     aigReference: aigReference.tram,
     base: 'tramadol'
   },
-}
-
-export const getAigByReference = (aig: aigReference): IaigDef => {
-  switch (aig) {
-    case aigReference.alprazfam: return aigLookup[1];
-    case aigReference.alpraz2: return aigLookup[2];
-    case aigReference.amphet: return aigLookup[3];
-    case aigReference.bupe: return aigLookup[4];
-    case aigReference.cariso: return aigLookup[5];
-    case aigReference.fent: return aigLookup[6];
-    case aigReference.hydroco: return aigLookup[7];
-    case aigReference.hydroco10: return aigLookup[8];
-    case aigReference.hydromorph: return aigLookup[9];
-    case aigReference.hydromorph8: return aigLookup[10];
-    case aigReference.lisdex: return aigLookup[11];
-    case aigReference.metha: return aigLookup[12];
-    case aigReference.methyl: return aigLookup[13];
-    case aigReference.morph: return aigLookup[14];
-    case aigReference.oxy: return aigLookup[15];
-    case aigReference.oxy15: return aigLookup[16];
-    case aigReference.oxy30: return aigLookup[17];
-    case aigReference.oxy10: return aigLookup[18];
-    case aigReference.oxymorph: return aigLookup[19];
-    case aigReference.tram: return aigLookup[20];
-    default: throw Error('Unsupported reference');
-  }
-}
-
-export type aigTracking = {
-  highpct: number;
-  highmed: number;
-  lowmed: number;
-  per: number;
-  month: number;
-  times: number;
 }

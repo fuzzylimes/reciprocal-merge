@@ -22,6 +22,7 @@ export function enableNetworkBlocker() {
   };
 
   // Monkey patch XMLHttpRequest
+  // eslint-disable-next-line @typescript-eslint/unbound-method
   const originalXhrOpen = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function blockedOpen(method: string, url: string | URL, async: boolean = false, username?: string | null, password?: string | null) {
     // Allow requests to get application assets during initial load

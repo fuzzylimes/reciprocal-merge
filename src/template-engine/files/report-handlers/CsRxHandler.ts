@@ -2,7 +2,7 @@ import { WorkBook } from "xlsx";
 import { ReportSheets } from "../ReportFile";
 import { BaseReportHandler } from "./BaseHandler";
 
-type csrxSheet = {
+export type csrxSheet = {
   'Drug Name': string;
   Family: string;
   'mg/day': number;

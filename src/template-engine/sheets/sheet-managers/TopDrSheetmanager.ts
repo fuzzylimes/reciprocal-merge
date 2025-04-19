@@ -1,7 +1,7 @@
 import { toDecimalPercent } from "../../../utils/format";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
-import { headers, sheetNames } from "./constants";
+import { headers, sheetNames } from "../utils/constants";
 import { SheetManager } from "./SheetManager";
 
 type topdrRecord = {
@@ -26,7 +26,7 @@ export class TopDrSheetManager extends SheetManager {
     super(generator, controller, sheetNames.topdr, headers.topdr);
   }
 
-  async collect(): Promise<void> {
+  collect(): void {
     const top10DeaIds = this.generator.report.spatial.top10Dea;
     const spatialDeas = this.generator.report.spatial.spatialDea;
     const top10CsValues = this.generator.report.analysis.top10cs;
@@ -71,7 +71,7 @@ export class TopDrSheetManager extends SheetManager {
     }
   }
 
-  async generate(): Promise<void> {
+  generate(): void {
     // Build out the full data array, in header order
     const rowData = this.controller.buildDataArray(this.data, this.headers);
     // Create a new sheet on the base generator

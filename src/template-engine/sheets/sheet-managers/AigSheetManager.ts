@@ -1,12 +1,15 @@
-import { aigLookup, IaigDef } from "../../../utils/aig-helper";
+import { aigLookup, IaigDef } from "../utils/aig-helper";
 import { toDecimalPercent } from "../../../utils/format";
-import { csrxSheet } from "../../../utils/sheets";
+import { csrxSheet } from "../../files/report-handlers/CsRxHandler";
 import { Practitioner } from "../../files/PractitionersFile";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
-import { headers, sheetNames } from "./constants";
+import { headers, sheetNames } from "../utils/constants";
 import { SheetManager } from "./SheetManager";
 
+/**
+ * Values on each of the AIG sheets
+ */
 type aigRecord = {
   AIG: string;
   Name: string;
@@ -24,6 +27,9 @@ type aigRecord = {
   Miles?: unknown;
 }
 
+/**
+ * These are the aig specific values that appear over in the common sheet
+ */
 type aigCommon = {
   highpct?: number;
   per?: number;
@@ -45,7 +51,7 @@ export class AigSheetManager extends SheetManager {
     this._aigNum = aigNumber;
   }
 
-  async collect(): Promise<void> {
+  collect(): void {
     const reportFile = this.generator.report;
     const calcFile = this.generator.calculations;
     const pracFile = this.generator.practitioners;
@@ -76,7 +82,7 @@ export class AigSheetManager extends SheetManager {
 
     // Get rows that match the operation criteria
     const opMatches = csRxRows.filter(row => this.applyOperation(Number(row["mg/day"]), aigDetails));
-    const highMatchRatio = csRxRows.length ? opMatches.length / csRxRows.length : 0;
+    const highMatchRatio = csRxRows.length ? (opMatches.length / csRxRows.length) : 0;
 
     // Store in shared controller data
     this.common.highpct = toDecimalPercent(highMatchRatio);
@@ -100,6 +106,7 @@ export class AigSheetManager extends SheetManager {
     const over300 = (duMonth ?? 0) > 300;
 
     // Calculate top 5 prescribers
+    // If over300, we want to use the full list. Otherwise we'll use the filtered list
     const prescribers = this.calculateTopPrescribers(over300 ? csRxRows : opMatches);
     const top5Deas = prescribers.map(p => p[0]).slice(0, 5);
     const practitionerDetails = pracFile.findPractionersByDeaList(...top5Deas);
@@ -173,7 +180,7 @@ export class AigSheetManager extends SheetManager {
     }
   }
 
-  async generate(): Promise<void> {
+  generate(): void {
     // Create the sheet data
     const data = this.data.map(record =>
       this.headers.map(header => record[header as keyof aigRecord])

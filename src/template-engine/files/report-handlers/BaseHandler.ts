@@ -1,6 +1,6 @@
-import { Sheet2JSONOpts, utils, WorkBook, WorkSheet } from "xlsx";
+import { CellObject, Sheet2JSONOpts, utils, WorkBook, WorkSheet } from "xlsx";
 import { ReportSheets } from "../ReportFile";
-import { row } from "../../../utils/sheet-classes/common";
+import { row } from "../../../utils/excel";
 
 export class BaseReportHandler<T = row> {
   _sheet: WorkSheet;
@@ -11,7 +11,7 @@ export class BaseReportHandler<T = row> {
   }
 
   getCellValue(cellRef: string): string | undefined {
-    const cell = this._sheet[cellRef];
+    const cell = this._sheet[cellRef] as CellObject;
     return cell ? String(cell.v) : undefined;
   }
 

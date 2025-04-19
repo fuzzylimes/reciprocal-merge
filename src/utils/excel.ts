@@ -1,5 +1,4 @@
-import { ParsingOptions, WorkBook, WorkSheet, read, utils, write } from 'xlsx';
-import { row } from './sheet-classes/common';
+import { CellObject, ParsingOptions, WorkBook, WorkSheet, read, utils, write } from 'xlsx';
 import { practitionerSheet } from "../template-engine/files/PractitionersFile";
 import { saveFile } from './file-system-service';
 
@@ -26,6 +25,7 @@ export const loadExcelFile = (excelContent: Uint8Array, opts?: ParsingOptions): 
  */
 export const saveExcelFile = async (workbook: WorkBook, fileName: string): Promise<boolean> => {
   // Convert workbook to binary format
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const excelData = write(workbook, {
     bookType: 'xlsx',
     type: 'array'
@@ -54,14 +54,14 @@ export const getCellValue = (workbook: WorkBook, sheetName: string, cell: string
     return undefined
   }
 
-  const cellValue = sheet[cell];
+  const cellValue = sheet[cell] as CellObject;
   if (!cellValue) {
     console.error(`Cell ${cell} not found in sheet ${sheetName}`);
     return undefined
   }
 
   // return value off of cell object
-  return cellValue.v;
+  return String(cellValue.v);
 }
 
 export const getCellNumericValue = (workbook: WorkBook, sheetName: string, cell: string) => {
@@ -126,3 +126,5 @@ export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practition
 
   return prac;
 }
+
+export type row = Record<string, unknown>;

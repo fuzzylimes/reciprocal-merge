@@ -1,3 +1,6 @@
+/**
+ * Small information text informing the user that their uploaded files are processed locally.
+ */
 import LockIcon from '@mui/icons-material/Lock';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';

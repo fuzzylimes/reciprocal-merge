@@ -54,6 +54,16 @@ function MergeTab() {
     setTemplateFile({ path, content });
   };
 
+  const getOutputFileName = () => {
+    if (!excelFile.content) throw Error('Error loading Excel File');
+
+    const templateWorkbook = loadExcelFile(excelFile.content);
+    const pharmacyName = getCellValue(templateWorkbook, 'common', 'A2');
+    const dateRange = getCellValue(templateWorkbook, 'common', 'E2');
+    const endDate = dateRange?.split(' - ')[1];
+    return `${pharmacyName ?? ''} notes ${endDate ?? ''}.docx`
+  }
+
   // Main merge handler
   const handleMerge = async () => {
     if (!excelFile.content || !templateFile.content) return;
@@ -62,14 +72,10 @@ function MergeTab() {
 
     try {
       // Perform the merge using the file contents directly
-      const mergedContent = await mergeExcel(templateFile.content, excelFile.content);
+      const mergedContent = mergeExcel(templateFile.content, excelFile.content);
 
       // Build filename from content in input workbook
-      const templateWorkbook = await loadExcelFile(excelFile.content);
-      const pharmacyName = getCellValue(templateWorkbook, 'common', 'A2');
-      const dateRange = getCellValue(templateWorkbook, 'common', 'E2');
-      const endDate = dateRange?.split(' - ')[1];
-      const outputFileName = `${pharmacyName ?? ''} notes ${endDate ?? ''}.docx`
+      const outputFileName = getOutputFileName();
 
       // Save the file using our unified file system service
       const saved = await saveFile(

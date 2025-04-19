@@ -9,10 +9,10 @@ import expressionParser from 'docxtemplater/expressions.js';
  * @param excelContent Excel file content as Uint8Array
  * @returns Merged document as Uint8Array
  */
-export const mergeExcel = async (
+export const mergeExcel = (
   templateContent: Uint8Array,
   excelContent: Uint8Array
-): Promise<Uint8Array> => {
+): Uint8Array => {
   try {
     // Process the Excel content
     const workbook = XLSX.read(excelContent, {

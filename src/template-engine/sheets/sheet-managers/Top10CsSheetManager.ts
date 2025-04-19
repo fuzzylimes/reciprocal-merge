@@ -1,7 +1,7 @@
 import { toDecimalPercent } from "../../../utils/format";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
-import { headers, sheetNames } from "./constants";
+import { headers, sheetNames } from "../utils/constants";
 import { SheetManager } from "./SheetManager";
 
 // Top 10 Rx's on Analysys
@@ -22,7 +22,7 @@ export class Top10CsSheetManager extends SheetManager {
     super(generator, controller, sheetNames.top10cs, headers.top10cs);
   }
 
-  async collect(): Promise<void> {
+  collect(): void {
     const analysisData = this.generator.report.analysis;
     const totalcsnum = analysisData.totalCsNum;
     const totaldosenum = this.generator.calculations.totals.totallAUDispensed;
@@ -46,7 +46,7 @@ export class Top10CsSheetManager extends SheetManager {
     }
   }
 
-  async generate(): Promise<void> {
+  generate(): void {
     // Build out the full data array, in header order
     const rowData = this.controller.buildDataArray(this.data, this.headers);
     // Create a new sheet on the base generator

@@ -1,11 +1,10 @@
-import { utils } from "xlsx";
+import { CellObject, utils } from "xlsx";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
-import { headers, sheetNames } from "./constants";
+import { headers, sheetNames } from "../utils/constants";
 import { SheetManager } from "./SheetManager";
-import * as c from '../../../utils/constants'
-import { aigLookup } from "../../../utils/aig-helper";
-import { AigSheetManager } from "./AigSheetManager";
+import * as c from '../utils/constants'
+import { aigLookup } from "../utils/aig-helper";
 
 type commonRecord = {
   name?: unknown;
@@ -160,7 +159,7 @@ export class CommonSheetManager extends SheetManager {
     super(generator, controller, sheetNames.common, headers.common);
   }
 
-  async collect(): Promise<void> {
+  collect(): void {
     const reportFile = this.generator.report;
     const calcFile = this.generator.calculations;
     const prevCalcFile = this.generator.prevCalculations;
@@ -237,7 +236,7 @@ export class CommonSheetManager extends SheetManager {
     this.data.immednum = patNum;
     let value = 'None';
     if (patNum) {
-      value = `${this.data.immednum} ${this.plural('patient', patNum)} ${this.patientNumbers(patientsList)}`;
+      value = `${patNum} ${this.plural('patient', patNum)} ${this.patientNumbers(patientsList)}`;
     }
     this.data.imm = value;
   }
@@ -332,7 +331,7 @@ export class CommonSheetManager extends SheetManager {
     for (let i = 1; i <= Object.keys(aigLookup).length; i++) {
       const ref = aigLookup[i];
       const referenceName = ref.aigReference;
-      const { highmed, highpct, lowmed, per } = (this.generator.sheetManager.getSheet(`${sheetNames.aig}${i}`) as AigSheetManager).commonData;
+      const { highmed, highpct, lowmed, per } = this.generator.sheetManager.getAigSheet(i)?.commonData ?? {};
       const { duMonth, multiple } = (drugData.get(ref.duMonthCell) || {});
 
       this.data[(ref.base ? ref.base : referenceName) as keyof commonRecord] = ref.label;
@@ -351,10 +350,10 @@ export class CommonSheetManager extends SheetManager {
   }
 
   private patientNumbers(keys: unknown[]): string {
-    return `(${keys.map(k => `#${k}`).join(', ')})`;
+    return `(${keys.map(k => `#${String(k)}`).join(', ')})`;
   }
 
-  async generate(): Promise<void> {
+  generate(): void {
     // Build out the full data array, in header order
     const rowData = this.controller.buildDataArray([this.data], this.headers);
     // Create a new sheet on the base generator
@@ -364,8 +363,9 @@ export class CommonSheetManager extends SheetManager {
     const cellAddress = utils.encode_cell({ r: 1, c: this.headers.indexOf('address') });
     const worksheet = this.generator.outputWorkbook.Sheets[this.sheetName];
     for (const cell of [cellAddress]) {
-      if (!worksheet[cell].s) worksheet[cell].s = {};
-      worksheet[cell].s.alignment = { wrapText: true };
+      if (!(worksheet[cell] as CellObject).s) (worksheet[cell] as CellObject).s = {};
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      (worksheet[cell] as CellObject).s.alignment = { wrapText: true };
     }
   }
 }

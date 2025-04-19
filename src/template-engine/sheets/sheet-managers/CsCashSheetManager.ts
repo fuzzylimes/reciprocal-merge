@@ -1,6 +1,6 @@
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
-import { headers, sheetNames } from "./constants";
+import { headers, sheetNames } from "../utils/constants";
 import { SheetManager } from "./SheetManager";
 
 type cscashRecord = {
@@ -15,7 +15,7 @@ export class CsCashSheetManager extends SheetManager {
     super(generator, controller, sheetNames.cscash, headers.cscash);
   }
 
-  async collect(): Promise<void> {
+  collect(): void {
     const summaryData = this.generator.report.summary;
     const cscash = summaryData.cashCs;
 
@@ -28,7 +28,7 @@ export class CsCashSheetManager extends SheetManager {
     }
   }
 
-  async generate(): Promise<void> {
+  generate(): void {
     // Build out the full data array, in header order
     const rowData = this.controller.buildDataArray(this.data, this.headers);
     // Create a new sheet on the base generator

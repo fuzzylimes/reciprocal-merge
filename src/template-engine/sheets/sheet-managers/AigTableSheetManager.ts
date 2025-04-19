@@ -1,7 +1,7 @@
-import { aigLookup } from "../../../utils/aig-helper";
+import { aigLookup } from "../utils/aig-helper";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
-import { headers, sheetNames } from "./constants";
+import { headers, sheetNames } from "../utils/constants";
 import { SheetManager } from "./SheetManager";
 
 type aigTableRecord = {
@@ -21,7 +21,7 @@ export class AigTableSheetManager extends SheetManager {
     super(generator, controller, sheetNames.aigTable, headers.aigTable);
   }
 
-  async collect(): Promise<void> {
+  collect(): void {
     const calcFile = this.generator.calculations;
     const prevCalcFile = this.generator.prevCalculations;
 
@@ -29,8 +29,10 @@ export class AigTableSheetManager extends SheetManager {
       const drugKey = aigLookup[Number(key)].duMonthCell;
       const { duMonth: currentdoses, multiple: currentdate } = (calcFile.drugs.get(drugKey) || {});
 
+      // If the multiplier is less than 2, we don't need to add the drug to the table
       if (!currentdate || currentdate < 2.0) continue;
 
+      // We always need to get the next row. So in the case of an empty data, we'd want B2, for length 1 then B3.
       const rowNumber = this.data.length + 2;
       const { duMonth: Prevdoses, multiple: Prevdate } = (prevCalcFile.drugs.get(drugKey) || {});
       const tableRecord: aigTableRecord = {
@@ -47,7 +49,7 @@ export class AigTableSheetManager extends SheetManager {
     }
   }
 
-  async generate(): Promise<void> {
+  generate(): void {
     // Build out the full data array, in header order
     const rowData = this.controller.buildDataArray(this.data, this.headers);
     // Create a new sheet on the base generator
