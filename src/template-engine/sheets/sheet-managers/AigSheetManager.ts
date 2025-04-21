@@ -66,7 +66,7 @@ export class AigSheetManager extends SheetManager {
     const { names, family, per, med, duMonthCell: duField, label } = aigDetails;
 
     // Filter out liquids and non-data
-    csRxRows = csRxRows.filter(row => !String(row["Drug Name"]) || !String(row["Drug Name"]).toLowerCase().endsWith('ml'));
+    csRxRows = csRxRows.filter(row => String(row["Drug Name"]) && !String(row["Drug Name"]).toLowerCase().endsWith('ml'));
 
     // Apply family filter if needed
     if (family) {
@@ -81,7 +81,8 @@ export class AigSheetManager extends SheetManager {
     }
 
     // Get rows that match the operation criteria
-    const opMatches = csRxRows.filter(row => this.applyOperation(row["mg/day"], aigDetails));
+    const mgDayHeader = this.getMgDayHeader(csRxRows);
+    const opMatches = csRxRows.filter(row => this.applyOperation(Number(row[mgDayHeader]) || 0, aigDetails));
     const highMatchRatio = csRxRows.length ? (opMatches.length / csRxRows.length) : 0;
 
     console.log(duField);
@@ -187,6 +188,10 @@ export class AigSheetManager extends SheetManager {
     }
   }
 
+  private getMgDayHeader(csRxRows: csrxSheet[]) {
+    return csRxRows?.[0]?.["mg/day"] ? "mg/day" : "mg per day";
+  }
+
   generate(): void {
     // Create the sheet data
     const data = this.data.map(record =>
@@ -221,8 +226,9 @@ export class AigSheetManager extends SheetManager {
     if (rows.length === 0) {
       low = 0;
     } else {
+      const mgDayHeader = this.getMgDayHeader(rows);
       for (const row of rows) {
-        const val = Number(row["mg/day"]);
+        const val = Number(row[mgDayHeader]) || 0;
         if (val > high) high = val;
         if (val < low) low = val;
       }
