@@ -58,15 +58,12 @@ export class AigSheetManager extends SheetManager {
     const aigDetails = aigLookup[this._aigNum]
 
     // Get the rows we need
-    let csRxRows = reportFile.csrx.csrxRows;
+    let csRxRows = this.controller.getCachedFilteredRows();
     if (!csRxRows || csRxRows.length === 0) {
       return;
     }
 
     const { names, family, per, med, duMonthCell: duField, label } = aigDetails;
-
-    // Filter out liquids and non-data
-    csRxRows = csRxRows.filter(row => String(row["Drug Name"]) && !String(row["Drug Name"]).toLowerCase().endsWith('ml'));
 
     // Apply family filter if needed
     if (family) {
