@@ -84,6 +84,12 @@ export class AigSheetManager extends SheetManager {
     const opMatches = csRxRows.filter(row => this.applyOperation(Number(row["mg/day"]), aigDetails));
     const highMatchRatio = csRxRows.length ? (opMatches.length / csRxRows.length) : 0;
 
+    console.log(duField);
+    console.log('    Number of filtered rows:', csRxRows.length);
+    console.log('    High count filter:', opMatches.length);
+    console.log('    Ratio:', toDecimalPercent(highMatchRatio), '(RAW:', highMatchRatio, ')');
+    console.log('    Family Count:', familyCount);
+
     // Store in shared controller data
     this.common.highpct = toDecimalPercent(highMatchRatio);
 
