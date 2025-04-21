@@ -98,6 +98,7 @@ export class AigSheetManager extends SheetManager {
     if (per && familyCount) {
       const perVal = csRxRows.length / familyCount;
       this.common.per = toDecimalPercent(perVal);
+      console.log('    per:', this,this.common.per);
     }
 
     if (med) {
@@ -107,6 +108,8 @@ export class AigSheetManager extends SheetManager {
       } else {
         this.calculateMed(opMatches, aigDetails);
       }
+      console.log('     med high:', this.common.highmed);
+      console.log('     med low:', this.common.lowmed);
     }
 
     // Get DU values from calculations
