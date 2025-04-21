@@ -85,20 +85,12 @@ export class AigSheetManager extends SheetManager {
     const opMatches = csRxRows.filter(row => this.applyOperation(Number(row[mgDayHeader]) || 0, aigDetails));
     const highMatchRatio = csRxRows.length ? (opMatches.length / csRxRows.length) : 0;
 
-    console.log(duField);
-    console.log('    Number of filtered rows:', csRxRows.length);
-    console.log('    High count filter:', opMatches.length);
-    console.log('    Ratio:', toDecimalPercent(highMatchRatio), '(RAW:', highMatchRatio, ')');
-    console.log('    Family Count:', familyCount);
-    console.log('    AIG details:', aigDetails);
-
     // Store in shared controller data
     this.common.highpct = toDecimalPercent(highMatchRatio);
 
     if (per && familyCount) {
       const perVal = csRxRows.length / familyCount;
       this.common.per = toDecimalPercent(perVal);
-      console.log('    per:', this,this.common.per);
     }
 
     if (med) {
@@ -108,8 +100,6 @@ export class AigSheetManager extends SheetManager {
       } else {
         this.calculateMed(opMatches, aigDetails);
       }
-      console.log('     med high:', this.common.highmed);
-      console.log('     med low:', this.common.lowmed);
     }
 
     // Get DU values from calculations
@@ -144,7 +134,7 @@ export class AigSheetManager extends SheetManager {
       // CSP = numCS / totalRx (%) - only include these if CSP > 20%
       let csp: number | undefined = numCS / totalRx;
       // If CSP > 20%...
-      let csCash = null;
+      let csCash = undefined;
       if (csp > .2) {
         // another filtered list of non-null values in R
         const cash = filteredControls.filter(r => r["Pay Type"]);
