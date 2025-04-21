@@ -316,20 +316,14 @@ export class CommonSheetManager extends SheetManager {
     // pharm to phys
     this.data.csphyphys = spatialData.pharmToPhysCsSum;
     this.data.phyphys = spatialData.pharmToPhysSum;
-    console.log('csphyphys: ', this.data.csphyphys);
-    console.log('phyphys: ', this.data.phyphys);
 
     // pharm to pat
     this.data.csphypt = spatialData.pharmToPatCsSum;
     this.data.phypt = spatialData.pharmToPatSum;
-    console.log('csphypt: ', this.data.csphypt);
-    console.log('phypt: ', this.data.phypt);
 
     // phys to pat
     this.data.csphyspt = spatialData.physToPatCsSum;
     this.data.physpt = spatialData.physToPatSum;
-    console.log('csphyspt: ', this.data.csphyspt);
-    console.log('physpt: ', this.data.physpt);
   }
 
   private collectAig() {
