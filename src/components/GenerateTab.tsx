@@ -124,6 +124,9 @@ function GenerateTab() {
 
     setIsProcessing(true);
 
+    // Allow React to flush state updates to the DOM
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     try {
       // Create an instance of the TemplateGenerator using the uploaded file data and generate workbook
       const templateGenerator = generateInputFile(

@@ -70,6 +70,9 @@ function MergeTab() {
 
     setIsProcessing(true);
 
+    // Allow React to flush state updates to the DOM
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     try {
       // Perform the merge using the file contents directly
       const mergedContent = mergeExcel(templateFile.content, excelFile.content);
