@@ -65,6 +65,9 @@ export class AigSheetManager extends SheetManager {
 
     const { names, family, per, med, duMonthCell: duField, label } = aigDetails;
 
+    // Filter out liquids and non-data
+    csRxRows = csRxRows.filter(row => !String(row["Drug Name"]) || !String(row["Drug Name"]).toLowerCase().endsWith('ml'));
+
     // Apply family filter if needed
     if (family) {
       csRxRows = csRxRows.filter(row => this.matchesFamily(row, family));
@@ -77,11 +80,8 @@ export class AigSheetManager extends SheetManager {
       csRxRows = csRxRows.filter(row => this.matchesName(row, names));
     }
 
-    // Filter out liquids
-    csRxRows = csRxRows.filter(row => !String(row["Drug Name"]).toLowerCase().endsWith('ml'));
-
     // Get rows that match the operation criteria
-    const opMatches = csRxRows.filter(row => this.applyOperation(Number(row["mg/day"]), aigDetails));
+    const opMatches = csRxRows.filter(row => this.applyOperation(row["mg/day"], aigDetails));
     const highMatchRatio = csRxRows.length ? (opMatches.length / csRxRows.length) : 0;
 
     console.log(duField);
@@ -89,6 +89,7 @@ export class AigSheetManager extends SheetManager {
     console.log('    High count filter:', opMatches.length);
     console.log('    Ratio:', toDecimalPercent(highMatchRatio), '(RAW:', highMatchRatio, ')');
     console.log('    Family Count:', familyCount);
+    console.log('    AIG details:', aigDetails);
 
     // Store in shared controller data
     this.common.highpct = toDecimalPercent(highMatchRatio);
