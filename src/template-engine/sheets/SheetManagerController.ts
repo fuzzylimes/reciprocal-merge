@@ -1,3 +1,4 @@
+import { csrxSheet } from "../files/report-handlers/CsRxHandler";
 import { TemplateGenerator } from "../TemplateGenerator";
 import { AigSheetManager } from "./sheet-managers/AigSheetManager";
 import { AigTableSheetManager } from "./sheet-managers/AigTableSheetManager";
@@ -11,6 +12,7 @@ import { TopDrSheetManager } from "./sheet-managers/TopDrSheetmanager";
 
 export class SheetManagerController {
   private _sheets: Map<string, SheetManager> = new Map();
+  private _cachedCsRxRows: csrxSheet[] | null = null;
   private _missingDea: Set<string> = new Set(); // Tracks the DEA ids that aren't currently in the practitioner DB
 
   // Shared data that sheets might need to access
@@ -54,6 +56,18 @@ export class SheetManagerController {
   // Retrieve the missing dea list
   get missingDea(): string[] {
     return Array.from(this._missingDea || []);
+  }
+
+  getCachedFilteredRows(): csrxSheet[] | null {
+    if (!this._cachedCsRxRows) {
+      const csRxRows = this.generator.report.csrx.csrxRows;
+      if (csRxRows && csRxRows.length > 0) {
+        this._cachedCsRxRows = csRxRows.filter(
+          row => String(row["Drug Name"]) && !String(row["Drug Name"]).toLowerCase().endsWith('ml')
+        );
+      }
+    }
+    return this._cachedCsRxRows;
   }
 
   // Utility method to build array of data array to be used when adding a sheet. This steps through each row

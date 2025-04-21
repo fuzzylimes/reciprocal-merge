@@ -31,10 +31,18 @@ export type Practitioner = {
 
 export class PractitionersFile {
   private pracSheet: practitionerSheet[];
+  private deaMap: Map<string, practitionerSheet>;
 
   constructor(file: Ifile) {
     const workbook = loadExcelFile(file.content!);
     this.pracSheet = utils.sheet_to_json<practitionerSheet>(workbook.Sheets[PractitionerSheets.ref], { blankrows: true });
+
+    this.deaMap = new Map<string, practitionerSheet>();
+    for (const practitioner of this.pracSheet) {
+      if (practitioner.DEA) {
+        this.deaMap.set(practitioner.DEA, practitioner);
+      }
+    }
   }
 
   /**
@@ -48,8 +56,9 @@ export class PractitionersFile {
     }
 
     const practitioners: Record<string, Practitioner> = {};
-    for (const p of this.pracSheet) {
-      if (dea.includes(p.DEA)) {
+    for (const deaId of dea) {
+      const p = this.deaMap.get(deaId);
+      if (p) {
         practitioners[p.DEA] = {
           Practitioner: String(p.Practitioner.split(' (')[0] ?? ''),
           Specialty: String(p.Specialty ?? ''),
