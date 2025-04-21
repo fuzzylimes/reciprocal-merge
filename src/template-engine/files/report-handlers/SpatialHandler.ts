@@ -98,20 +98,20 @@ export class SpatialHandler extends BaseReportHandler {
     const pharmToPhysColumns = this.getRowsAsColumns(35, 41, RxDistanceColumns, { header: "A", blankrows: true });
     const { sd: pharmToPhys, csRxPercentSum: pharmToPhysCsSum, nonCsRxPercentSum: pharmToPhysSum } = this.calculateDistanceColumn(pharmToPhysColumns);
     this._spatialValues.pharmToPhys = pharmToPhys;
-    this._spatialValues.pharmToPhysCsSum = pharmToPhysCsSum;
-    this._spatialValues.pharmToPhysSum = pharmToPhysSum;
+    this._spatialValues.pharmToPhysCsSum = toDecimalPercent(pharmToPhysCsSum);
+    this._spatialValues.pharmToPhysSum = toDecimalPercent(pharmToPhysSum);
 
     const pharmToPatColumns = this.getRowsAsColumns(48, 54, RxDistanceColumns, { header: "A", blankrows: true });
     const { sd: pharmToPat, csRxPercentSum: pharmToPatCsSum, nonCsRxPercentSum: pharmToPatSum } = this.calculateDistanceColumn(pharmToPatColumns);
     this._spatialValues.pharmToPat = pharmToPat;
-    this._spatialValues.pharmToPatCsSum = pharmToPatCsSum;
-    this._spatialValues.pharmToPatSum = pharmToPatSum;
+    this._spatialValues.pharmToPatCsSum = toDecimalPercent(pharmToPatCsSum);
+    this._spatialValues.pharmToPatSum = toDecimalPercent(pharmToPatSum);
 
     const physToPatColumns = this.getRowsAsColumns(61, 67, RxDistanceColumns, { header: "A", blankrows: true });
     const { sd: physToPat, csRxPercentSum: physToPatCsSum, nonCsRxPercentSum: physToPatSum } = this.calculateDistanceColumn(physToPatColumns);
     this._spatialValues.physToPat = physToPat;
-    this._spatialValues.physToPatCsSum = physToPatCsSum;
-    this._spatialValues.physToPatSum = physToPatSum;
+    this._spatialValues.physToPatCsSum = toDecimalPercent(physToPatCsSum);
+    this._spatialValues.physToPatSum = toDecimalPercent(physToPatSum);
 
     this._spatialCalculated = true;
   }
@@ -121,15 +121,15 @@ export class SpatialHandler extends BaseReportHandler {
     let csRxPercentSum = 0;
     let nonCsRxPercentSum = 0;
     for (const i of [1, 2, 3, 4, 5, 6]) {
-      const csRxPercent = toDecimalPercent(columns.get('E')?.[i - 1]);
-      const nonCsRxPercent = toDecimalPercent(columns.get('G')?.[i - 1])
+      const csRxPercent = columns.get('E')?.[i - 1];
+      const nonCsRxPercent = columns.get('G')?.[i - 1];
       sd[i as keyof SpatialDistances] = {
-        csRxPercent,
-        nonCsRxPercent
+        csRxPercent: Number(csRxPercent),
+        nonCsRxPercent: Number(nonCsRxPercent),
       }
       if (i >= this._startBand && i <= this._endBand) {
-        csRxPercentSum += csRxPercent;
-        nonCsRxPercentSum += nonCsRxPercent;
+        csRxPercentSum += (Number(csRxPercent) || 0);
+        nonCsRxPercentSum += (Number(nonCsRxPercent) || 0);
       }
     }
 
