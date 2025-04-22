@@ -1,11 +1,15 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import * as p from "./package.json";
 
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
   plugins: [react()],
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(p.version),
+  },
   // Set the base path to match GitHub Pages repository structure when building for web
   base: process.env.VITE_BASE_PATH || '/',
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
