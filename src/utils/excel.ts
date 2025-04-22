@@ -1,38 +1,51 @@
-import { readFile, writeFile } from '@tauri-apps/plugin-fs';
-import { WorkBook, WorkSheet, read, utils, write } from 'xlsx';
-import { row } from './sheet-classes/common';
-import { pracRefSheet } from './sheets';
+import { CellObject, ParsingOptions, WorkBook, WorkSheet, read, utils, write } from 'xlsx';
+import { practitionerSheet } from "../template-engine/files/PractitionersFile";
+import { saveFile } from './file-system-service';
 
 /**
  * Loads and parses an Excel file
- * @param filePath Path to the Excel file
+ * @param excelContent Excel file content
+ * @param opts Additional parsing options
  * @returns Promise resolving to the parsed Excel workbook
  */
-export const loadExcelFile = async (filePath: string): Promise<WorkBook> => {
-  const excelContent = await readFile(filePath);
-  const workbook = read(excelContent, {
+export const loadExcelFile = (excelContent: Uint8Array, opts?: ParsingOptions): WorkBook => {
+  return read(excelContent, {
     type: 'array',
     cellDates: true,  // Convert date cells to JS dates
     cellNF: true,     // Keep number formats
+    ...opts
   });
-
-  return workbook;
 };
 
 /**
- * Saves a workbook to an Excel file
+ * Saves a workbook to an Excel file using the unified file system service
  * @param workbook The workbook to save
- * @param filePath Path where to save the file
+ * @param fileName Suggested file name or path to save to
+ * @returns Promise resolving to a boolean indicating success
  */
-export const saveExcelFile = async (workbook: WorkBook, filePath: string): Promise<void> => {
-  // Write workbook to binary string
+export const saveExcelFile = async (workbook: WorkBook, fileName: string): Promise<boolean> => {
+  // Convert workbook to binary format
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const excelData = write(workbook, {
     bookType: 'xlsx',
     type: 'array'
   });
 
-  await writeFile(filePath, excelData);
-};
+  // Convert the output to Uint8Array if it isn't already
+  const binaryData = excelData instanceof Uint8Array
+    ? excelData
+    : new Uint8Array(excelData);
+
+  // Use the unified file system service to save the file
+  return await saveFile(
+    binaryData,
+    fileName.endsWith('.xlsx') ? fileName : `${fileName}.xlsx`,
+    {
+      extensions: ['xlsx'],
+      description: 'Excel Files'
+    }
+  );
+}
 
 export const getCellValue = (workbook: WorkBook, sheetName: string, cell: string): string | undefined => {
   const sheet = workbook.Sheets[sheetName];
@@ -41,67 +54,19 @@ export const getCellValue = (workbook: WorkBook, sheetName: string, cell: string
     return undefined
   }
 
-  const cellValue = sheet[cell];
+  const cellValue = sheet[cell] as CellObject;
   if (!cellValue) {
     console.error(`Cell ${cell} not found in sheet ${sheetName}`);
     return undefined
   }
 
   // return value off of cell object
-  return cellValue.v;
+  return String(cellValue.v);
 }
 
-/**
- * Note: this doesn't actually work with the free version.
- * @param workbook 
- * @param sheetName 
- * @param cell 
- * @returns 
- */
-export const doesCellHaveColor = (workbook: WorkBook, sheetName: string, cell: string): boolean => {
-  const sheet = workbook.Sheets[sheetName];
-  if (!sheet) {
-    console.error(`Sheet ${sheetName} not found in workbook`);
-    return false;
-  }
-
-  const cellValue = sheet[cell];
-  if (!cellValue) {
-    console.error(`Cell ${cell} not found in sheet ${sheetName}`);
-    return false;
-  }
-
-  // Check if the cell has style information with a fill
-  if (cellValue.s && cellValue.s.fill) {
-    // Check if there's a fill pattern type that's not 'none'
-    if (cellValue.s.fill.patternType && cellValue.s.fill.patternType !== 'none') {
-      return true;
-    }
-
-    // Check foreground color (if available)
-    if (cellValue.s.fill.fgColor) {
-      // If RGB or theme is specified, it likely has a color
-      if (cellValue.s.fill.fgColor.rgb && cellValue.s.fill.fgColor.rgb !== 'FFFFFF') {
-        return true;
-      }
-      if (cellValue.s.fill.fgColor.theme !== undefined) {
-        return true;
-      }
-    }
-
-    // Check background color (if available)
-    if (cellValue.s.fill.bgColor) {
-      // If RGB or theme is specified, it likely has a color
-      if (cellValue.s.fill.bgColor.rgb && cellValue.s.fill.bgColor.rgb !== 'FFFFFF') {
-        return true;
-      }
-      if (cellValue.s.fill.bgColor.theme !== undefined) {
-        return true;
-      }
-    }
-  }
-
-  return false;
+export const getCellNumericValue = (workbook: WorkBook, sheetName: string, cell: string) => {
+  const r = getCellValue(workbook, sheetName, cell);
+  return r ? Number(r) : undefined;
 }
 
 export const sumColumn = (sheet: WorkSheet, rStart: number, rEnd: number, col: string): number => {
@@ -137,7 +102,7 @@ export type Practitioner = {
  * @throws Error if practitioner doesn't exist in DB
  */
 export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practitioner => {
-  const rows = utils.sheet_to_json<pracRefSheet>(sheet, { blankrows: true });
+  const rows = utils.sheet_to_json<practitionerSheet>(sheet, { blankrows: true });
   if (!rows) {
     throw Error(`Practitioner DB is empty.`)
   }
@@ -149,7 +114,7 @@ export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practition
   if (!match) throw Error(`Practitioner ${dea} does not exist in practitioner DB.`);
 
   const prac: Practitioner = {
-    Practitioner: String(match.Practitioner ?? ''),
+    Practitioner: String(match.Practitioner.split(' (')[0] ?? ''),
     Specialty: String(match.Specialty ?? ''),
     PracticeLocation: String(match.PracticeLocation ?? ''),
     DEA: dea,
@@ -161,3 +126,5 @@ export const findPractitionerByDea = (sheet: WorkSheet, dea: string): Practition
 
   return prac;
 }
+
+export type row = Record<string, unknown>;

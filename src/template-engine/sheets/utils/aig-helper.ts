@@ -1,4 +1,6 @@
+import { drugNames } from "../../../utils/drugNames";
 
+// Model of the AIG details
 export interface IaigDef {
   label: string;
   names?: string[];
@@ -10,9 +12,10 @@ export interface IaigDef {
   med?: number;
   aigSheetNum: number;
   aigReference: aigReference;
-  base?: string;
+  base?: string; // Used when the aigReference doesn't match what's used as the base for the common page values
 }
 
+// abbreviations for aig medications. Used when building out the common values (i.e. bupehigh)
 export enum aigReference {
   alprazfam = 'alprazfam',
   alpraz2 = 'alpraz2',
@@ -36,63 +39,73 @@ export enum aigReference {
   tram = 'tram'
 }
 
+
+/**
+ * This is the full mapping information for each of the AIG medications. It's used in order to calculate
+ * both the data on the AIG pages as well as the AIG related common data.
+ * 
+ * The number key corresponds with sheet number for the specific AIG sheet.
+ * Either names or family must be included. If both are provided, both filters will be applied.
+ * per and med values depend on magic. Not all drugs have it.
+ * base is used in the situation where the sheet prefix doesn't match the aigReference
+ */
 export const aigLookup: Record<number, IaigDef> = {
   1: {
     label: 'Alprazolam Family',
     names: ['alprazolam', 'xanax'],
     operation: '>',
     high: 4,
-    duMonthCell: 'Alprazolam Family ALL Tabs',
+    duMonthCell: drugNames.alprazfam,
     aigSheetNum: 1,
     aigReference: aigReference.alprazfam
   },
   2: {
-    label: 'Alprazolam 2mg',
+    label: drugNames.alpraz2,
     names: ['alprazolam*2 mg', 'xanax*2 mg'],
     operation: '>',
     high: 4,
-    duMonthCell: 'Alprazolam 2mg Tabs',
+    duMonthCell: drugNames.alpraz2,
     aigSheetNum: 2,
     aigReference: aigReference.alpraz2
   },
   3: {
-    label: 'Amphetamine',
+    label: drugNames.amphet,
     family: 'amphetamine',
     operation: '>',
     high: 40,
-    duMonthCell: 'Amphetamine Tabs',
+    duMonthCell: drugNames.amphet,
     aigSheetNum: 3,
     aigReference: aigReference.amphet,
     base: 'amphetamine'
   },
   4: {
-    label: 'Buprenorphine 8mg',
+    label: drugNames.bupe,
     family: 'buprenorphine',
     names: ['8 mg'],
     operation: '>=',
     high: 32,
     per: true,
-    duMonthCell: 'Buprenorphine 8mg SL',
+    duMonthCell: drugNames.bupe,
     aigSheetNum: 4,
     aigReference: aigReference.bupe
   },
   5: {
-    label: 'Carisoprodol',
+    label: drugNames.cariso,
     family: 'carisoprodol',
     operation: '>=',
     high: 1400,
-    duMonthCell: 'Carisoprodol Tabs',
+    duMonthCell: drugNames.cariso,
     aigSheetNum: 5,
     aigReference: aigReference.cariso,
     base: 'carisoprodol'
   },
   6: {
-    label: 'Fentanyl',
+    label: drugNames.fent,
     family: 'fentanyl',
     operation: '>',
     high: 37.5,
     med: 2.4,
-    duMonthCell: 'Fentanyl Tabs',
+    duMonthCell: drugNames.fent,
     aigSheetNum: 6,
     aigReference: aigReference.fent,
     base: 'fentanyl'
@@ -103,82 +116,82 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 90,
     med: 1,
-    duMonthCell: 'Hydrocodone Family ALL Tabs',
+    duMonthCell: drugNames.hydroco,
     aigSheetNum: 7,
     aigReference: aigReference.hydroco,
     base: 'hydrocofam'
   },
   8: {
-    label: 'Hydrocodone 10/325mg',
+    label: drugNames.hydroco10,
     family: 'hydrocodone',
     names: ['10-325 mg'],
     operation: '>=',
     high: 90,
     per: true,
     med: 1,
-    duMonthCell: 'Hydrocodone 10/325mg Tabs',
+    duMonthCell: drugNames.hydroco10,
     aigSheetNum: 8,
     aigReference: aigReference.hydroco10,
     base: 'hydroco10/325'
   },
   9: {
-    label: 'Hydromorphone',
+    label: drugNames.hydromorph,
     family: 'hydromorphone',
     operation: '>=',
     high: 22.5,
     med: 4,
-    duMonthCell: 'Hydromorphone Tabs',
+    duMonthCell: drugNames.hydromorph,
     aigSheetNum: 9,
     aigReference: aigReference.hydromorph
   },
   10: {
-    label: 'Hydromorphone 8mg',
+    label: drugNames.hydromorph8,
     family: 'hydromorphone',
     names: ['8 mg'],
     operation: '>=',
     high: 22.5,
-    med: 1,
-    duMonthCell: 'Hydromorphone 8mg DU',
+    med: 4,
+    duMonthCell: drugNames.hydromorph8,
     aigSheetNum: 10,
     aigReference: aigReference.hydromorph8
   },
   11: {
-    label: 'Lisdexamfetamine',
+    label: drugNames.lisdex,
     family: 'lisdexamfetamine',
     operation: '>',
     high: 70,
-    duMonthCell: 'Lisdexamfetamine Tabs',
+    duMonthCell: drugNames.lisdex,
     aigSheetNum: 11,
     aigReference: aigReference.lisdex
   },
   12: {
-    label: 'Methadone',
+    label: drugNames.metha,
     family: 'methadone',
     operation: '>=',
     high: 20,
     med: 4,
-    duMonthCell: 'Methadone Tabs',
+    duMonthCell: drugNames.metha,
     aigSheetNum: 12,
     aigReference: aigReference.metha,
     base: 'methadone'
   },
   13: {
-    label: 'Methylphenidate',
+    label: drugNames.methyl,
     family: 'methylphenidate',
     operation: '>=',
     high: 60,
-    duMonthCell: 'Methylphenidate Tabs',
+    duMonthCell: drugNames.methyl,
     aigSheetNum: 13,
     aigReference: aigReference.methyl,
     base: 'methylphen'
   },
   14: {
-    label: 'Morphine',
+    label: drugNames.morph,
     family: 'morphine',
     operation: '>=',
     high: 90,
     med: 1,
-    duMonthCell: 'Morphine Tabs',
+    duMonthCell: drugNames.morph,
     aigSheetNum: 14,
     aigReference: aigReference.morph,
     base: 'morphine'
@@ -189,99 +202,64 @@ export const aigLookup: Record<number, IaigDef> = {
     operation: '>=',
     high: 60,
     med: 1.5,
-    duMonthCell: 'Oxycodone Family ALL DU',
+    duMonthCell: drugNames.oxy,
     aigSheetNum: 15,
     aigReference: aigReference.oxy,
     base: 'oxycodone'
   },
   16: {
-    label: 'Oxycodone 15mg',
+    label: drugNames.oxy15,
     family: 'oxycodone',
     names: ['15 mg'],
     operation: '>=',
     high: 60,
     med: 1.5,
-    duMonthCell: 'Oxycodone 15mg tabs DU',
+    duMonthCell: drugNames.oxy15,
     aigSheetNum: 16,
     aigReference: aigReference.oxy15
   },
   17: {
-    label: 'Oxycodone 30mg',
+    label: drugNames.oxy30,
     family: 'oxycodone',
     names: ['30 mg'],
     operation: '>=',
     high: 60,
     med: 1.5,
-    duMonthCell: 'Oxycodone 30mg tabs DU',
+    duMonthCell: drugNames.oxy30,
     aigSheetNum: 17,
     aigReference: aigReference.oxy30
   },
   18: {
-    label: 'Oxycodone 10/325mg',
+    label: drugNames.oxy10,
     family: 'oxycodone',
     names: ['10-325 mg'],
     operation: '>=',
     high: 60,
     med: 1.5,
-    duMonthCell: 'Oxycodone 10/325mg tabs DU',
+    duMonthCell: drugNames.oxy10,
     aigSheetNum: 18,
     aigReference: aigReference.oxy10,
     base: 'oxy10/325'
   },
   19: {
-    label: 'Oxymorphone',
+    label: drugNames.oxymorph,
     family: 'oxymorphone',
     operation: '>=',
     high: 30,
     med: 3,
-    duMonthCell: 'Oxymorphone tabs DU',
+    duMonthCell: drugNames.oxymorph,
     aigSheetNum: 19,
     aigReference: aigReference.oxymorph
   },
   20: {
-    label: 'Tramadol',
+    label: drugNames.tram,
     family: 'tramadol',
     operation: '>',
     high: 900,
     med: 0.2,
-    duMonthCell: 'Tramadol Tabs',
+    duMonthCell: drugNames.tram,
     aigSheetNum: 20,
     aigReference: aigReference.tram,
     base: 'tramadol'
   },
-}
-
-export const getAigByReference = (aig: aigReference): IaigDef => {
-  switch (aig) {
-    case aigReference.alprazfam: return aigLookup[1];
-    case aigReference.alpraz2: return aigLookup[2];
-    case aigReference.amphet: return aigLookup[3];
-    case aigReference.bupe: return aigLookup[4];
-    case aigReference.cariso: return aigLookup[5];
-    case aigReference.fent: return aigLookup[6];
-    case aigReference.hydroco: return aigLookup[7];
-    case aigReference.hydroco10: return aigLookup[8];
-    case aigReference.hydromorph: return aigLookup[9];
-    case aigReference.hydromorph8: return aigLookup[10];
-    case aigReference.lisdex: return aigLookup[11];
-    case aigReference.metha: return aigLookup[12];
-    case aigReference.methyl: return aigLookup[13];
-    case aigReference.morph: return aigLookup[14];
-    case aigReference.oxy: return aigLookup[15];
-    case aigReference.oxy15: return aigLookup[16];
-    case aigReference.oxy30: return aigLookup[17];
-    case aigReference.oxy10: return aigLookup[18];
-    case aigReference.oxymorph: return aigLookup[19];
-    case aigReference.tram: return aigLookup[20];
-    default: throw Error('Unsupported reference');
-  }
-}
-
-export type aigTracking = {
-  highpct: number;
-  highmed: number;
-  lowmed: number;
-  per: number;
-  month: number;
-  times: number;
 }

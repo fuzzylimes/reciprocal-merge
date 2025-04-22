@@ -1,34 +1,35 @@
 # Reciprocal Merge
 
-> This is a WIP
-
-This project has a very specific use case - if you don't know what it is, then it isn't for you.
+This project has a very specific use case - if you don't know what it is, then it isn't intended for you.
 
 However, if you're looking for an example of a Tauri + React app that happens to work with xlsx and docx files, feel free to take a look around for inspiration.
 
 ## Overview
-This is an extension of the [excelTemplateMerger](https://github.com/fuzzylimes/excelTemplateMerger) project I created in 2024. That project was a generic template app that could be used for any use case, and will remain that way. It was created to solve a problem that my wife was having with her workflow at work, and since then, we've discovered some additional updates are needed. The intention of this project is to handle her specific work flows, rather than attempting to stay generic.
+This is an extension of the [excelTemplateMerger](https://github.com/fuzzylimes/excelTemplateMerger) project I created in 2024. That project is a generic word doc template engine which can pull from a supplied excel input file. Essentially a more user friendly abstraction to the base `docxtemplater` library. It was created to solve a problem that my wife was having with a workflow at work, and since then, we've discovered additional areas where automation can be beneficial.
+
+The intention of this project is to tackle those specific areas. In other words, this project is highly specialized and will be of use to no one else.
 
 ### Features
 The tool has the following feature set:
 
-#### Template Generation (Under Development)
-Merging to a template is only useful if you have input to feed it. Unfortunately for my wife, the inputs have grown to 100's of fields across multiple documents, some requiring manipulation, others just needing values. This feature aims to reduce this days-long process down to an order of seconds.
+#### Template Generation
+This feature automates the building of the input file that is then fed into Doc Merge. This is an incredibly tedious process that is prone to errors and a complex set of rules and calculations. A large percentage of time is spent building out these template files by hand, much of which can be simplified.
 
-By providing access to these sources, the app will do it's best to construct a valid input file that can then be fed into the Doc Merge. The process is intentionally split to allow for any additional validation or manual changes that may be needed that cannot be handled by this tool (i.e. knowledge that I don't have).
+The initial release of this tool will automate roughly 90% of the construction of this input file, while the remaining pieces will require manual intervention. Source files are fed into the tool which then handles all of the required calculations and filtering to build out the input values.
 
 #### Doc Merge
 This is the same functionality as [excelTemplateMerger](https://github.com/fuzzylimes/excelTemplateMerger): give an input excel file and a template file, get a merged output.
 
 ### Commands
-- Front end, dev mode - `npm run dev`
+- Web app, dev mode - `npm run dev`
 - Full app, dev mode - `npm run tauri dev`
 
 ### Dev Notes
 - Handling all data manipulation in front end for now (don't feel like learning new libraries/Rust to get basic features working, can revisit later)
-- 
+- While the original intention was to provide this as a binary that could be installed, it has been updated to support both a Tauri build as well as a standalone webapp build. The webapp is currently deployed to github pages for simplicity.
+- Both versions of the app run completely offline. There is no network connectivity needed. All processing happens locally on device (either in the app or browser).
 
-### Setup Notes
+### Tauri Setup Notes
 1. Bootstrap new Tauri app using `npm create tauri-app@latest reciprocal-merge -- --template react-ts` command
 2. Add additional tauri "[plugins](https://v2.tauri.app/plugin/)"
     1. `npm run tauri add dialog`

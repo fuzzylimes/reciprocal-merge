@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { save } from '@tauri-apps/plugin-dialog';
-import { writeFile } from '@tauri-apps/plugin-fs';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -12,10 +10,14 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import FileSelector from './FileSelector';
 import { mergeExcel } from '../utils/merge';
+import { Ifile, saveFile } from '../utils/file-system-service';
+import ProcessLocation from './ProcessLocation';
+import { isTauriEnv } from '../utils/environment';
+import { getCellValue, loadExcelFile } from '../utils/excel';
 
 function MergeTab() {
-  const [excelFilePath, setExcelFilePath] = useState<string>('');
-  const [templateFilePath, setTemplateFilePath] = useState<string>('');
+  const [excelFile, setExcelFile] = useState<Ifile>({ path: '', content: null });
+  const [templateFile, setTemplateFile] = useState<Ifile>({ path: '', content: null });
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [notification, setNotification] = useState<{
     open: boolean;
@@ -44,30 +46,56 @@ function MergeTab() {
     setNotification({ ...notification, open: false });
   };
 
+  const handleExcelFileChange = (path: string, content: Uint8Array) => {
+    setExcelFile({ path, content });
+  };
+
+  const handleTemplateFileChange = (path: string, content: Uint8Array) => {
+    setTemplateFile({ path, content });
+  };
+
+  const getOutputFileName = () => {
+    if (!excelFile.content) throw Error('Error loading Excel File');
+
+    const templateWorkbook = loadExcelFile(excelFile.content);
+    const pharmacyName = getCellValue(templateWorkbook, 'common', 'A2');
+    const dateRange = getCellValue(templateWorkbook, 'common', 'E2');
+    const endDate = dateRange?.split(' - ')[1];
+    return `${pharmacyName ?? ''} notes ${endDate ?? ''}.docx`
+  }
+
   // Main merge handler
   const handleMerge = async () => {
-    if (!excelFilePath || !templateFilePath) return;
+    if (!excelFile.content || !templateFile.content) return;
 
     setIsProcessing(true);
 
+    // Allow React to flush state updates to the DOM
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     try {
-      // Perform the merge
-      const mergedContent = await mergeExcel(templateFilePath, excelFilePath);
+      // Perform the merge using the file contents directly
+      const mergedContent = mergeExcel(templateFile.content, excelFile.content);
 
-      // Show file save dialog
-      const savePath = await save({
-        filters: [{
-          name: 'Word Document',
-          extensions: ['docx']
-        }]
-      });
+      // Build filename from content in input workbook
+      const outputFileName = getOutputFileName();
 
-      if (savePath) {
-        // Save the merged document
-        await writeFile(savePath, mergedContent);
+      // Save the file using our unified file system service
+      const saved = await saveFile(
+        mergedContent,
+        outputFileName,
+        { extensions: ['docx'], description: 'Word Documents' }
+      );
+
+      if (!isTauriEnv()) {
+        showNotification('Document saved or cancelled', 'info');
+        return;
+      }
+
+      if (saved) {
         showNotification('Document successfully merged and saved!', 'success');
       } else {
-        showNotification('Save operation cancelled', 'info');
+        showNotification('Save operation cancelled or failed', 'info');
       }
     } catch (error) {
       console.error('Error during merge process:', error);
@@ -78,7 +106,7 @@ function MergeTab() {
   };
 
   // Check if both files are selected to enable the merge button
-  const isMergeEnabled = excelFilePath !== '' && templateFilePath !== '' && !isProcessing;
+  const isMergeEnabled = excelFile.path !== '' && templateFile.path !== '' && !isProcessing;
 
   return (
     <Box
@@ -90,30 +118,27 @@ function MergeTab() {
         <Typography variant="h6" component="h2" gutterBottom>
           Merge Excel Data with Word Template
         </Typography>
+        <ProcessLocation />
         <Grid container spacing={3}>
           {/* Input Excel File Section */}
           <FileSelector
             label="Input Excel File"
-            value={excelFilePath}
+            value={excelFile.path}
             disabled={isProcessing}
-            onChange={setExcelFilePath}
-            fileTypes={[{
-              name: 'Excel Files',
-              extensions: ['xlsx', 'xls', 'xlsm']
-            }]}
+            onChange={handleExcelFileChange}
+            fileTypes={['xlsx', 'xls', 'xlsm']}
+            fileDescription="Excel Files"
             onError={handleFileSelectionError}
           />
 
           {/* Template Word File Section */}
           <FileSelector
             label="Template Word File"
-            value={templateFilePath}
+            value={templateFile.path}
             disabled={isProcessing}
-            onChange={setTemplateFilePath}
-            fileTypes={[{
-              name: 'Word Files',
-              extensions: ['docx']
-            }]}
+            onChange={handleTemplateFileChange}
+            fileTypes={['docx']}
+            fileDescription="Word Files"
             onError={handleFileSelectionError}
           />
 
