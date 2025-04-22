@@ -5,6 +5,7 @@ import CreateIcon from '@mui/icons-material/Create';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import React from 'react';
+import { Chip } from '@mui/material';
 
 interface NavigationProps {
   currentTab: number;
@@ -12,11 +13,22 @@ interface NavigationProps {
 }
 
 function Navigation({ currentTab, onTabChange }: NavigationProps) {
+  const appVersion = import.meta.env.VITE_APP_VERSION as string;
+
   return (
     <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Document Templating Tool
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Typography variant="h4" component="h1">
+          Document Templating Tool
+        </Typography>
+        <Chip
+          label={`v${appVersion}`}
+          size="small"
+          color="primary"
+          variant="outlined"
+          sx={{ ml: 2 }}
+        />
+      </Box>
       <Tabs
         value={currentTab}
         onChange={onTabChange}
