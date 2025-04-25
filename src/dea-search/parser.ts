@@ -32,7 +32,7 @@ const parseSlnTable = (doc: Document, details: Partial<PrescriberDetails>) => {
 
       case 'Address': {
         const nextElement = slnItem.nextElementSibling;
-        details.SlnPracticeLocation = nextElement?.querySelector('spSlnAddrLine1')?.textContent?.trim() || '';
+        details.SlnPracticeLocation = nextElement?.querySelector('#spSlnAddrLine1')?.textContent?.trim() || '';
         break;
       }
 
@@ -76,7 +76,7 @@ const parseDeaTable = (doc: Document, details: Partial<PrescriberDetails>) => {
     switch (label) {
       case 'Address': {
         const nextElement = deaItem.nextElementSibling;
-        details.DeaPracticeLocation = nextElement?.querySelector('spDeaAddrLine1')?.textContent?.trim() || '';
+        details.DeaPracticeLocation = nextElement?.querySelector('#spDeaAddrLine1')?.textContent?.trim() || '';
         break;
       }
 
