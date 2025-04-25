@@ -1,4 +1,5 @@
 import { toDecimalPercent } from "../../../utils/format";
+import { Practitioner } from "../../files/PractitionersFile";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
 import { headers, sheetNames } from "../utils/constants";
@@ -37,7 +38,7 @@ export class TopDrSheetManager extends SheetManager {
 
     // Iterate over each of the ids. Their index will align with the order in top10CsValues
     for (const [i, d] of top10DeaIds.entries()) {
-      const p = practitionerDetails[d];
+      const p: Practitioner | undefined = practitionerDetails[d];
       const { percentCsPaid: cashCell, totalCsRx: csrx, totalRx: totalrx } = top10CsValues[i];
 
       let csp, csCash;
@@ -55,15 +56,15 @@ export class TopDrSheetManager extends SheetManager {
         const drRecord: topdrRecord = {
           Number: i + 1,
           DEA: d,
-          Name: p.Practitioner,
-          PracticeLocation: p.PracticeLocation,
-          Specialty: p.Specialty,
-          State: p.State,
-          csrx: csrx ? csrx : null,
-          totalrx: totalrx ? totalrx : null,
+          Name: p?.Practitioner ?? '',
+          PracticeLocation: p?.PracticeLocation ?? '',
+          Specialty: p?.Specialty ?? '',
+          State: p?.State ?? '',
+          csrx: csrx,
+          totalrx: totalrx,
           CSP: toDecimalPercent(csp),
           CSCash: toDecimalPercent(csCash),
-          Discipline: p.Discipline,
+          Discipline: p?.Discipline ?? '',
           Miles: spatialDeas.includes(d) ? 'Over _ miles' : '_____'
         };
         this.data.push(drRecord);
