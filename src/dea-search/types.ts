@@ -7,6 +7,8 @@ export interface PrescriberDetails {
   Designation?: string;
   SlnSpecialty: string;
   BestSpecialty?: string;
+  SlnPracticeLocation?: string;
+  DeaPracticeLocation?: string;
   Address: string;
   CityStateZip: string;
   AddressGeo: {

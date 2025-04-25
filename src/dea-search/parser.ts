@@ -6,10 +6,8 @@ export const parsePrescriberResponse = (html: string): PrescriberDetails => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
 
-
-  // TODO: We still need to handle the Practice Location name
-
   parseSlnTable(doc, prescriber);
+  parseDeaTable(doc, prescriber);
   parseBestTable(doc, prescriber);
   parseName(prescriber);
 
@@ -32,6 +30,12 @@ const parseSlnTable = (doc: Document, details: Partial<PrescriberDetails>) => {
         details.NameRaw = slnItem.nextElementSibling?.textContent?.trim() || '';
         break;
 
+      case 'Address': {
+        const nextElement = slnItem.nextElementSibling;
+        details.SlnPracticeLocation = nextElement?.querySelector('spSlnAddrLine1')?.textContent?.trim() || '';
+        break;
+      }
+
       case 'License Expires':
         details.LicenseExpires = slnItem.nextElementSibling?.textContent?.trim() || '';
         break;
@@ -51,6 +55,30 @@ const parseSlnTable = (doc: Document, details: Partial<PrescriberDetails>) => {
       case 'Disciplinary Action':
         details.Discipline = slnItem.nextElementSibling?.textContent?.trim() || '';
         break;
+
+      default:
+        break;
+    }
+  }
+}
+
+const parseDeaTable = (doc: Document, details: Partial<PrescriberDetails>) => {
+  const deaItems = doc.querySelectorAll('#DispDeaDetail .Detail .HdLeftWebId');
+
+  if (!deaItems || !deaItems.length) {
+    return;
+  }
+
+  // step through each of the found items and fill out what we can
+  for (const deaItem of deaItems) {
+    const label = deaItem.textContent?.split(':')?.[0]?.trim()
+
+    switch (label) {
+      case 'Address': {
+        const nextElement = deaItem.nextElementSibling;
+        details.DeaPracticeLocation = nextElement?.querySelector('spDeaAddrLine1')?.textContent?.trim() || '';
+        break;
+      }
 
       default:
         break;
