@@ -115,10 +115,9 @@ export class AigSheetManager extends SheetManager {
     // Process each DEA in top 5
     for (const [i, dea] of top5Deas.entries()) {
       // Get practitioner data
-      let practitioner: Partial<Practitioner> = practitionerDetails[dea];
+      const practitioner: Practitioner | undefined = practitionerDetails[dea];
       if (!practitioner) {
         this.controller.addMissingDea(dea);
-        practitioner = {};
       }
 
       // filter allRxRows by the dea number (J)
@@ -159,13 +158,13 @@ export class AigSheetManager extends SheetManager {
       // Create record
       const record: aigRecord = {
         AIG: i === 0 ? label : '',
-        Name: practitioner.Practitioner ?? '',
+        Name: practitioner?.Practitioner ?? '',
         isTop10: !!top10Position,
-        Specialty: practitioner.Specialty ?? '',
-        PracticeLocation: practitioner.PracticeLocation ?? '',
+        Specialty: practitioner?.Specialty ?? '',
+        PracticeLocation: practitioner?.PracticeLocation ?? '',
         DEA: dea,
-        State: practitioner.State ?? '',
-        Discipline: practitioner.Discipline ?? '',
+        State: practitioner?.State ?? '',
+        Discipline: practitioner?.Discipline ?? '',
         numCS,
         totalRx,
         CSP: toDecimalPercent(csp),
