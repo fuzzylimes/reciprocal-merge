@@ -8,6 +8,7 @@ import GenerateTab from './components/GenerateTab';
 import { getEnvironmentInfo, isTauriEnv } from './utils/environment';
 import { enableNetworkBlocker } from './utils/network-blocker';
 import PrivacyBanner from './components/PrivacyBanner';
+import DeaSearchTab from './components/DeaSearchTab';
 
 // Create a theme instance
 const theme = createTheme({
@@ -56,6 +57,7 @@ function App() {
         <Box sx={{ mt: 3 }}>
           {currentTab === 0 && <MergeTab />}
           {currentTab === 1 && <GenerateTab />}
+          {currentTab === 2 && <DeaSearchTab />}
         </Box>
 
         <Box sx={{ mt: 3 }} >

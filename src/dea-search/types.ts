@@ -22,3 +22,20 @@ export interface PrescriberDetails {
   Discipline?: string;
 }
 
+export type PractitionerRecord = {
+  'First/Facility': string;
+  Middle?: string;
+  Last?: string;
+  Suffix?: string;
+  Designation?: string;
+  Specialty: string;
+  PracticeLocation: string;
+  DEA: string;
+  State?: string;
+  Discipline?: string;
+  'PC Note - Pharm'?: string;
+  'PC Notes Date'?: string;
+  'Last Name First'?: unknown;
+  Practitioner?: unknown;
+  Placeholder: string;
+};
