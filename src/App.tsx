@@ -36,15 +36,14 @@ function App() {
     console.info(JSON.stringify(getEnvironmentInfo(), null, 2));
     // Only enable network blocker in browser mode, not in Tauri
     if (!isTauri && !networkBlockerEnabled) {
-      enableNetworkBlocker();
+      enableNetworkBlocker(['www.medproid.com']);
       setNetworkBlockerEnabled(true);
 
       // Add a console message for developers
       console.info(
         '%c🔒 PRIVACY NOTICE',
         'color: white; background: #1976d2; padding: 4px 8px; border-radius: 4px; font-weight: bold;',
-        '\nThis application actively blocks all network requests after initial load.\nYour files are processed entirely in your browser and never leave your device.'
-      );
+        '\nThis application actively blocks all network requests after initial load, except for DEA searches.\nYour files are processed entirely in your browser and never leave your device.');
     }
   }, [isTauri, networkBlockerEnabled]);
 
