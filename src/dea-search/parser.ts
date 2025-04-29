@@ -36,6 +36,11 @@ const parseSlnTable = (doc: Document, details: Partial<PrescriberDetails>) => {
         break;
       }
 
+      case 'License State': {
+        details.State = extractStateAbbreviation(slnItem.nextElementSibling?.textContent?.trim() || '');
+        break;
+      }
+
       case 'License Expires':
         details.LicenseExpires = slnItem.nextElementSibling?.textContent?.trim() || '';
         break;
@@ -45,7 +50,7 @@ const parseSlnTable = (doc: Document, details: Partial<PrescriberDetails>) => {
         break;
 
       case '- Certification Code':
-        details.Discipline = slnItem.nextElementSibling?.textContent?.trim() || '';
+        details.Designation = slnItem.nextElementSibling?.textContent?.trim() || '';
         break;
 
       case '- Specialty':
@@ -174,4 +179,22 @@ const parseName = (details: Partial<PrescriberDetails>) => {
       details.Middle = parts.slice(1, parts.length - 1).join(' ');
     }
   }
+};
+
+const extractStateAbbreviation = (input: string): string => {
+  if (!input) return input;
+
+  // Check for "XX - Something" pattern
+  const prefixMatch = input.match(/^([A-Z]{2})\s*[-–—]/);
+  if (prefixMatch) return prefixMatch[1];
+
+  // Check for "Something (XX)" pattern
+  const parenthesesMatch = input.match(/\(([A-Z]{2})\)/);
+  if (parenthesesMatch) return parenthesesMatch[1];
+
+  // Check if the string is exactly a two-letter code
+  if (/^[A-Z]{2}$/.test(input)) return input;
+
+  // Return original string if no state abbreviation pattern is found
+  return input;
 };

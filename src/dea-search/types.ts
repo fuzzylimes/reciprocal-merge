@@ -35,7 +35,5 @@ export type PractitionerRecord = {
   Discipline?: string;
   'PC Note - Pharm'?: string;
   'PC Notes Date'?: string;
-  'Last Name First'?: unknown;
-  Practitioner?: unknown;
   Placeholder: string;
 };

@@ -1,16 +1,24 @@
 import { parsePrescriberResponse } from "./parser";
 import { PrescriberDetails } from "./types";
+import testHtml from './SampleResponse.html?raw';
 
 const URL = 'https://www.medproid.com/WebID.asp?action=DeaQuery&advquery=inline&Database=Practitioner&resetQS=N';
 
 export class Client {
   private _cookie: string;
+  private _testing: boolean;
 
-  constructor(cookie: string) {
+  constructor(cookie: string, testing: boolean = false) {
     this._cookie = cookie;
+    this._testing = testing;
   }
 
   async getDeaHtml(dea: string) {
+    if (this._testing) {
+      console.info('Running in Test mode');
+      return testHtml;
+    }
+
     const payload = this.queryPayload(dea);
     const response = await fetch(URL, payload);
     return await response.text();

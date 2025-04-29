@@ -36,6 +36,7 @@ const PrescriberVerification = ({
   const createInitialPractitionerRecord = (details: PrescriberDetails): PractitionerRecord => {
     const lastName = details.Last || '';
     const firstName = details.FirstFacility || '';
+    const discipline = details.Discipline ? details.Discipline === 'NONE' ? '______' : details.Discipline : '';
 
     return {
       'First/Facility': firstName,
@@ -47,12 +48,10 @@ const PrescriberVerification = ({
       PracticeLocation: details.SlnPracticeLocation || details.DeaPracticeLocation || '',
       DEA: details.DEA,
       State: details.State || '',
-      Discipline: details.Discipline || '',
+      Discipline: discipline,
       'PC Note - Pharm': '',
-      'PC Notes Date': new Date().toISOString().split('T')[0],
-      'Last Name First': `${lastName}${lastName && firstName ? ', ' : ''}${firstName}`,
-      Practitioner: `${firstName}${firstName && lastName ? ' ' : ''}${lastName}`,
-      Placeholder: ''
+      'PC Notes Date': '',
+      Placeholder: '______'
     };
   };
 
@@ -97,13 +96,6 @@ const PrescriberVerification = ({
   ) => {
     setPractitionerRecord(prev => {
       const updated = { ...prev, [field]: value };
-
-      // Also update derived fields
-      const firstName = updated['First/Facility'] || '';
-      const lastName = updated['Last'] || '';
-
-      updated['Last Name First'] = `${lastName}${lastName && firstName ? ', ' : ''}${firstName}`;
-      updated['Practitioner'] = `${firstName}${firstName && lastName ? ' ' : ''}${lastName}`;
 
       return updated;
     });

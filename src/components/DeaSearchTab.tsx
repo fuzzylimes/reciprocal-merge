@@ -110,27 +110,48 @@ const DeaSearchTab = () => {
       let refSheet = practitionersWorkbook.Sheets['Reference'];
 
       if (!refSheet) {
-        // If sheet doesn't exist, create it with headers
-        refSheet = utils.aoa_to_sheet([
-          ['Last Name First', 'Practitioner', 'Specialty', 'PracticeLocation', 'DEA', 'State', 'Discipline', 'PC Note - Pharm', 'PC Notes Date']
-        ]);
-        utils.book_append_sheet(practitionersWorkbook, refSheet, 'Reference');
+        // If this is blank, they shouldn't be using the tool
+        throw Error('Empty PractitionerDB')
       }
 
-      // Get existing data as an array
-      const existingData = utils.sheet_to_json<PractitionerRecord>(refSheet);
+      // Get the current range of the sheet
+      const range = utils.decode_range(refSheet['!ref'] || 'A1:A1');
+      const lastRow = range.e.r;
 
-      // Add new practitioners to the data array
-      const allData = [...existingData, ...newPractitioners];
+      // Get the headers
+      const headers = utils.sheet_to_json<string[]>(refSheet, { header: 1 })[0];
 
-      // Create a new sheet with all data
-      const newSheet = utils.json_to_sheet(allData);
+      // Append each new practitioner
+      newPractitioners.forEach((practitioner, index) => {
+        const rowIndex = lastRow + 1 + index;
 
-      // Replace the existing sheet
-      practitionersWorkbook.Sheets['Reference'] = newSheet;
+        // For each header column, set the corresponding cell
+        headers.forEach((header, colIndex) => {
+          // Skip calculated fields
+          if (header === 'Last Name First' || header === 'Practitioner') {
+            return;
+          }
 
-      // Save the updated workbook
-      const success = await saveExcelFile(practitionersWorkbook, practitionersFile.path);
+          // Get the value for this field
+          const value = practitioner[header as keyof PractitionerRecord];
+
+          // Only set if there's a value
+          if (value !== undefined) {
+            const cellRef = utils.encode_cell({ r: rowIndex, c: colIndex });
+            refSheet[cellRef] = { v: value };
+          }
+        });
+      });
+
+      // Update the sheet range
+      const newRange = {
+        s: range.s,
+        e: { r: lastRow + newPractitioners.length, c: range.e.c }
+      };
+      refSheet['!ref'] = utils.encode_range(newRange);
+
+      // Save the workbook
+      const success = await saveExcelFile(practitionersWorkbook, practitionersFile.path, "xlsm");
 
       if (success) {
         showNotification(`Added ${newPractitioners.length} new practitioners to the database!`, 'success');
@@ -282,7 +303,7 @@ const DeaSearchTab = () => {
         }
 
         try {
-          const client = new Client(cookieInput);
+          const client = new Client(cookieInput, true);
           const html = await client.getDeaHtml(dea);
           const prescriberDetails = client.parseHtml(html);
 
@@ -338,7 +359,7 @@ const DeaSearchTab = () => {
             <Typography variant="h5" gutterBottom color="primary">
               Search Complete!
             </Typography>
-            <Typography variant="body1" paragraph>
+            <Typography variant="body1" component={'p'}>
               Successfully added {newPractitioners.length} new practitioners to the database.
             </Typography>
             <Button
@@ -360,8 +381,10 @@ const DeaSearchTab = () => {
                 value={deaInput}
                 onChange={(e) => setDeaInput(e.target.value)}
                 placeholder="Enter DEA numbers separated by commas"
-                inputProps={{
-                  pattern: '[A-Za-z0-9, ]*',
+                slotProps={{
+                  htmlInput: {
+                    pattern: '[A-Za-z0-9, ]*',
+                  }
                 }}
                 disabled={isSearching}
                 margin="normal"
@@ -447,7 +470,7 @@ const DeaSearchTab = () => {
       >
         <DialogTitle>Record Already Exists</DialogTitle>
         <DialogContent>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" component={'p'}>
             A practitioner with DEA number {pendingRecord?.DEA} already exists in the database.
             Would you like to update this record with the new information?
           </Typography>
@@ -458,7 +481,27 @@ const DeaSearchTab = () => {
               <Grid container spacing={2} sx={{ mt: 1 }}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="body2">
-                    <strong>Name:</strong> {String(existingRecord.Practitioner)}
+                    <strong>First/Facility:</strong> {existingRecord['First/Facility']}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="body2">
+                    <strong>Middle:</strong> {existingRecord.Middle}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="body2">
+                    <strong>Last:</strong> {existingRecord.Last}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="body2">
+                    <strong>Suffix:</strong> {existingRecord.Suffix}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="body2">
+                    <strong>Designation:</strong> {existingRecord.Designation}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
@@ -491,7 +534,27 @@ const DeaSearchTab = () => {
               <Grid container spacing={2} sx={{ mt: 1 }}>
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Typography variant="body2">
-                    <strong>Name:</strong> {String(pendingRecord.Practitioner)}
+                    <strong>First/Facility:</strong> {pendingRecord['First/Facility']}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="body2">
+                    <strong>Middle:</strong> {pendingRecord.Middle}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="body2">
+                    <strong>Last:</strong> {pendingRecord.Last}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="body2">
+                    <strong>Suffix:</strong> {pendingRecord.Suffix}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="body2">
+                    <strong>Designation:</strong> {pendingRecord.Designation}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 6 }}>
