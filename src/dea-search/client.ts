@@ -21,6 +21,7 @@ export class Client {
 
     const payload = this.queryPayload(dea);
     const response = await fetch(URL, payload);
+    console.log(response.status, response.statusText);
     return await response.text();
   }
 

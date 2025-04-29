@@ -314,8 +314,9 @@ const DeaSearchTab = () => {
         }
 
         try {
-          const client = new Client(cookieInput, true);
+          const client = new Client(cookieInput); // add true for local testing
           const html = await client.getDeaHtml(dea);
+          console.log(html);
           const prescriberDetails = client.parseHtml(html);
 
           // Set DEA number on the prescriber details
