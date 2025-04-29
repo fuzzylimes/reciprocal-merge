@@ -9,6 +9,7 @@ import PrescriberVerification from './PrescriberVerification';
 import { loadExcelFile, saveExcelFile } from '../utils/excel';
 import { utils, WorkBook } from 'xlsx';
 import ProcessLocation from './ProcessLocation';
+import ResultsTable from './ResultsTable';
 
 const DeaSearchTab = () => {
   // Form inputs
@@ -30,7 +31,6 @@ const DeaSearchTab = () => {
   const [pendingRecord, setPendingRecord] = useState<PractitionerRecord | null>(null);
 
   // Final saving state
-  const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveComplete, setSaveComplete] = useState<boolean>(false);
 
   // Notification
@@ -208,6 +208,17 @@ const DeaSearchTab = () => {
     setDeaInput('');
   };
 
+  const handleCompletion = useCallback(() => {
+    if (newPractitioners.length > 0) {
+      // Show the results table
+      setSaveComplete(true);
+    } else {
+      // No new practitioners to save
+      showNotification('Search complete. No new practitioners to add.', 'info');
+      resetSearch();
+    }
+  }, [newPractitioners.length]);
+
   // Skip current prescriber
   const handleSkip = () => {
     setCurrentPrescriber(null);
@@ -318,25 +329,15 @@ const DeaSearchTab = () => {
           setCurrentIndex(prevIndex => prevIndex + 1);
         }
       } else if (currentIndex >= deaList.length && deaList.length > 0) {
-        // All searches complete
-        if (newPractitioners.length > 0) {
-          // We have new practitioners to save
-          setIsSaving(true);
-          await saveAllPractitioners();
-          setIsSaving(false);
-          setSaveComplete(true);
-        } else {
-          // No new practitioners to save
-          showNotification('Search complete. No new practitioners to add.', 'info');
-          resetSearch();
-        }
+        // All searches complete - call the new handler instead of saving
+        handleCompletion();
       }
     };
 
     if (isSearching && currentIndex >= 0) {
       void searchNextDea();
     }
-  }, [currentIndex, deaList, isSearching, cookieInput, existingPractitioners, newPractitioners.length, saveAllPractitioners]);
+  }, [currentIndex, deaList, isSearching, cookieInput, existingPractitioners, newPractitioners.length, saveAllPractitioners, handleCompletion]);
 
   // Check if the search button should be enabled
   const isSearchEnabled =
@@ -354,23 +355,11 @@ const DeaSearchTab = () => {
         <ProcessLocation />
 
         {saveComplete ? (
-          // Show completion message and option to start a new search
-          <Box textAlign="center" my={4}>
-            <Typography variant="h5" gutterBottom color="primary">
-              Search Complete!
-            </Typography>
-            <Typography variant="body1" component={'p'}>
-              Successfully added {newPractitioners.length} new practitioners to the database.
-            </Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleNewSearch}
-              sx={{ mt: 2 }}
-            >
-              Start New Search
-            </Button>
-          </Box>
+          // Show the results table
+          <ResultsTable
+            practitioners={newPractitioners}
+            onNewSearch={handleNewSearch}
+          />
         ) : !currentPrescriber ? (
           // Search Form
           <Grid container spacing={3}>
@@ -436,15 +425,6 @@ const DeaSearchTab = () => {
                   Searching for DEA: {currentDea} ({currentIndex + 1} of {deaList.length})
                 </Typography>
                 <LinearProgress variant="determinate" value={(currentIndex / deaList.length) * 100} sx={{ mt: 1 }} />
-              </Grid>
-            )}
-
-            {isSaving && (
-              <Grid size={12} sx={{ mt: 2 }}>
-                <Typography variant="body1" align="center">
-                  Saving {newPractitioners.length} practitioners to database...
-                </Typography>
-                <CircularProgress sx={{ display: 'block', mx: 'auto', my: 2 }} />
               </Grid>
             )}
           </Grid>

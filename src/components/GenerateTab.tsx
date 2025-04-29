@@ -251,11 +251,9 @@ function GenerateTab() {
             The database file is missing information for the following DEA IDs:
           </Typography>
           <Box sx={{ maxHeight: '200px', overflowY: 'auto', my: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
-            {missingDeaIds.map((dea, index) => (
-              <Typography key={`dea-${index}`} variant="body2" sx={{ mb: 0.5 }}>
-                • {dea}
-              </Typography>
-            ))}
+            <Typography variant="body2" sx={{ mb: 0.5 }}>
+              {missingDeaIds.join(', ')}
+            </Typography>
           </Box>
           <Typography variant="body1">
             If you choose to continue, some DEA information will be missing in the generated file.
