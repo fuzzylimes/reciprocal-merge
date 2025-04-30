@@ -41,6 +41,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ practitioners, onNewSearch 
     'PracticeLocation',
     'DEA',
     'State',
+    'Address',
     'Discipline'
   ];
 

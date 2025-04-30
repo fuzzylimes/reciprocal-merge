@@ -48,6 +48,7 @@ const PrescriberVerification = ({
       PracticeLocation: details.SlnPracticeLocation || details.DeaPracticeLocation || '',
       DEA: details.DEA,
       State: details.State || '',
+      Address: details.Address && details.CityStateZip ? `${details.Address}, ${details.CityStateZip}` : '',
       Discipline: discipline,
       'PC Note - Pharm': '',
       'PC Notes Date': '',

@@ -17,6 +17,7 @@ export class Client {
   async getDeaHtml(dea: string) {
     if (this._testing) {
       console.info('Running in Test mode');
+      return;
       // return testHtml;
     }
 

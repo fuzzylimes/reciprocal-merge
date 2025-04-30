@@ -32,6 +32,7 @@ export type PractitionerRecord = {
   PracticeLocation: string;
   DEA: string;
   State?: string;
+  Address?: string;
   Discipline?: string;
   'PC Note - Pharm'?: string;
   'PC Notes Date'?: string;
