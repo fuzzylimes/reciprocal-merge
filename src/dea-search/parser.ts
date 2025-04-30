@@ -6,12 +6,23 @@ export const parsePrescriberResponse = (html: string): PrescriberDetails => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
 
+  verifyResponse(doc);
+
   parseSlnTable(doc, prescriber);
   parseDeaTable(doc, prescriber);
   parseBestTable(doc, prescriber);
   parseName(prescriber);
 
   return prescriber as PrescriberDetails;
+}
+
+const verifyResponse = (doc: Document) => {
+  const loginForm = doc.querySelector('#loginform');
+  if (loginForm) {
+    throw Error('Invalid cookie. No results returned.');
+  }
+
+  return;
 }
 
 const parseSlnTable = (doc: Document, details: Partial<PrescriberDetails>) => {

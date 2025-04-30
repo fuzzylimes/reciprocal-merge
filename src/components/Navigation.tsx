@@ -14,7 +14,7 @@ interface NavigationProps {
 }
 
 function Navigation({ currentTab, onTabChange }: NavigationProps) {
-  const appVersion = import.meta.env.VITE_APP_VERSION as string;
+  const appVersion = import.meta.env.VITE_APP_VERSION;
 
   return (
     <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

@@ -36,7 +36,9 @@ function App() {
     console.info(JSON.stringify(getEnvironmentInfo(), null, 2));
     // Only enable network blocker in browser mode, not in Tauri
     if (!isTauri && !networkBlockerEnabled) {
-      enableNetworkBlocker(['www.medproid.com']);
+      const proxyUrl = import.meta.env.VITE_DEA_PROXY_URL;
+      const url = new URL(proxyUrl);
+      enableNetworkBlocker([url.hostname]);
       setNetworkBlockerEnabled(true);
 
       // Add a console message for developers
