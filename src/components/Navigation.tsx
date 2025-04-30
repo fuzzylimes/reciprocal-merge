@@ -2,6 +2,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import MergeIcon from '@mui/icons-material/MergeType';
 import CreateIcon from '@mui/icons-material/Create';
+import SearchIcon from '@mui/icons-material/Search';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import React from 'react';
@@ -13,7 +14,7 @@ interface NavigationProps {
 }
 
 function Navigation({ currentTab, onTabChange }: NavigationProps) {
-  const appVersion = import.meta.env.VITE_APP_VERSION as string;
+  const appVersion = import.meta.env.VITE_APP_VERSION;
 
   return (
     <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -47,6 +48,13 @@ function Navigation({ currentTab, onTabChange }: NavigationProps) {
           label="Generate"
           id="generate-tab"
           aria-controls="generate-tabpanel"
+        />
+        <Tab
+          icon={<SearchIcon />}
+          iconPosition='start'
+          label="DEA Search"
+          id="dea-search-tab"
+          aria-controls="dea-search-tabpanel"
         />
       </Tabs>
     </Box>
