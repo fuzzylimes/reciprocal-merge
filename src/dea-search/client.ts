@@ -1,5 +1,6 @@
 import { parsePrescriberResponse } from "./parser";
 import { PrescriberDetails } from "./types";
+// import testHtml from './SampleResponse.html?raw';
 
 // Get the proxy URL from the environment or fall back to a relative path for development
 const PROXY_URL = import.meta.env.VITE_DEA_PROXY_URL;
@@ -16,15 +17,7 @@ export class Client {
   async getDeaHtml(dea: string) {
     if (this._testing) {
       console.info('Running in Test mode');
-      try {
-        // Dynamically import only when testing is true
-        const testHtmlModule = await import('./SampleResponse.html?raw');
-        return testHtmlModule.default;
-      } catch {
-        console.warn('Test file not available, falling back to mock data');
-        // Fallback in case the file isn't available
-        return `<html><body><div id="SlnDetailTable"><div>Mock test data</div></div></body></html>`;
-      }
+      // return testHtml;
     }
 
     try {
