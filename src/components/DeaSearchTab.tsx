@@ -6,8 +6,8 @@ import { Ifile } from '../utils/file-system-service';
 import { Client } from '../dea-search/client';
 import { PractitionerRecord, PrescriberDetails } from '../dea-search/types';
 import PrescriberVerification from './PrescriberVerification';
-import { loadExcelFile, saveExcelFile } from '../utils/excel';
-import { utils, WorkBook } from 'xlsx';
+import { loadExcelFile } from '../utils/excel';
+import { utils } from 'xlsx';
 import ProcessLocation from './ProcessLocation';
 import ResultsTable from './ResultsTable';
 
@@ -23,7 +23,6 @@ const DeaSearchTab = () => {
   const [currentDea, setCurrentDea] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [currentPrescriber, setCurrentPrescriber] = useState<PrescriberDetails | null>(null);
-  const [practitionersWorkbook, setPractitionersWorkbook] = useState<WorkBook | null>(null);
   const [existingPractitioners, setExistingPractitioners] = useState<Map<string, PractitionerRecord>>(new Map());
   const [newPractitioners, setNewPractitioners] = useState<PractitionerRecord[]>([]);
   const [recordExists, setRecordExists] = useState<boolean>(false);
@@ -49,7 +48,6 @@ const DeaSearchTab = () => {
     if (practitionersFile.content) {
       try {
         const workbook = loadExcelFile(practitionersFile.content);
-        setPractitionersWorkbook(workbook);
 
         // Load existing practitioners into memory
         const refSheet = workbook.Sheets['Reference'];
@@ -98,74 +96,6 @@ const DeaSearchTab = () => {
     setCurrentIndex(0);
     setIsSearching(true);
   };
-
-  // Save all new practitioners to the file
-  const saveAllPractitioners = useCallback(async () => {
-    if (!practitionersWorkbook || newPractitioners.length === 0) {
-      return false;
-    }
-
-    try {
-      // Get Reference sheet
-      let refSheet = practitionersWorkbook.Sheets['Reference'];
-
-      if (!refSheet) {
-        // If this is blank, they shouldn't be using the tool
-        throw Error('Empty PractitionerDB')
-      }
-
-      // Get the current range of the sheet
-      const range = utils.decode_range(refSheet['!ref'] || 'A1:A1');
-      const lastRow = range.e.r;
-
-      // Get the headers
-      const headers = utils.sheet_to_json<string[]>(refSheet, { header: 1 })[0];
-
-      // Append each new practitioner
-      newPractitioners.forEach((practitioner, index) => {
-        const rowIndex = lastRow + 1 + index;
-
-        // For each header column, set the corresponding cell
-        headers.forEach((header, colIndex) => {
-          // Skip calculated fields
-          if (header === 'Last Name First' || header === 'Practitioner') {
-            return;
-          }
-
-          // Get the value for this field
-          const value = practitioner[header as keyof PractitionerRecord];
-
-          // Only set if there's a value
-          if (value !== undefined) {
-            const cellRef = utils.encode_cell({ r: rowIndex, c: colIndex });
-            refSheet[cellRef] = { v: value };
-          }
-        });
-      });
-
-      // Update the sheet range
-      const newRange = {
-        s: range.s,
-        e: { r: lastRow + newPractitioners.length, c: range.e.c }
-      };
-      refSheet['!ref'] = utils.encode_range(newRange);
-
-      // Save the workbook
-      const success = await saveExcelFile(practitionersWorkbook, practitionersFile.path, "xlsm");
-
-      if (success) {
-        showNotification(`Added ${newPractitioners.length} new practitioners to the database!`, 'success');
-        return true;
-      } else {
-        showNotification('Failed to save practitioner data', 'error');
-        return false;
-      }
-    } catch (error) {
-      console.error('Error saving practitioners data:', error);
-      showNotification('Error saving practitioner data. See console for details.', 'error');
-      return false;
-    }
-  }, [newPractitioners, practitionersFile.path, practitionersWorkbook]);
 
   // Handle practitioner file selection
   const handlePractitionersFileChange = (path: string, content: Uint8Array) => {
@@ -314,9 +244,8 @@ const DeaSearchTab = () => {
         }
 
         try {
-          const client = new Client(cookieInput); // add true for local testing
+          const client = new Client(cookieInput, true); // add true for local testing
           const html = await client.getDeaHtml(dea);
-          console.log(html);
           const prescriberDetails = client.parseHtml(html);
 
           // Set DEA number on the prescriber details
@@ -336,9 +265,9 @@ const DeaSearchTab = () => {
     };
 
     if (isSearching && currentIndex >= 0) {
-      void searchNextDea();
+      void searchNextDea(); // This isn't kicking off after the first
     }
-  }, [currentIndex, deaList, isSearching, cookieInput, existingPractitioners, newPractitioners.length, saveAllPractitioners, handleCompletion]);
+  }, [currentIndex, deaList, isSearching, cookieInput, existingPractitioners, newPractitioners, handleCompletion]);
 
   // Check if the search button should be enabled
   const isSearchEnabled =
