@@ -277,7 +277,6 @@ const PrescriberVerification = ({
                     size="small"
                     value={prescriber.BestSpecialty || ''}
                     disabled
-                    variant="outlined"
                   />
                 </Grid>
 
@@ -295,7 +294,6 @@ const PrescriberVerification = ({
                     value={customSpecialty}
                     onChange={(e) => handleCustomSpecialtyChange(e.target.value)}
                     disabled={specialtySource !== 'custom'}
-                    variant="outlined"
                     placeholder="Enter custom specialty"
                   />
                 </Grid>
@@ -328,7 +326,6 @@ const PrescriberVerification = ({
                     size="small"
                     value={prescriber.SlnPracticeLocation || ''}
                     disabled
-                    variant="outlined"
                   />
                 </Grid>
 
@@ -346,7 +343,6 @@ const PrescriberVerification = ({
                     size="small"
                     value={prescriber.DeaPracticeLocation || ''}
                     disabled
-                    variant="outlined"
                   />
                 </Grid>
 
@@ -364,7 +360,6 @@ const PrescriberVerification = ({
                     value={customLocation}
                     onChange={(e) => handleCustomLocationChange(e.target.value)}
                     disabled={locationSource !== 'custom'}
-                    variant="outlined"
                     placeholder="Enter custom location"
                   />
                 </Grid>

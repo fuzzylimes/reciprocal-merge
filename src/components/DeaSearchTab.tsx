@@ -1,15 +1,25 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Box, Typography, Paper, TextField, Button, Grid2 as Grid, CircularProgress, Snackbar, Alert, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Box, Typography, Paper, TextField, Button, Grid2 as Grid, CircularProgress, Snackbar, Alert, LinearProgress, Tooltip } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import FileSelector from './FileSelector';
 import { Ifile } from '../utils/file-system-service';
 import { Client } from '../dea-search/client';
 import { PractitionerRecord, PrescriberDetails } from '../dea-search/types';
 import PrescriberVerification from './PrescriberVerification';
-import { loadExcelFile, saveExcelFile } from '../utils/excel';
-import { utils, WorkBook } from 'xlsx';
+import { loadExcelFile } from '../utils/excel';
+import { utils } from 'xlsx';
 import ProcessLocation from './ProcessLocation';
 import ResultsTable from './ResultsTable';
+import ExistingRecordDialog from './ExistingRecordDialog';
+
+// Simple queue item to track DEA data and status
+interface DeaQueueItem {
+  dea: string;
+  data?: PrescriberDetails;
+  isLoading: boolean;
+  error?: string;
+}
 
 const DeaSearchTab = () => {
   // Form inputs
@@ -17,21 +27,22 @@ const DeaSearchTab = () => {
   const [cookieInput, setCookieInput] = useState<string>('');
   const [practitionersFile, setPractitionersFile] = useState<Ifile>({ path: '', content: null });
 
-  // State
-  const [deaList, setDeaList] = useState<string[]>([]);
+  // Search state
+  const [deaQueue, setDeaQueue] = useState<DeaQueueItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
-  const [currentDea, setCurrentDea] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [currentPrescriber, setCurrentPrescriber] = useState<PrescriberDetails | null>(null);
-  const [practitionersWorkbook, setPractitionersWorkbook] = useState<WorkBook | null>(null);
   const [existingPractitioners, setExistingPractitioners] = useState<Map<string, PractitionerRecord>>(new Map());
   const [newPractitioners, setNewPractitioners] = useState<PractitionerRecord[]>([]);
+  const [saveComplete, setSaveComplete] = useState<boolean>(false);
+
+  // Dialog state for existing records
   const [recordExists, setRecordExists] = useState<boolean>(false);
   const [existingRecord, setExistingRecord] = useState<PractitionerRecord | null>(null);
-  const [pendingRecord, setPendingRecord] = useState<PractitionerRecord | null>(null);
+  const [pendingRecord, setPendingRecord] = useState<PrescriberDetails | null>(null);
 
-  // Final saving state
-  const [saveComplete, setSaveComplete] = useState<boolean>(false);
+  // Refs to track processing state without triggering re-renders
+  const fetchRequestedRef = useRef<Set<number>>(new Set()); // Track which indexes we've initiated fetches for
+  const loadingMarkedRef = useRef<Set<number>>(new Set()); // Track which indexes we've already marked as loading
 
   // Notification
   const [notification, setNotification] = useState<{
@@ -49,10 +60,8 @@ const DeaSearchTab = () => {
     if (practitionersFile.content) {
       try {
         const workbook = loadExcelFile(practitionersFile.content);
-        setPractitionersWorkbook(workbook);
-
-        // Load existing practitioners into memory
         const refSheet = workbook.Sheets['Reference'];
+
         if (refSheet) {
           const practitioners = utils.sheet_to_json<PractitionerRecord>(refSheet);
           const pracMap = new Map<string, PractitionerRecord>();
@@ -72,15 +81,12 @@ const DeaSearchTab = () => {
     }
   }, [practitionersFile]);
 
-  // Parse DEA input into a list when starting search
+  // Parse DEA input into a unique list
   const parseDeaInput = () => {
-    // Split by commas, trim whitespace, and filter out empty strings
-    const deas = deaInput
+    return [...new Set(deaInput
       .split(',')
       .map(dea => dea.trim())
-      .filter(dea => dea.length > 0);
-
-    return deas;
+      .filter(dea => dea.length > 0))];
   };
 
   // Start the search process
@@ -91,94 +97,24 @@ const DeaSearchTab = () => {
       return;
     }
 
-    // Reset state before starting
+    // Reset all state
     setNewPractitioners([]);
     setSaveComplete(false);
-    setDeaList(deas);
+    fetchRequestedRef.current = new Set(); // Reset tracking of fetch requests
+    loadingMarkedRef.current = new Set(); // Reset tracking of loading markers
+
+    // Initialize the queue with all DEAs
+    const initialQueue: DeaQueueItem[] = deas.map(dea => ({
+      dea,
+      isLoading: false
+    }));
+
+    setDeaQueue(initialQueue);
     setCurrentIndex(0);
     setIsSearching(true);
   };
 
-  // Save all new practitioners to the file
-  const saveAllPractitioners = useCallback(async () => {
-    if (!practitionersWorkbook || newPractitioners.length === 0) {
-      return false;
-    }
-
-    try {
-      // Get Reference sheet
-      let refSheet = practitionersWorkbook.Sheets['Reference'];
-
-      if (!refSheet) {
-        // If this is blank, they shouldn't be using the tool
-        throw Error('Empty PractitionerDB')
-      }
-
-      // Get the current range of the sheet
-      const range = utils.decode_range(refSheet['!ref'] || 'A1:A1');
-      const lastRow = range.e.r;
-
-      // Get the headers
-      const headers = utils.sheet_to_json<string[]>(refSheet, { header: 1 })[0];
-
-      // Append each new practitioner
-      newPractitioners.forEach((practitioner, index) => {
-        const rowIndex = lastRow + 1 + index;
-
-        // For each header column, set the corresponding cell
-        headers.forEach((header, colIndex) => {
-          // Skip calculated fields
-          if (header === 'Last Name First' || header === 'Practitioner') {
-            return;
-          }
-
-          // Get the value for this field
-          const value = practitioner[header as keyof PractitionerRecord];
-
-          // Only set if there's a value
-          if (value !== undefined) {
-            const cellRef = utils.encode_cell({ r: rowIndex, c: colIndex });
-            refSheet[cellRef] = { v: value };
-          }
-        });
-      });
-
-      // Update the sheet range
-      const newRange = {
-        s: range.s,
-        e: { r: lastRow + newPractitioners.length, c: range.e.c }
-      };
-      refSheet['!ref'] = utils.encode_range(newRange);
-
-      // Save the workbook
-      const success = await saveExcelFile(practitionersWorkbook, practitionersFile.path, "xlsm");
-
-      if (success) {
-        showNotification(`Added ${newPractitioners.length} new practitioners to the database!`, 'success');
-        return true;
-      } else {
-        showNotification('Failed to save practitioner data', 'error');
-        return false;
-      }
-    } catch (error) {
-      console.error('Error saving practitioners data:', error);
-      showNotification('Error saving practitioner data. See console for details.', 'error');
-      return false;
-    }
-  }, [newPractitioners, practitionersFile.path, practitionersWorkbook]);
-
-  // Handle practitioner file selection
-  const handlePractitionersFileChange = (path: string, content: Uint8Array) => {
-    setPractitionersFile({ path, content });
-  };
-
-  // Handle file selection errors
-  const handleFileSelectionError = (error: unknown) => {
-    console.error('Error during file selection:', error);
-    showNotification('Failed to select file. See console for details.', 'error');
-  };
-
-  // Show notification
+  // Helper to show notifications
   const showNotification = (message: string, severity: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     setNotification({
       open: true,
@@ -187,19 +123,19 @@ const DeaSearchTab = () => {
     });
   };
 
-  // Close notification
   const handleCloseNotification = () => {
     setNotification({ ...notification, open: false });
   };
 
-  // Reset the search process
+  // Reset search state
   const resetSearch = () => {
     setCurrentIndex(-1);
-    setCurrentDea('');
-    setCurrentPrescriber(null);
+    setDeaQueue([]);
     setIsSearching(false);
     setNewPractitioners([]);
     setSaveComplete(false);
+    fetchRequestedRef.current = new Set();
+    loadingMarkedRef.current = new Set();
   };
 
   // Handle new search after completion
@@ -208,21 +144,155 @@ const DeaSearchTab = () => {
     setDeaInput('');
   };
 
-  const handleCompletion = useCallback(() => {
-    if (newPractitioners.length > 0) {
-      // Show the results table
+  // Handle completion of search
+  const handleCompletion = useCallback((justSaved: boolean = false) => {
+    // If we just saved a record OR we have records in the state, show the results
+    if (justSaved || newPractitioners.length > 0) {
       setSaveComplete(true);
     } else {
-      // No new practitioners to save
       showNotification('Search complete. No new practitioners to add.', 'info');
       resetSearch();
     }
   }, [newPractitioners.length]);
 
+  // Fetch DEA data for a specific index with protection against duplicate state updates
+  const fetchDeaData = useCallback(async (index: number) => {
+    if (index < 0 || index >= deaQueue.length) return;
+
+    const queueItem = deaQueue[index];
+    if (queueItem.isLoading || queueItem.data || queueItem.error) {
+      console.log(`Skipping index ${index} - already processed or in progress`);
+      return;
+    }
+
+    console.log(`Processing DEA request for index ${index}: ${queueItem.dea}`);
+
+    // Mark as loading (only once)
+    if (!loadingMarkedRef.current.has(index)) {
+      loadingMarkedRef.current.add(index);
+      console.log(`Marking index ${index} as loading`);
+      setDeaQueue(prev => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], isLoading: true };
+        return updated;
+      });
+    }
+
+    try {
+      const client = new Client(cookieInput);
+      const html = await client.getDeaHtml(queueItem.dea);
+      const prescriberDetails = client.parseHtml(html);
+
+      // Set DEA number on the prescriber details
+      prescriberDetails.DEA = queueItem.dea;
+      console.log(`Successfully fetched data for DEA ${queueItem.dea}`);
+
+      if (existingPractitioners.has(queueItem.dea)) {
+        console.log(`DEA ${queueItem.dea} already exists in database, marking as exists`);
+      }
+
+      // Update queue with data
+      setDeaQueue(prev => {
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          data: prescriberDetails,
+          isLoading: false,
+          error: existingPractitioners.has(queueItem.dea) ? 'exists' : undefined
+        };
+        return updated;
+      });
+    } catch (error) {
+      console.error(`Error searching for DEA ${queueItem.dea}:`, error);
+      setDeaQueue(prev => {
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          error: `Failed to retrieve information`,
+          isLoading: false
+        };
+        return updated;
+      });
+    }
+  }, [deaQueue, cookieInput, existingPractitioners]);
+
+  // Fetch data for current and next DEA with tracking to prevent duplicate requests
+  useEffect(() => {
+    if (!isSearching || currentIndex < 0) return;
+
+    // For initial index, fetch item 0 and prefetch item 1 if they haven't been requested yet
+    if (currentIndex === 0) {
+      if (!fetchRequestedRef.current.has(0)) {
+        fetchRequestedRef.current.add(0);
+        console.log('Initially requesting index 0');
+        void fetchDeaData(0);
+      }
+
+      if (deaQueue.length > 1 && !fetchRequestedRef.current.has(1)) {
+        fetchRequestedRef.current.add(1);
+        console.log('Initially requesting index 1');
+        void fetchDeaData(1);
+      }
+    } else {
+      // For subsequent indexes, prefetch the next item if it exists and hasn't been requested
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < deaQueue.length && !fetchRequestedRef.current.has(nextIndex)) {
+        fetchRequestedRef.current.add(nextIndex);
+        console.log(`Prefetching index ${nextIndex}`);
+        void fetchDeaData(nextIndex);
+      }
+    }
+  }, [isSearching, currentIndex, deaQueue.length, fetchDeaData]);
+
+  // Move to the next DEA
+  const moveToNextDea = useCallback(() => {
+    const nextIndex = currentIndex + 1;
+
+    if (nextIndex >= deaQueue.length) {
+      // All searches complete - default to false (no just-saved record)
+      handleCompletion(false);
+      return;
+    }
+
+    setCurrentIndex(nextIndex);
+  }, [currentIndex, deaQueue.length, handleCompletion]);
+
+  // Update the handler for current item status
+  useEffect(() => {
+    if (!isSearching || currentIndex < 0 || currentIndex >= deaQueue.length) return;
+
+    const currentItem = deaQueue[currentIndex];
+
+    // If DEA exists and we have data, show the comparison dialog
+    if (currentItem.error === 'exists' && currentItem.data) {
+      const existingDea = currentItem.dea;
+      const existingRecord = existingPractitioners.get(existingDea);
+
+      if (existingRecord) {
+        setExistingRecord(existingRecord);
+        setPendingRecord(currentItem.data);
+        setRecordExists(true);
+      } else {
+        // This shouldn't happen, but handle it just in case
+        showNotification(`DEA ${currentItem.dea} exists but record not found`, 'error');
+        moveToNextDea();
+      }
+      return;
+    }
+
+    // If other error, notify and move on
+    if (currentItem.error && currentItem.error !== 'exists') {
+      showNotification(`Error with DEA ${currentItem.dea}: ${currentItem.error}`, 'error');
+      moveToNextDea();
+      return;
+    }
+
+    // If still loading, just wait
+  }, [isSearching, currentIndex, deaQueue, moveToNextDea, existingPractitioners]);
+
   // Skip current prescriber
   const handleSkip = () => {
-    setCurrentPrescriber(null);
-    setCurrentIndex(prevIndex => prevIndex + 1);
+    moveToNextDea();
   };
 
   // Cancel the search process
@@ -231,27 +301,8 @@ const DeaSearchTab = () => {
     showNotification('Search process cancelled', 'info');
   };
 
-  // Check if a record already exists and show comparison dialog
-  const checkExistingRecord = (record: PractitionerRecord) => {
-    const existingRecord = existingPractitioners.get(record.DEA);
-
-    if (existingRecord) {
-      setExistingRecord(existingRecord);
-      setPendingRecord(record);
-      setRecordExists(true);
-      return true;
-    }
-
-    return false;
-  };
-
   // Save a practitioner record
   const handleSave = (practitionerRecord: PractitionerRecord) => {
-    // Check if the record already exists
-    if (checkExistingRecord(practitionerRecord)) {
-      return; // Dialog will handle this case
-    }
-
     // Add to new practitioners list
     setNewPractitioners(prev => [...prev, practitionerRecord]);
 
@@ -262,31 +313,38 @@ const DeaSearchTab = () => {
       return updated;
     });
 
-    // Move to next DEA
-    setCurrentPrescriber(null);
-    setCurrentIndex(prevIndex => prevIndex + 1);
+    // Check if this is the last record
+    const isLastRecord = currentIndex === deaQueue.length - 1;
+
+    if (isLastRecord) {
+      // If it's the last record, complete with justSaved=true
+      handleCompletion(true);
+    } else {
+      // Otherwise just move to the next DEA
+      moveToNextDea();
+    }
   };
 
   // Handle updating an existing record
   const handleUpdateRecord = () => {
     if (pendingRecord) {
-      // Update the record in the existingPractitioners map
-      setExistingPractitioners(prev => {
-        const updated = new Map(prev);
-        updated.set(pendingRecord.DEA, pendingRecord);
+      // Move to the verification form to let the user edit the details
+      setDeaQueue(prev => {
+        const updated = [...prev];
+        if (currentIndex >= 0 && currentIndex < updated.length) {
+          updated[currentIndex] = {
+            ...updated[currentIndex],
+            error: undefined // Clear the 'exists' flag
+          };
+        }
         return updated;
       });
-
-      // Add to the list of records to save
-      setNewPractitioners(prev => [...prev, pendingRecord]);
     }
 
-    // Close dialog and move to next DEA
+    // Close dialog
     setRecordExists(false);
     setExistingRecord(null);
     setPendingRecord(null);
-    setCurrentPrescriber(null);
-    setCurrentIndex(prevIndex => prevIndex + 1);
   };
 
   // Handle skipping record update
@@ -294,58 +352,33 @@ const DeaSearchTab = () => {
     setRecordExists(false);
     setExistingRecord(null);
     setPendingRecord(null);
-    setCurrentPrescriber(null);
-    setCurrentIndex(prevIndex => prevIndex + 1);
+    moveToNextDea();
   };
 
-  // Search for the next DEA number
-  useEffect(() => {
-    const searchNextDea = async () => {
-      if (currentIndex >= 0 && currentIndex < deaList.length) {
-        const dea = deaList[currentIndex];
-        setCurrentDea(dea);
-
-        // Check if this DEA already exists in our records
-        if (existingPractitioners.has(dea)) {
-          showNotification(`DEA ${dea} already exists in the database`, 'info');
-          // Move to next DEA
-          setCurrentIndex(prevIndex => prevIndex + 1);
-          return;
-        }
-
-        try {
-          const client = new Client(cookieInput); // add true for local testing
-          const html = await client.getDeaHtml(dea);
-          console.log(html);
-          const prescriberDetails = client.parseHtml(html);
-
-          // Set DEA number on the prescriber details
-          prescriberDetails.DEA = dea;
-
-          setCurrentPrescriber(prescriberDetails);
-        } catch (error) {
-          console.error(`Error searching for DEA ${dea}:`, error);
-          showNotification(`Failed to retrieve information for DEA ${dea}`, 'error');
-          // Move to next DEA
-          setCurrentIndex(prevIndex => prevIndex + 1);
-        }
-      } else if (currentIndex >= deaList.length && deaList.length > 0) {
-        // All searches complete - call the new handler instead of saving
-        handleCompletion();
-      }
-    };
-
-    if (isSearching && currentIndex >= 0) {
-      void searchNextDea();
-    }
-  }, [currentIndex, deaList, isSearching, cookieInput, existingPractitioners, newPractitioners.length, saveAllPractitioners, handleCompletion]);
-
-  // Check if the search button should be enabled
+  // Check if search button should be enabled
   const isSearchEnabled =
     deaInput.trim() !== '' &&
     cookieInput.trim() !== '' &&
     practitionersFile.path !== '' &&
     !isSearching;
+
+  // Get current DEA info for display
+  const getCurrentDea = () => {
+    if (currentIndex < 0 || currentIndex >= deaQueue.length) return '';
+    return deaQueue[currentIndex].dea;
+  };
+
+  // Get current prescriber data
+  const getCurrentPrescriber = () => {
+    if (currentIndex < 0 || currentIndex >= deaQueue.length) return null;
+    return deaQueue[currentIndex].data || null;
+  };
+
+  // Check if currently loading
+  const isCurrentlyLoading = () => {
+    if (currentIndex < 0 || currentIndex >= deaQueue.length) return false;
+    return deaQueue[currentIndex].isLoading;
+  };
 
   return (
     <Box role="tabpanel" id="dea-search-tabpanel" aria-labelledby="dea-search-tab">
@@ -356,13 +389,13 @@ const DeaSearchTab = () => {
         <ProcessLocation />
 
         {saveComplete ? (
-          // Show the results table
+          // Results table
           <ResultsTable
             practitioners={newPractitioners}
             onNewSearch={handleNewSearch}
           />
-        ) : !currentPrescriber ? (
-          // Search Form
+        ) : !getCurrentPrescriber() || isCurrentlyLoading() ? (
+          // Search form or loading state
           <Grid container spacing={3}>
             <Grid size={12}>
               <TextField
@@ -383,16 +416,53 @@ const DeaSearchTab = () => {
             </Grid>
 
             <Grid size={12}>
-              <TextField
-                label="Session Cookie"
-                fullWidth
-                value={cookieInput}
-                onChange={(e) => setCookieInput(e.target.value)}
-                placeholder="Paste your session cookie here"
-                disabled={isSearching}
-                margin="normal"
-                helperText="Cookie from www.medproid.com session"
-              />
+              <Box sx={{ position: 'relative' }}>
+                <TextField
+                  label="Session Cookie"
+                  fullWidth
+                  value={cookieInput}
+                  onChange={(e) => setCookieInput(e.target.value)}
+                  placeholder="Paste your session cookie here"
+                  disabled={isSearching}
+                  margin="normal"
+                  helperText="Cookie from web session"
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <Tooltip
+                          title={
+                            <Box sx={{ p: 1, whiteSpace: 'pre-line' }}>
+                              To get the cookie:
+                              <li>Press Ctrl + Shift + I to open dev console</li>
+                              <li>Go to the Network tab</li>
+                              <li>Clear out anything there</li>
+                              <li>Click on the Doc filter</li>
+                              <li>Log in to medproid.com</li>
+                              <li>Look for HomeBody.asp in response → click</li>
+                              <li>Under Headers sub-tab, find the Request Headers section</li>
+                              <li>Copy the full value for the cookie (triple click)</li>
+                              <li>Paste into this field</li>
+                            </Box>
+                          }
+                          placement="top-end"
+                          arrow
+                        >
+                          <Box
+                            component="span"
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              cursor: 'help'
+                            }}
+                          >
+                            <HelpOutlineIcon color="action" fontSize="small" />
+                          </Box>
+                        </Tooltip>
+                      ),
+                    }
+                  }}
+                />
+              </Box>
             </Grid>
 
             <Grid size={12}>
@@ -423,152 +493,40 @@ const DeaSearchTab = () => {
             {isSearching && (
               <Grid size={12} sx={{ mt: 2 }}>
                 <Typography variant="body1">
-                  Searching for DEA: {currentDea} ({currentIndex + 1} of {deaList.length})
+                  {isCurrentlyLoading()
+                    ? `Searching for DEA: ${getCurrentDea()} (${currentIndex + 1} of ${deaQueue.length})`
+                    : `Loading DEA information... (${currentIndex + 1} of ${deaQueue.length})`
+                  }
                 </Typography>
-                <LinearProgress variant="determinate" value={(currentIndex / deaList.length) * 100} sx={{ mt: 1 }} />
+                <LinearProgress
+                  variant="determinate"
+                  value={(currentIndex / deaQueue.length) * 100}
+                  sx={{ mt: 1 }}
+                />
               </Grid>
             )}
           </Grid>
         ) : (
-          // Prescriber Verification Form
+          // Prescriber verification form
           <PrescriberVerification
-            prescriber={currentPrescriber}
+            prescriber={getCurrentPrescriber()!}
             onSave={handleSave}
             onSkip={handleSkip}
             onCancel={handleCancel}
             currentIndex={currentIndex + 1}
-            totalCount={deaList.length}
+            totalCount={deaQueue.length}
           />
         )}
       </Paper>
 
-      {/* Record exists dialog */}
-      <Dialog
+      {/* Use the extracted ExistingRecordDialog component */}
+      <ExistingRecordDialog
         open={recordExists}
-        onClose={handleSkipUpdate}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>Record Already Exists</DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" component={'p'}>
-            A practitioner with DEA number {pendingRecord?.DEA} already exists in the database.
-            Would you like to update this record with the new information?
-          </Typography>
-
-          <Box sx={{ bgcolor: 'background.paper', p: 2, borderRadius: 1, mb: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold">Existing Record:</Typography>
-            {existingRecord && (
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>First/Facility:</strong> {existingRecord['First/Facility']}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Middle:</strong> {existingRecord.Middle}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Last:</strong> {existingRecord.Last}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Suffix:</strong> {existingRecord.Suffix}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Designation:</strong> {existingRecord.Designation}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Specialty:</strong> {existingRecord.Specialty}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Practice Location:</strong> {existingRecord.PracticeLocation}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>State:</strong> {existingRecord.State}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Discipline:</strong> {existingRecord.Discipline}
-                  </Typography>
-                </Grid>
-              </Grid>
-            )}
-          </Box>
-
-          <Box sx={{ bgcolor: 'primary.lighter', p: 2, borderRadius: 1 }}>
-            <Typography variant="subtitle1" fontWeight="bold">New Record:</Typography>
-            {pendingRecord && (
-              <Grid container spacing={2} sx={{ mt: 1 }}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>First/Facility:</strong> {pendingRecord['First/Facility']}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Middle:</strong> {pendingRecord.Middle}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Last:</strong> {pendingRecord.Last}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Suffix:</strong> {pendingRecord.Suffix}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Designation:</strong> {pendingRecord.Designation}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Specialty:</strong> {pendingRecord.Specialty}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Practice Location:</strong> {pendingRecord.PracticeLocation}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>State:</strong> {pendingRecord.State}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Typography variant="body2">
-                    <strong>Discipline:</strong> {pendingRecord.Discipline}
-                  </Typography>
-                </Grid>
-              </Grid>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleSkipUpdate}>Skip</Button>
-          <Button onClick={handleUpdateRecord} variant="contained" color="primary">
-            Update Record
-          </Button>
-        </DialogActions>
-      </Dialog>
+        existingRecord={existingRecord}
+        pendingRecord={pendingRecord}
+        onUpdate={handleUpdateRecord}
+        onSkip={handleSkipUpdate}
+      />
 
       {/* Notification */}
       <Snackbar
@@ -587,6 +545,17 @@ const DeaSearchTab = () => {
       </Snackbar>
     </Box>
   );
+
+  // Helper function for file selection error
+  function handleFileSelectionError(error: unknown): void {
+    console.error('Error during file selection:', error);
+    showNotification('Failed to select file. See console for details.', 'error');
+  }
+
+  // Helper function for practitioner file change
+  function handlePractitionersFileChange(path: string, content: Uint8Array): void {
+    setPractitionersFile({ path, content });
+  }
 };
 
 export default DeaSearchTab;
