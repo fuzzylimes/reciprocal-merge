@@ -80,12 +80,12 @@ const DeaSearchTab = () => {
     }
   }, [practitionersFile]);
 
-  // Parse DEA input into a list
+  // Parse DEA input into a unique list
   const parseDeaInput = () => {
-    return deaInput
+    return [...new Set(deaInput
       .split(',')
       .map(dea => dea.trim())
-      .filter(dea => dea.length > 0);
+      .filter(dea => dea.length > 0))];
   };
 
   // Start the search process
