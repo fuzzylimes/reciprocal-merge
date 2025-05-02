@@ -103,7 +103,7 @@ const ResultsTable: React.FC<ResultsTableProps> = ({ practitioners, onNewSearch 
         <Typography variant="body1">
           Instructions:
         </Typography>
-        <Typography>
+        <Typography component={'div'}>
           <ol>
             <li>Click the &quot;Copy to Clipboard&quot; button below</li>
             <li>Open your Excel file and select the first empty row in your practitioner table</li>
