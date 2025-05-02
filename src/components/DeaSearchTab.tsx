@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Box, Typography, Paper, TextField, Button, Grid2 as Grid, CircularProgress, Snackbar, Alert, LinearProgress } from '@mui/material';
+import { Box, Typography, Paper, TextField, Button, Grid2 as Grid, CircularProgress, Snackbar, Alert, LinearProgress, Tooltip } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import FileSelector from './FileSelector';
 import { Ifile } from '../utils/file-system-service';
 import { Client } from '../dea-search/client';
@@ -166,24 +167,6 @@ const DeaSearchTab = () => {
 
     console.log(`Processing DEA request for index ${index}: ${queueItem.dea}`);
 
-    // Check if DEA exists in database
-    // if (existingPractitioners.has(queueItem.dea)) {
-    //   console.log(`DEA ${queueItem.dea} already exists in database, marking as exists`);
-    //   if (!loadingMarkedRef.current.has(index)) {
-    //     loadingMarkedRef.current.add(index);
-    //     setDeaQueue(prev => {
-    //       const updated = [...prev];
-    //       updated[index] = {
-    //         ...updated[index],
-    //         error: 'exists',
-    //         isLoading: false
-    //       };
-    //       return updated;
-    //     });
-    //   }
-    //   return;
-    // }
-
     // Mark as loading (only once)
     if (!loadingMarkedRef.current.has(index)) {
       loadingMarkedRef.current.add(index);
@@ -196,7 +179,7 @@ const DeaSearchTab = () => {
     }
 
     try {
-      const client = new Client(cookieInput, true);
+      const client = new Client(cookieInput);
       const html = await client.getDeaHtml(queueItem.dea);
       const prescriberDetails = client.parseHtml(html);
 
@@ -433,16 +416,53 @@ const DeaSearchTab = () => {
             </Grid>
 
             <Grid size={12}>
-              <TextField
-                label="Session Cookie"
-                fullWidth
-                value={cookieInput}
-                onChange={(e) => setCookieInput(e.target.value)}
-                placeholder="Paste your session cookie here"
-                disabled={isSearching}
-                margin="normal"
-                helperText="Cookie from www.medproid.com session"
-              />
+              <Box sx={{ position: 'relative' }}>
+                <TextField
+                  label="Session Cookie"
+                  fullWidth
+                  value={cookieInput}
+                  onChange={(e) => setCookieInput(e.target.value)}
+                  placeholder="Paste your session cookie here"
+                  disabled={isSearching}
+                  margin="normal"
+                  helperText="Cookie from web session"
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <Tooltip
+                          title={
+                            <Box sx={{ p: 1, whiteSpace: 'pre-line' }}>
+                              To get the cookie:
+                              <li>Press Ctrl + Shift + I to open dev console</li>
+                              <li>Go to the Network tab</li>
+                              <li>Clear out anything there</li>
+                              <li>Click on the Doc filter</li>
+                              <li>Log in to medproid.com</li>
+                              <li>Look for HomeBody.asp in response → click</li>
+                              <li>Under Headers sub-tab, find the Request Headers section</li>
+                              <li>Copy the full value for the cookie (triple click)</li>
+                              <li>Paste into this field</li>
+                            </Box>
+                          }
+                          placement="top-end"
+                          arrow
+                        >
+                          <Box
+                            component="span"
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              cursor: 'help'
+                            }}
+                          >
+                            <HelpOutlineIcon color="action" fontSize="small" />
+                          </Box>
+                        </Tooltip>
+                      ),
+                    }
+                  }}
+                />
+              </Box>
             </Grid>
 
             <Grid size={12}>
