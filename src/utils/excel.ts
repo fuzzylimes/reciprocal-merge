@@ -1,4 +1,4 @@
-import { CellObject, ParsingOptions, WorkBook, WorkSheet, read, utils, write } from 'xlsx';
+import { BookType, CellObject, ParsingOptions, WorkBook, WorkSheet, read, utils, write } from 'xlsx';
 import { practitionerSheet } from "../template-engine/files/PractitionersFile";
 import { saveFile } from './file-system-service';
 
@@ -23,11 +23,11 @@ export const loadExcelFile = (excelContent: Uint8Array, opts?: ParsingOptions): 
  * @param fileName Suggested file name or path to save to
  * @returns Promise resolving to a boolean indicating success
  */
-export const saveExcelFile = async (workbook: WorkBook, fileName: string): Promise<boolean> => {
+export const saveExcelFile = async (workbook: WorkBook, fileName: string, fileType: BookType = 'xlsx'): Promise<boolean> => {
   // Convert workbook to binary format
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const excelData = write(workbook, {
-    bookType: 'xlsx',
+    bookType: fileType,
     type: 'array'
   });
 
@@ -39,9 +39,9 @@ export const saveExcelFile = async (workbook: WorkBook, fileName: string): Promi
   // Use the unified file system service to save the file
   return await saveFile(
     binaryData,
-    fileName.endsWith('.xlsx') ? fileName : `${fileName}.xlsx`,
+    fileName.endsWith(fileType) ? fileName : `${fileName}.${fileType}`,
     {
-      extensions: ['xlsx'],
+      extensions: [fileType],
       description: 'Excel Files'
     }
   );

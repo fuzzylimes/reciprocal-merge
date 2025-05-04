@@ -8,6 +8,7 @@ import GenerateTab from './components/GenerateTab';
 import { getEnvironmentInfo, isTauriEnv } from './utils/environment';
 import { enableNetworkBlocker } from './utils/network-blocker';
 import PrivacyBanner from './components/PrivacyBanner';
+import DeaSearchTab from './components/DeaSearchTab';
 
 // Create a theme instance
 const theme = createTheme({
@@ -35,15 +36,16 @@ function App() {
     console.info(JSON.stringify(getEnvironmentInfo(), null, 2));
     // Only enable network blocker in browser mode, not in Tauri
     if (!isTauri && !networkBlockerEnabled) {
-      enableNetworkBlocker();
+      const proxyUrl = import.meta.env.VITE_DEA_PROXY_URL;
+      const url = new URL(proxyUrl);
+      enableNetworkBlocker([url.hostname]);
       setNetworkBlockerEnabled(true);
 
       // Add a console message for developers
       console.info(
         '%c🔒 PRIVACY NOTICE',
         'color: white; background: #1976d2; padding: 4px 8px; border-radius: 4px; font-weight: bold;',
-        '\nThis application actively blocks all network requests after initial load.\nYour files are processed entirely in your browser and never leave your device.'
-      );
+        '\nThis application actively blocks all network requests after initial load, except for DEA searches.\nYour files are processed entirely in your browser and never leave your device.');
     }
   }, [isTauri, networkBlockerEnabled]);
 
@@ -56,6 +58,7 @@ function App() {
         <Box sx={{ mt: 3 }}>
           {currentTab === 0 && <MergeTab />}
           {currentTab === 1 && <GenerateTab />}
+          {currentTab === 2 && <DeaSearchTab />}
         </Box>
 
         <Box sx={{ mt: 3 }} >

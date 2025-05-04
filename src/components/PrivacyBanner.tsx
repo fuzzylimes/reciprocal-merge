@@ -56,8 +56,7 @@ export default function PrivacyBanner() {
             <Typography variant="body1" fontWeight="medium">
               {isTauri
                 ? "This desktop application processes files locally - nothing leaves your device"
-                : "Your files never leave your device - all processing happens locally in your browser"}
-            </Typography>
+                : "Your files never leave your device - only DEA searches connect to external services"}            </Typography>
           </Box>
 
           <Box>
@@ -89,8 +88,7 @@ export default function PrivacyBanner() {
                   </ListItemIcon>
                   <ListItemText
                     primary="Network connection blocker"
-                    secondary="All external network requests are actively blocked"
-                  />
+                    secondary="All external network requests are actively blocked except for DEA searches" />
                 </ListItem>
               )}
 

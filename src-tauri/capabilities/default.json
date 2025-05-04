@@ -17,6 +17,14 @@
           "path": "**"
         }
       ]
+    },
+    {
+      "identifier": "http:default",
+      "allow": [
+        {
+          "url": "https://www.medproid.com/**"
+        }
+      ]
     }
   ]
 }

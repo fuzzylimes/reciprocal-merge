@@ -9,6 +9,9 @@ This is an extension of the [excelTemplateMerger](https://github.com/fuzzylimes/
 
 The intention of this project is to tackle those specific areas. In other words, this project is highly specialized and will be of use to no one else.
 
+### Is it actually useful?
+For the person that uses it, absolutely. I asked her about how much time this is saving her, and it's in the ballpark of 20-25 hours per report she has to do, times however many that is a month. Assuming 4 per month, that's a tim savings of 80-100 hours. Nearly 2 full work weeks.
+
 ### Features
 The tool has the following feature set:
 
@@ -24,6 +27,8 @@ This is the same functionality as [excelTemplateMerger](https://github.com/fuzzy
 - Web app, dev mode - `npm run dev`
 - Full app, dev mode - `npm run tauri dev`
 
+---
+## Stuff for me
 ### Dev Notes
 - Handling all data manipulation in front end for now (don't feel like learning new libraries/Rust to get basic features working, can revisit later)
 - While the original intention was to provide this as a binary that could be installed, it has been updated to support both a Tauri build as well as a standalone webapp build. The webapp is currently deployed to github pages for simplicity.

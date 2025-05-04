@@ -39,6 +39,8 @@ jobs:
         env:
           # Set base path for GitHub Pages
           VITE_BASE_PATH: '/reciprocal-merge/'
+          # Use GitHub secrets for the proxy URL in production builds
+          VITE_DEA_PROXY_URL: ${{ secrets.VITE_DEA_PROXY_URL }}
           
       - name: Setup Pages
         uses: actions/configure-pages@v5
