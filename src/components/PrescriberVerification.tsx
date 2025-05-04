@@ -36,14 +36,15 @@ const PrescriberVerification = ({
   const createInitialPractitionerRecord = (details: PrescriberDetails): PractitionerRecord => {
     const lastName = details.Last || '';
     const firstName = details.FirstFacility || '';
-    const discipline = details.Discipline ? details.Discipline === 'NONE' ? '______' : details.Discipline : '';
+    const discipline = details.Discipline ? details.Discipline.toLowerCase().trim() === 'none' ? '______' : details.Discipline : '';
+    const designation = details.Designation ? details.Designation.toLowerCase().trim() === 'np w/rx' ? 'NP' : details.Designation : undefined;
 
     return {
       'First/Facility': firstName,
       Middle: details.Middle,
       Last: lastName,
       Suffix: details.Suffix,
-      Designation: details.Designation,
+      Designation: designation,
       Specialty: details.SlnSpecialty || details.BestSpecialty || '',
       PracticeLocation: details.SlnPracticeLocation || details.DeaPracticeLocation || '',
       DEA: details.DEA,
@@ -231,6 +232,16 @@ const PrescriberVerification = ({
             fullWidth
             value={practitionerRecord.Last || ''}
             onChange={(e) => handleChange('Last', e.target.value)}
+            margin="normal"
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, md: 6 }}>
+          <TextField
+            label="Suffix"
+            fullWidth
+            value={practitionerRecord.Suffix || ''}
+            onChange={(e) => handleChange('Suffix', e.target.value)}
             margin="normal"
           />
         </Grid>
