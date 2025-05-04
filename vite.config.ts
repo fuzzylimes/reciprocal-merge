@@ -46,7 +46,6 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             // Split vendor code for better caching in web environments
-            react: ['react', 'react-dom'],
             mui: ['@mui/icons-material', '@mui/icons-material', '@emotion/react', '@emotion/styled'],
             word: ['docxtemplater', 'pizzip', 'angular-expressions'],
             excel: ['xlsx']
