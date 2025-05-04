@@ -43,6 +43,7 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_DEA_PROXY_URL: ${{ secrets.VITE_DEA_PROXY_URL }}
         with:
           tagName: reciprocal-merge-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: 'Reciprocal Merge v__VERSION__'
