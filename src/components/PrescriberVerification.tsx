@@ -389,6 +389,16 @@ const PrescriberVerification = ({
           />
         </Grid>
 
+        <Grid size={{ xs: 12, md: 12 }}>
+          <TextField
+            label="Address"
+            fullWidth
+            value={practitionerRecord.Address || ''}
+            onChange={(e) => handleChange('Address', e.target.value)}
+            margin="normal"
+          />
+        </Grid>
+
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             label="Discipline"
