@@ -84,6 +84,11 @@ const ExistingRecordDialog: React.FC<ExistingRecordDialogProps> = ({
                   <strong>State:</strong> {existingRecord.State}
                 </Typography>
               </Grid>
+              <Grid size={{ xs: 12, md: 12 }}>
+                <Typography variant="body2">
+                  <strong>Address:</strong> {existingRecord.Address}
+                </Typography>
+              </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2">
                   <strong>Discipline:</strong> {existingRecord.Discipline}
@@ -135,6 +140,11 @@ const ExistingRecordDialog: React.FC<ExistingRecordDialogProps> = ({
               <Grid size={{ xs: 12, md: 6 }}>
                 <Typography variant="body2">
                   <strong>State:</strong> {pendingRecord.State}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, md: 12 }}>
+                <Typography variant="body2">
+                  <strong>Address:</strong> {pendingRecord.Address}, {pendingRecord.CityStateZip}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
