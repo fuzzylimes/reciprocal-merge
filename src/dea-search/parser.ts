@@ -1,3 +1,4 @@
+import { CookieExpiredError } from "../utils/cookie-expired-error";
 import { PrescriberDetails } from "./types"
 
 export const parsePrescriberResponse = (html: string): PrescriberDetails => {
@@ -19,7 +20,7 @@ export const parsePrescriberResponse = (html: string): PrescriberDetails => {
 const verifyResponse = (doc: Document) => {
   const loginForm = doc.querySelector('#loginform');
   if (loginForm) {
-    throw Error('Invalid cookie. No results returned.');
+    throw new CookieExpiredError()
   }
 
   return;

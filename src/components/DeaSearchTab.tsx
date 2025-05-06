@@ -12,6 +12,7 @@ import { utils } from 'xlsx';
 import ProcessLocation from './ProcessLocation';
 import ResultsTable from './ResultsTable';
 import ExistingRecordDialog from './ExistingRecordDialog';
+import { CookieExpiredError } from '../utils/cookie-expired-error';
 
 // Simple queue item to track DEA data and status
 interface DeaQueueItem {
@@ -203,6 +204,17 @@ const DeaSearchTab = () => {
         return updated;
       });
     } catch (error) {
+      // Handle case where the cookie is expired. There's no need to continue with anything if cookie is bad.
+      if (error instanceof CookieExpiredError) {
+        console.error('Cookie expired:', error);
+        showNotification('Your session cookie has expired. Please log in again to get a new cookie.', 'error');
+
+        // Reset the search process since we can't continue with an expired cookie
+        resetSearch();
+        return;
+      }
+
+      // Handle all other cases where we want to continue
       console.error(`Error searching for DEA ${queueItem.dea}:`, error);
       setDeaQueue(prev => {
         const updated = [...prev];
