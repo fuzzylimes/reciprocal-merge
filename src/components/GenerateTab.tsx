@@ -23,7 +23,7 @@ import { WorkBook } from 'xlsx';
 
 // Import the worker directly with Vite's special ?worker syntax
 // This lets Vite handle all the bundling automatically
-import GenerateWorker from '../utils/generate-worker.ts?worker';
+import GenerateWorker from '../utils/workers/generate-worker.ts?worker';
 import { workerResponse } from '../utils/workers/generate-worker';
 
 function GenerateTab() {
@@ -376,7 +376,7 @@ function GenerateTab() {
           <Box sx={{ maxHeight: '200px', overflowY: 'auto', my: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
             <Typography variant="body2" sx={{ mb: 0.5 }}>
               {missingDeaIds.join(', ')}
-              </Typography>
+            </Typography>
           </Box>
           <Typography variant="body1">
             If you choose to continue, some DEA information will be missing in the generated file.
