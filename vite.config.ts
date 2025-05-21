@@ -5,7 +5,7 @@ import * as p from "./package.json";
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
-export default defineConfig(async ({ mode }) => {
+export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
 
   return {
@@ -45,5 +45,9 @@ export default defineConfig(async ({ mode }) => {
         }
       }
     },
+    // Configure worker bundling options
+    worker: {
+      format: 'es', // Use ES modules for workers
+    }
   }
 });
