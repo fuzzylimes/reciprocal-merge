@@ -37,6 +37,7 @@ jobs:
       - name: Build React app
         run: npm run build
         env:
+          NODE_ENV: production
           # Set base path for GitHub Pages
           VITE_BASE_PATH: '/reciprocal-merge/'
           # Use GitHub secrets for the proxy URL in production builds

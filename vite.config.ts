@@ -4,6 +4,9 @@ import * as p from "./package.json";
 
 const host = process.env.TAURI_DEV_HOST;
 
+// Set the application base path - will be used for all assets and imports
+const BASE_PATH = process.env.VITE_BASE_PATH || (process.env.NODE_ENV === 'production' ? '/reciprocal-merge/' : '/');
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
@@ -13,8 +16,9 @@ export default defineConfig(({ mode }) => {
     define: {
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(p.version),
       'import.meta.env.VITE_DEA_PROXY_URL': JSON.stringify(env.VITE_DEA_PROXY_URL || ''),
+      'import.meta.env.BASE_PATH': BASE_PATH,
     },
-    base: process.env.VITE_BASE_PATH || '/',
+    base: BASE_PATH,
     clearScreen: false,
     server: {
       port: 1420,

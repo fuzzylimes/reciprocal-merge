@@ -14,10 +14,12 @@ export function isWorkerSupported(): boolean {
  * Note: In Vite, workers need to be created with a special syntax for proper bundling
  */
 export function createWorker(workerPath: string): Worker {
-  // When using Vite, we need to use the special ?worker syntax
-  // This tells Vite to properly bundle the worker
-  const workerUrl = new URL(workerPath, import.meta.url);
-  return new Worker(workerUrl, { type: 'module' });
+  // Remove leading slash if present
+  const cleanPath = workerPath.startsWith('/') ? workerPath.substring(1) : workerPath;
+
+  // Combine with base URL
+  const fullPath = `${import.meta.env.BASE_URL}${cleanPath}`;
+  return new Worker(fullPath, { type: 'module' });
 }
 
 /**
