@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -11,6 +11,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import CircularProgress from '@mui/material/CircularProgress';
+import LinearProgress from '@mui/material/LinearProgress';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import FileSelector from './FileSelector';
@@ -19,7 +20,8 @@ import { Ifile } from '../utils/file-system-service';
 import ProcessLocation from './ProcessLocation';
 import { isTauriEnv } from '../utils/environment';
 import { WorkBook } from 'xlsx';
-import { generateInputFile } from '../template-engine';
+import { isWorkerSupported, createWorker, terminateWorker } from '../utils/workers/worker-utils';
+import { workerResponse } from '../utils/workers/generate-worker';
 
 function GenerateTab() {
   const [reportFile, setReportFile] = useState<Ifile>({ path: '', content: null })
@@ -28,9 +30,12 @@ function GenerateTab() {
   const [practitionersFile, setPractitionersFile] = useState<Ifile>({ path: '', content: null })
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [processingProgress, setProcessingProgress] = useState<number>(0);
+  const [processingMessage, setProcessingMessage] = useState<string>('');
   const [missingDeaIds, setMissingDeaIds] = useState<string[]>([]);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [generatedWorkbook, setGeneratedWorkbook] = useState<WorkBook | null>(null);
+  const workerRef = useRef<Worker | null>(null);
   const [notification, setNotification] = useState<{
     open: boolean;
     message: string;
@@ -40,6 +45,13 @@ function GenerateTab() {
     message: '',
     severity: 'info'
   });
+
+  // Clean up worker on component unmount
+  useEffect(() => {
+    return () => {
+      terminateWorker(workerRef.current);
+    };
+  }, []);
 
   const showNotification = (message: string, severity: 'success' | 'error' | 'info' = 'info') => {
     setNotification({
@@ -100,6 +112,8 @@ function GenerateTab() {
       showNotification('Failed to save the generated file. See console for details.', 'error');
     } finally {
       setIsProcessing(false);
+      setProcessingProgress(0);
+      setProcessingMessage('');
     }
   };
 
@@ -116,6 +130,8 @@ function GenerateTab() {
     setModalOpen(false);
     setGeneratedWorkbook(null);
     setIsProcessing(false);
+    setProcessingProgress(0);
+    setProcessingMessage('');
   };
 
   // Main generate handler
@@ -123,21 +139,105 @@ function GenerateTab() {
     if (!practitionersFile.content || !reportFile.content || !calculationsFile.content || !prevCalculationsFile.content) return;
 
     setIsProcessing(true);
+    setProcessingProgress(0);
+    setProcessingMessage('Initializing...');
 
-    // Allow React to flush state updates to the DOM
-    await new Promise(resolve => setTimeout(resolve, 50));
+    // Check if Web Workers are supported
+    if (isWorkerSupported()) {
+      try {
+        // Use Web Worker for processing
+        if (workerRef.current) {
+          terminateWorker(workerRef.current);
+        }
 
+        // Create and set up the worker
+        workerRef.current = createWorker('/src/utils/workers/generate-worker.ts');
+
+        // Handle messages from the worker
+        workerRef.current.onmessage = async (event) => {
+          const { type, message, progress, workbook, missingDea, error } = event.data as workerResponse;
+
+          switch (type) {
+            case 'ready':
+              console.log('Worker is ready');
+              break;
+
+            case 'progress':
+              setProcessingProgress(progress || 0);
+              if (message) setProcessingMessage(message);
+              break;
+
+            case 'complete':
+              // Store the generated workbook
+              setGeneratedWorkbook(workbook!);
+
+              // Check if there are missing DEA IDs
+              if (missingDea && missingDea.length > 0) {
+                setMissingDeaIds([...missingDea]);
+                setModalOpen(true);
+              } else {
+                // No missing DEA IDs, proceed with saving
+                await saveGeneratedFile(workbook!);
+              }
+              break;
+
+            case 'error':
+              console.error('Worker error:', error);
+              showNotification(`Error: ${message || 'An unknown error occurred'}`, 'error');
+              setIsProcessing(false);
+              setProcessingProgress(0);
+              setProcessingMessage('');
+              break;
+          }
+        };
+
+        // Send data to the worker
+        workerRef.current.postMessage({
+          reportFile,
+          calculationsFile,
+          prevCalculationsFile,
+          practitionersFile
+        });
+
+      } catch (error) {
+        console.error('Error setting up Web Worker:', error);
+
+        // Fall back to main thread processing if worker setup fails
+        await fallbackToMainThreadProcessing();
+      }
+    } else {
+      // Web Workers not supported, fall back to main thread
+      await fallbackToMainThreadProcessing();
+    }
+  };
+
+  // Fallback method for environments without Web Worker support
+  const fallbackToMainThreadProcessing = async () => {
     try {
-      // Create an instance of the TemplateGenerator using the uploaded file data and generate workbook
+      showNotification('Using main thread for processing (Web Workers not available)', 'info');
+
+      // We need to dynamically import to avoid early evaluation
+      const { generateInputFile } = await import('../template-engine');
+
+      // Allow React to flush state updates to the DOM before starting heavy processing
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      setProcessingMessage('Creating template generator...');
+
+      // Create an instance of the TemplateGenerator
       const templateGenerator = generateInputFile(
         reportFile,
         calculationsFile,
         prevCalculationsFile,
         practitionersFile
       );
+
+      setProcessingMessage('Generating workbook...');
+
+      // Generate the workbook
       const workbook = templateGenerator.generate();
 
-      // Store the generated workbook for later use
+      // Store the generated workbook
       setGeneratedWorkbook(workbook);
 
       // Check if there are missing DEA IDs
@@ -158,6 +258,8 @@ function GenerateTab() {
         showNotification('Failed to generate template. See console for details.', 'error');
       }
       setIsProcessing(false);
+      setProcessingProgress(0);
+      setProcessingMessage('');
     }
   };
 
@@ -233,6 +335,23 @@ function GenerateTab() {
               {isProcessing ? 'Processing...' : 'Generate Template'}
             </Button>
           </Grid>
+
+          {/* Progress indicator */}
+          {isProcessing && (
+            <Grid size={12} sx={{ mt: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  {processingMessage || 'Processing files...'}
+                </Typography>
+                <Box sx={{ width: '100%' }}>
+                  <LinearProgress
+                    variant={processingProgress > 0 ? "determinate" : "indeterminate"}
+                    value={processingProgress}
+                  />
+                </Box>
+              </Box>
+            </Grid>
+          )}
         </Grid>
       </Paper>
 
@@ -253,7 +372,7 @@ function GenerateTab() {
           <Box sx={{ maxHeight: '200px', overflowY: 'auto', my: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
             <Typography variant="body2" sx={{ mb: 0.5 }}>
               {missingDeaIds.join(', ')}
-            </Typography>
+              </Typography>
           </Box>
           <Typography variant="body1">
             If you choose to continue, some DEA information will be missing in the generated file.
