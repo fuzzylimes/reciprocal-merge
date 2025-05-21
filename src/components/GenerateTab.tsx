@@ -20,7 +20,10 @@ import { Ifile } from '../utils/file-system-service';
 import ProcessLocation from './ProcessLocation';
 import { isTauriEnv } from '../utils/environment';
 import { WorkBook } from 'xlsx';
-import { isWorkerSupported, createWorker, terminateWorker } from '../utils/workers/worker-utils';
+
+// Import the worker directly with Vite's special ?worker syntax
+// This lets Vite handle all the bundling automatically
+import GenerateWorker from '../utils/generate-worker.ts?worker';
 import { workerResponse } from '../utils/workers/generate-worker';
 
 function GenerateTab() {
@@ -49,7 +52,9 @@ function GenerateTab() {
   // Clean up worker on component unmount
   useEffect(() => {
     return () => {
-      terminateWorker(workerRef.current);
+      if (workerRef.current) {
+        workerRef.current.terminate();
+      }
     };
   }, []);
 
@@ -142,19 +147,20 @@ function GenerateTab() {
     setProcessingProgress(0);
     setProcessingMessage('Initializing...');
 
-    // Check if Web Workers are supported
-    if (isWorkerSupported()) {
-      try {
-        // Use Web Worker for processing
+    try {
+      // Check if Web Workers are supported
+      if (typeof Worker !== 'undefined') {
+        // Clean up any existing worker
         if (workerRef.current) {
-          terminateWorker(workerRef.current);
+          workerRef.current.terminate();
         }
 
-        // Create and set up the worker
-        workerRef.current = createWorker('/src/utils/workers/generate-worker.ts');
+        // Create a new worker using Vite's special import
+        const worker = new GenerateWorker();
+        workerRef.current = worker;
 
         // Handle messages from the worker
-        workerRef.current.onmessage = async (event) => {
+        worker.onmessage = async (event) => {
           const { type, message, progress, workbook, missingDea, error } = event.data as workerResponse;
 
           switch (type) {
@@ -192,21 +198,19 @@ function GenerateTab() {
         };
 
         // Send data to the worker
-        workerRef.current.postMessage({
+        worker.postMessage({
           reportFile,
           calculationsFile,
           prevCalculationsFile,
           practitionersFile
         });
-
-      } catch (error) {
-        console.error('Error setting up Web Worker:', error);
-
-        // Fall back to main thread processing if worker setup fails
+      } else {
+        // Web Workers not supported, fall back to main thread
         await fallbackToMainThreadProcessing();
       }
-    } else {
-      // Web Workers not supported, fall back to main thread
+    } catch (error) {
+      console.error('Error setting up Web Worker:', error);
+      // Fall back to main thread processing
       await fallbackToMainThreadProcessing();
     }
   };
