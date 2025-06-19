@@ -101,11 +101,11 @@ export class AigSheetManager extends SheetManager {
 
     // Get DU values from calculations
     const duMonth = calcFile.drugs.get(duField)?.duMonth;
-    const over300 = (duMonth ?? 0) > 300;
+    const over500 = (duMonth ?? 0) > 500;
 
     // Calculate top 5 prescribers
-    // If over300, we want to use the full list. Otherwise we'll use the filtered list
-    const prescribers = this.calculateTopPrescribers(over300 ? csRxRows : opMatches);
+    // If over500, we want to use the full list. Otherwise we'll use the filtered list
+    const prescribers = this.calculateTopPrescribers(over500 ? csRxRows : opMatches);
     const top5Deas = prescribers.map(p => p[0]).slice(0, 5);
     const practitionerDetails = pracFile.findPractionersByDeaList(...top5Deas);
 
