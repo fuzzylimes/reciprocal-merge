@@ -4,8 +4,11 @@ import * as p from "./package.json";
 
 const host = process.env.TAURI_DEV_HOST;
 
+// Set the application base path - will be used for all assets and imports
+const BASE_PATH = process.env.VITE_BASE_PATH || '/';
+
 // https://vitejs.dev/config/
-export default defineConfig(async ({ mode }) => {
+export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
 
   return {
@@ -14,7 +17,7 @@ export default defineConfig(async ({ mode }) => {
       'import.meta.env.VITE_APP_VERSION': JSON.stringify(p.version),
       'import.meta.env.VITE_DEA_PROXY_URL': JSON.stringify(env.VITE_DEA_PROXY_URL || ''),
     },
-    base: process.env.VITE_BASE_PATH || '/',
+    base: BASE_PATH,
     clearScreen: false,
     server: {
       port: 1420,
@@ -45,5 +48,9 @@ export default defineConfig(async ({ mode }) => {
         }
       }
     },
+    // Configure worker bundling options
+    worker: {
+      format: 'es', // Use ES modules for workers
+    }
   }
 });
