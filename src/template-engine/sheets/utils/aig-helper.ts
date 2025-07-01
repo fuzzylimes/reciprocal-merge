@@ -254,8 +254,8 @@ export const aigLookup: Record<number, IaigDef> = {
   20: {
     label: drugNames.tram,
     family: 'tramadol',
-    operation: '>',
-    high: 900,
+    operation: '>=',
+    high: 450,
     med: 0.2,
     duMonthCell: drugNames.tram,
     aigSheetNum: 20,
