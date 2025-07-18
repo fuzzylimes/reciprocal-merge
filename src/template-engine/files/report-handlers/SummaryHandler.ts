@@ -48,8 +48,13 @@ export class SummaryHandler extends BaseReportHandler {
     const dateMatch = dateRaw.match(dateRegex);
 
     if (dateMatch) {
-      const startDate = new Date(dateMatch[1]);
-      const endDate = new Date(dateMatch[2]);
+      const parseLocalDate = (dateStr: string) => {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        return new Date(year, month - 1, day);
+      };
+
+      const startDate = parseLocalDate(dateMatch[1]);
+      const endDate = parseLocalDate(dateMatch[2]);
 
       this._summaryValues.startDate = startDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
       this._summaryValues.endDate = endDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
