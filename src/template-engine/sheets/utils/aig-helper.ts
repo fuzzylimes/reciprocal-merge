@@ -102,9 +102,9 @@ export const aigLookup: Record<number, IaigDef> = {
   6: {
     label: drugNames.fent,
     family: 'fentanyl',
-    operation: '>',
-    high: 37.5,
-    med: 2.4,
+    operation: '>=',
+    high: 0.9,
+    med: 100,
     duMonthCell: drugNames.fent,
     aigSheetNum: 6,
     aigReference: aigReference.fent,
