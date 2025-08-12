@@ -3,6 +3,7 @@ import { WorkBook } from 'xlsx';
 import { generateInputFile } from '../../template-engine';
 import { Ifile } from '../file-system-service';
 import { DOMParser } from '@xmldom/xmldom';
+import { AIGLookup } from '../../template-engine/sheets/utils/aig-helper';
 
 // Patch the global scope to include DOMParser for XML processing
 // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
@@ -13,6 +14,7 @@ export interface workerPost {
   calculationsFile: Ifile;
   prevCalculationsFile: Ifile;
   practitionersFile: Ifile;
+  aigOverrides: AIGLookup;
 }
 
 export interface workerResponse {
@@ -31,7 +33,8 @@ self.onmessage = (event) => {
       reportFile,
       calculationsFile,
       prevCalculationsFile,
-      practitionersFile
+      practitionersFile,
+      aigOverrides
     } = event.data as workerPost;
 
     // Send initial progress update
@@ -46,7 +49,8 @@ self.onmessage = (event) => {
       reportFile,
       calculationsFile,
       prevCalculationsFile,
-      practitionersFile
+      practitionersFile,
+      aigOverrides
     );
 
     // Send progress update

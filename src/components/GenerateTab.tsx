@@ -25,12 +25,16 @@ import { WorkBook } from 'xlsx';
 // This lets Vite handle all the bundling automatically
 import GenerateWorker from '../utils/workers/generate-worker.ts?worker';
 import { workerResponse } from '../utils/workers/generate-worker';
+import { AIGLookup, aigLookup } from '../template-engine/sheets/utils/aig-helper';
 
 function GenerateTab() {
   const [reportFile, setReportFile] = useState<Ifile>({ path: '', content: null })
   const [calculationsFile, setCalculationsFile] = useState<Ifile>({ path: '', content: null })
   const [prevCalculationsFile, setPrevCalculationsFile] = useState<Ifile>({ path: '', content: null });
   const [practitionersFile, setPractitionersFile] = useState<Ifile>({ path: '', content: null })
+
+  const [aigOverrides, setAigOverrides] = useState<AIGLookup>({});
+  // const [advancedExpanded, setAdvancedExpanded] = useState<boolean>(false);
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processingProgress, setProcessingProgress] = useState<number>(0);
@@ -48,6 +52,11 @@ function GenerateTab() {
     message: '',
     severity: 'info'
   });
+
+  // Initialize AIG overrides with default values
+  useEffect(() => {
+    setAigOverrides({ ...aigLookup });
+  }, []);
 
   // Clean up worker on component unmount
   useEffect(() => {
@@ -202,7 +211,8 @@ function GenerateTab() {
           reportFile,
           calculationsFile,
           prevCalculationsFile,
-          practitionersFile
+          practitionersFile,
+          aigOverrides
         });
       } else {
         // Web Workers not supported, fall back to main thread
@@ -233,7 +243,8 @@ function GenerateTab() {
         reportFile,
         calculationsFile,
         prevCalculationsFile,
-        practitionersFile
+        practitionersFile,
+        aigOverrides
       );
 
       setProcessingMessage('Generating workbook...');
