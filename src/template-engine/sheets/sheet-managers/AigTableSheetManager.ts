@@ -1,4 +1,3 @@
-import { aigLookup } from "../utils/aig-helper";
 import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
 import { headers, sheetNames } from "../utils/constants";
@@ -25,8 +24,8 @@ export class AigTableSheetManager extends SheetManager {
     const calcFile = this.generator.calculations;
     const prevCalcFile = this.generator.prevCalculations;
 
-    for (const key of Object.keys(aigLookup)) {
-      const drugKey = aigLookup[Number(key)].duMonthCell;
+    for (const key of Object.keys(this.generator.aigValues)) {
+      const drugKey = this.generator.aigValues[Number(key)].duMonthCell;
       const { duMonth: currentdoses, multiple: currentdate } = (calcFile.drugs.get(drugKey) || {});
 
       // If the multiplier is less than 2, we don't need to add the drug to the table

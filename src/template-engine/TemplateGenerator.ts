@@ -4,6 +4,7 @@ import { CalculationsFile } from "./files/CalculationsFile";
 import { PractitionersFile } from "./files/PractitionersFile";
 import { SheetManagerController } from "./sheets/SheetManagerController";
 import { sheetOrder } from "./sheets/utils/constants";
+import { aigLookup, IaigDef } from "./sheets/utils/aig-helper";
 
 // Main generator class that orchestrates the process
 export class TemplateGenerator {
@@ -13,6 +14,7 @@ export class TemplateGenerator {
   prevCalculations: CalculationsFile;
   practitioners: PractitionersFile;
   sheetManager: SheetManagerController;
+  aigValues: Record<number, IaigDef>;
 
   // Output workbook
   outputWorkbook: WorkBook;
@@ -29,6 +31,7 @@ export class TemplateGenerator {
     this.practitioners = practitioners;
     this.outputWorkbook = utils.book_new();
     this.sheetManager = new SheetManagerController(this);
+    this.aigValues = aigLookup;
   }
 
   // Main generation method

@@ -1,4 +1,4 @@
-import { aigLookup, IaigDef } from "../utils/aig-helper";
+import { IaigDef } from "../utils/aig-helper";
 import { toDecimalPercent } from "../../../utils/format";
 import { csrxSheet } from "../../files/report-handlers/CsRxHandler";
 import { Practitioner } from "../../files/PractitionersFile";
@@ -55,7 +55,7 @@ export class AigSheetManager extends SheetManager {
     const reportFile = this.generator.report;
     const calcFile = this.generator.calculations;
     const pracFile = this.generator.practitioners;
-    const aigDetails = aigLookup[this._aigNum]
+    const aigDetails = this.generator.aigValues[this._aigNum]
 
     // Get the rows we need
     let csRxRows = this.controller.getCachedFilteredRows();
