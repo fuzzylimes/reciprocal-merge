@@ -48,8 +48,9 @@ export enum aigReference {
  * Either names or family must be included. If both are provided, both filters will be applied.
  * per and med values depend on magic. Not all drugs have it.
  * base is used in the situation where the sheet prefix doesn't match the aigReference
- */
-export const aigLookup: Record<number, IaigDef> = {
+*/
+export type AIGLookup = Record<number, IaigDef>;
+export const aigLookup: AIGLookup = {
   1: {
     label: 'Alprazolam Family',
     names: ['alprazolam', 'xanax'],

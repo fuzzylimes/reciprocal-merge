@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid2';
-import InputAdornment from '@mui/material/InputAdornment';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import FileOpenIcon from '@mui/icons-material/FileOpen';
 import { readFile } from '../utils/file-system-service';
+import { Box, IconButton, InputAdornment } from '@mui/material';
 
 interface FileSelectorProps {
   label: string;
@@ -53,11 +52,23 @@ function FileSelector({
   };
 
   return (
-    <Grid size={12}>
+    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mt: 2, mb: 1 }}>
+      <IconButton
+        color='primary'
+        size='large'
+        onClick={handleSelectFile}
+        loading={disabled || isSelecting}
+      >
+        <FileOpenIcon />
+      </IconButton>
+
       <TextField
         fullWidth
         label={label}
         value={value}
+        disabled={true}
+        variant="outlined"
+        sx={{ flex: 1 }}
         slotProps={{
           input: {
             readOnly: true,
@@ -68,18 +79,8 @@ function FileSelector({
             ),
           }
         }}
-        variant="outlined"
-        margin="normal"
       />
-      <Button
-        variant="contained"
-        onClick={handleSelectFile}
-        sx={{ mt: 1 }}
-        disabled={disabled || isSelecting}
-      >
-        {isSelecting ? 'Selecting...' : 'Select'}
-      </Button>
-    </Grid>
+    </Box>
   );
 }
 
