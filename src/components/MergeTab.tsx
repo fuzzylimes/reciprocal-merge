@@ -119,28 +119,32 @@ function MergeTab() {
           Merge Excel Data with Word Template
         </Typography>
         <ProcessLocation />
-        <Grid container spacing={3}>
+        <Grid container spacing={1} columns={1}>
           {/* Input Excel File Section */}
-          <FileSelector
-            label="Input Excel File"
-            value={excelFile.path}
-            disabled={isProcessing}
-            onChange={handleExcelFileChange}
-            fileTypes={['xlsx', 'xls', 'xlsm']}
-            fileDescription="Excel Files"
-            onError={handleFileSelectionError}
-          />
+          <Grid size={12}>
+            <FileSelector
+              label="Input Excel File"
+              value={excelFile.path}
+              disabled={isProcessing}
+              onChange={handleExcelFileChange}
+              fileTypes={['xlsx', 'xls', 'xlsm']}
+              fileDescription="Excel Files"
+              onError={handleFileSelectionError}
+            />
+          </Grid>
 
           {/* Template Word File Section */}
-          <FileSelector
-            label="Template Word File"
-            value={templateFile.path}
-            disabled={isProcessing}
-            onChange={handleTemplateFileChange}
-            fileTypes={['docx']}
-            fileDescription="Word Files"
-            onError={handleFileSelectionError}
-          />
+          <Grid size={12}>
+            <FileSelector
+              label="Template Word File"
+              value={templateFile.path}
+              disabled={isProcessing}
+              onChange={handleTemplateFileChange}
+              fileTypes={['docx']}
+              fileDescription="Word Files"
+              onError={handleFileSelectionError}
+            />
+          </Grid>
 
           {/* Merge Button Section */}
           <Grid size={12} sx={{ mt: 2 }}>

@@ -10,6 +10,9 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SettingsIcon from '@mui/icons-material/Settings';
+import RestoreIcon from '@mui/icons-material/Restore';
 import CircularProgress from '@mui/material/CircularProgress';
 import LinearProgress from '@mui/material/LinearProgress';
 import Snackbar from '@mui/material/Snackbar';
@@ -25,7 +28,10 @@ import { WorkBook } from 'xlsx';
 // This lets Vite handle all the bundling automatically
 import GenerateWorker from '../utils/workers/generate-worker.ts?worker';
 import { workerResponse } from '../utils/workers/generate-worker';
-import { AIGLookup, aigLookup } from '../template-engine/sheets/utils/aig-helper';
+import { AIGLookup, aigLookup, IaigDef } from '../template-engine/sheets/utils/aig-helper';
+import { Accordion, AccordionDetails, AccordionSummary, Chip, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+
+const OPERATIONS = ['>', '>=', '<', '<=', '===', '!==']
 
 function GenerateTab() {
   const [reportFile, setReportFile] = useState<Ifile>({ path: '', content: null })
@@ -34,7 +40,7 @@ function GenerateTab() {
   const [practitionersFile, setPractitionersFile] = useState<Ifile>({ path: '', content: null })
 
   const [aigOverrides, setAigOverrides] = useState<AIGLookup>({});
-  // const [advancedExpanded, setAdvancedExpanded] = useState<boolean>(false);
+  const [advancedExpanded, setAdvancedExpanded] = useState<boolean>(false);
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processingProgress, setProcessingProgress] = useState<number>(0);
@@ -98,6 +104,38 @@ function GenerateTab() {
 
   const handlePractitionersFileChange = (path: string, content: Uint8Array) => {
     setPractitionersFile({ path, content });
+  };
+
+  // Reset AIG overrides to defaults
+  const handleResetAigOverrides = () => {
+    setAigOverrides({ ...aigLookup });
+    showNotification('AIG values reset to defaults', 'info');
+  };
+
+  // Check if any AIG values have been modified
+  const hasAigModifications = () => {
+    return Object.keys(aigOverrides).some(key => {
+      const index = Number(key);
+      const original = aigLookup[index];
+      const override = aigOverrides[index];
+
+      return original && override && (
+        original.operation !== override.operation ||
+        original.high !== override.high ||
+        original.med !== override.med
+      );
+    });
+  };
+
+  // Handle AIG override changes
+  const handleAigOverrideChange = (aigIndex: number, field: keyof IaigDef, value: string | number) => {
+    setAigOverrides(prev => ({
+      ...prev,
+      [aigIndex]: {
+        ...prev[aigIndex],
+        [field]: value
+      }
+    }));
   };
 
   // Function to save the generated workbook
@@ -292,50 +330,144 @@ function GenerateTab() {
           Generate Template Input File
         </Typography>
         <ProcessLocation />
-        <Grid container spacing={3}>
+        <Grid container spacing={1} columns={1}>
           {/* Report File Section */}
-          <FileSelector
-            label="Report Excel File"
-            value={reportFile.path}
-            disabled={isProcessing}
-            onChange={handleReportFileChange}
-            fileTypes={['xlsx', 'xls', 'xlsm']}
-            fileDescription='Excel Files'
-            onError={handleFileSelectionError}
-          />
+          <Grid size={12}>
+            <FileSelector
+              label="Report Excel File"
+              value={reportFile.path}
+              disabled={isProcessing}
+              onChange={handleReportFileChange}
+              fileTypes={['xlsx', 'xls', 'xlsm']}
+              fileDescription='Excel Files'
+              onError={handleFileSelectionError}
+            />
+          </Grid>
 
           {/* Calculations File Section */}
-          <FileSelector
-            label="Calculations Word File"
-            value={calculationsFile.path}
-            disabled={isProcessing}
-            onChange={handleCalculationsFileChange}
-            fileTypes={['docx']}
-            fileDescription='Word Files'
-            onError={handleFileSelectionError}
-          />
+          <Grid size={12}>
+            <FileSelector
+              label="Calculations Word File"
+              value={calculationsFile.path}
+              disabled={isProcessing}
+              onChange={handleCalculationsFileChange}
+              fileTypes={['docx']}
+              fileDescription='Word Files'
+              onError={handleFileSelectionError}
+            />
+          </Grid>
 
           {/* Previous Calculations File Section */}
-          <FileSelector
-            label="Previous Calculations Word File"
-            value={prevCalculationsFile.path}
-            disabled={isProcessing}
-            onChange={handlePrevCalculationsFileChange}
-            fileTypes={['docx']}
-            fileDescription='Word Files'
-            onError={handleFileSelectionError}
-          />
+          <Grid size={12}>
+            <FileSelector
+              label="Previous Calculations Word File"
+              value={prevCalculationsFile.path}
+              disabled={isProcessing}
+              onChange={handlePrevCalculationsFileChange}
+              fileTypes={['docx']}
+              fileDescription='Word Files'
+              onError={handleFileSelectionError}
+            />
+          </Grid>
 
           {/* Practitioners File Section */}
-          <FileSelector
-            label="Practitioners Excel File"
-            value={practitionersFile.path}
-            disabled={isProcessing}
-            onChange={handlePractitionersFileChange}
-            fileTypes={['xlsx', 'xls', 'xlsm']}
-            fileDescription='Excel Files'
-            onError={handleFileSelectionError}
-          />
+          <Grid size={12}>
+            <FileSelector
+              label="Practitioners Excel File"
+              value={practitionersFile.path}
+              disabled={isProcessing}
+              onChange={handlePractitionersFileChange}
+              fileTypes={['xlsx', 'xls', 'xlsm']}
+              fileDescription='Excel Files'
+              onError={handleFileSelectionError}
+            />
+          </Grid>
+
+          {/* Advanced Settings Section */}
+          <Grid size={12} sx={{ mt: 1 }}>
+            <Accordion
+              expanded={advancedExpanded}
+              onChange={(_, isExpanded) => setAdvancedExpanded(isExpanded)}
+              disabled={isProcessing}
+            >
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <SettingsIcon fontSize="small" />
+                  <Typography>Advanced Settings</Typography>
+                  {hasAigModifications() && (
+                    <Chip
+                      label="Modified"
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                    />
+                  )}
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ pr: 4 }}>
+                    Override default AIG calculation values. Changes are temporary and will reset when the page is refreshed.
+                  </Typography>
+                  <Button
+                    startIcon={<RestoreIcon />}
+                    size="small"
+                    variant="contained"
+                    onClick={handleResetAigOverrides}
+                    disabled={!hasAigModifications()}
+                  >
+                    Reset to Defaults
+                  </Button>
+                </Box>
+
+                <Grid container spacing={2} sx={{ p: 2, maxHeight: '20vh', overflow: 'scroll' }}>
+                  {Object.entries(aigOverrides).map(([index, aig]) => (
+                    <Grid size={12} key={index}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        {aig.label}
+                      </Typography>
+                      <Grid container spacing={2} alignItems="center">
+                        <Grid size={{ xs: 12, sm: 3 }}>
+                          <FormControl fullWidth size="small">
+                            <InputLabel>Operation</InputLabel>
+                            <Select
+                              value={aig.operation}
+                              label="Operation"
+                              onChange={(e) => handleAigOverrideChange(Number(index), 'operation', e.target.value)}
+                            >
+                              {OPERATIONS.map(op => (
+                                <MenuItem key={op} value={op}>{op}</MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 3 }}>
+                          <TextField
+                            label="High Value"
+                            size="small"
+                            fullWidth
+                            value={aig.high}
+                            onChange={(e) => handleAigOverrideChange(Number(index), 'high', Number(e.target.value))}
+                          />
+                        </Grid>
+                        {aig.med &&
+                          <Grid size={{ xs: 12, sm: 3 }}>
+                            <TextField
+                              label="Med Value"
+                              size="small"
+                              fullWidth
+                              value={aig.med || ''}
+                              onChange={(e) => handleAigOverrideChange(Number(index), 'med', Number(e.target.value))}
+                            />
+                          </Grid>
+                        }
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          </Grid>
 
           {/* Merge Button Section */}
           <Grid size={12} sx={{ mt: 2 }}>
