@@ -4,7 +4,6 @@ import { SheetManagerController } from "../SheetManagerController";
 import { headers, sheetNames } from "../utils/constants";
 import { SheetManager } from "./SheetManager";
 import * as c from '../utils/constants'
-import { aigLookup } from "../utils/aig-helper";
 
 type commonRecord = {
   name?: unknown;
@@ -328,8 +327,8 @@ export class CommonSheetManager extends SheetManager {
 
   private collectAig() {
     const drugData = this.generator.calculations.drugs;
-    for (let i = 1; i <= Object.keys(aigLookup).length; i++) {
-      const ref = aigLookup[i];
+    for (let i = 1; i <= Object.keys(this.generator.aigValues).length; i++) {
+      const ref = this.generator.aigValues[i];
       const referenceName = ref.aigReference;
       const { highmed, highpct, lowmed, per } = this.generator.sheetManager.getAigSheet(i)?.commonData ?? {};
       const { duMonth, multiple } = (drugData.get(ref.duMonthCell) || {});

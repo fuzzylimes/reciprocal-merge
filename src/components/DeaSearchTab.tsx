@@ -267,6 +267,8 @@ const DeaSearchTab = () => {
     }
 
     setCurrentIndex(nextIndex);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentIndex, deaQueue.length, handleCompletion]);
 
   // Update the handler for current item status
