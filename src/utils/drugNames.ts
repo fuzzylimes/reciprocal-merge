@@ -2,7 +2,7 @@ export const drugNames = {
   alprazfam: 'Alprazolam',
   alpraz2: 'Alprazolam 2mg',
   amphet: 'Amphetamine',
-  bupe: 'Buprenorphine 8mg',
+  bupe8: 'Buprenorphine 8mg',
   cariso: 'Carisoprodol',
   fent: 'Fentanyl',
   hydroco: 'Hydrocodone',
@@ -18,5 +18,9 @@ export const drugNames = {
   oxy30: 'Oxycodone 30mg',
   oxy10: 'Oxycodone 10/325mg',
   oxymorph: 'Oxymorphone',
-  tram: 'Tramadol'
+  tram: 'Tramadol',
+  bupe: 'Buprenorphine',
+  code: 'Codeine',
+  mep: 'Meperidine',
+  tap: 'Tapentadol',
 }

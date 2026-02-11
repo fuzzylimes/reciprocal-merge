@@ -9,14 +9,17 @@ enum SectionIdentifiers {
   alprazfam = 'Alprazolam',
   alpraz2 = 'Alprazolam 2mg',
   amphet = 'Amphetamine',
-  bupe = 'Buprenorphine 8mg',
+  bupe = 'Buprenorphine',
+  bupe8 = 'Buprenorphine 8mg',
   cariso = 'Carisoprodol',
+  code = 'Codeine',
   fent = 'Fentanyl',
   hydroco = 'Hydrocodone',
   hydroco10 = 'Hydrocodone 10/325mg',
   hydromorph = 'Hydromorphone',
   hydromorph8 = 'Hydromorphone 8mg',
   lisdex = 'Lisdexamfetamine',
+  mep = 'Meperidine',
   metha = 'Methadone',
   methyl = 'Methylphenidate',
   morph = 'Morphine',
@@ -25,6 +28,7 @@ enum SectionIdentifiers {
   oxy30 = 'Oxycodone 30mg',
   oxy10 = 'Oxycodone 10/325mg',
   oxymorph = 'Oxymorphone',
+  tap = 'Tapentadol',
   tram = 'Tramadol'
 }
 
@@ -101,7 +105,7 @@ export class CalculationsFile {
       [SectionIdentifiers.alprazfam, (idx: number) => this.collectDrugValues(rows, idx, drugNames.alprazfam)],
       [SectionIdentifiers.alpraz2, (idx: number) => this.collectDrugValues(rows, idx, drugNames.alpraz2)],
       [SectionIdentifiers.amphet, (idx: number) => this.collectDrugValues(rows, idx, drugNames.amphet)],
-      [SectionIdentifiers.bupe, (idx: number) => this.collectDrugValues(rows, idx, drugNames.bupe)],
+      [SectionIdentifiers.bupe8, (idx: number) => this.collectDrugValues(rows, idx, drugNames.bupe8)],
       [SectionIdentifiers.cariso, (idx: number) => this.collectDrugValues(rows, idx, drugNames.cariso)],
       [SectionIdentifiers.fent, (idx: number) => this.collectDrugValues(rows, idx, drugNames.fent)],
       [SectionIdentifiers.hydroco, (idx: number) => this.collectDrugValues(rows, idx, drugNames.hydroco)],
@@ -118,6 +122,12 @@ export class CalculationsFile {
       [SectionIdentifiers.oxy10, (idx: number) => this.collectDrugValues(rows, idx, drugNames.oxy10)],
       [SectionIdentifiers.oxymorph, (idx: number) => this.collectDrugValues(rows, idx, drugNames.oxymorph)],
       [SectionIdentifiers.tram, (idx: number) => this.collectDrugValues(rows, idx, drugNames.tram)],
+      // This is from a new section on the bottom, added early 2026
+      [SectionIdentifiers.bupe, (idx: number) => this.collectTotalDuValue(rows, idx, drugNames.bupe)],
+      [SectionIdentifiers.code, (idx: number) => this.collectTotalDuValue(rows, idx, drugNames.code)],
+      [SectionIdentifiers.mep, (idx: number) => this.collectTotalDuValue(rows, idx, drugNames.mep)],
+      [SectionIdentifiers.methyl, (idx: number) => this.collectTotalDuValue(rows, idx, drugNames.methyl + 'Total')],
+      [SectionIdentifiers.tap, (idx: number) => this.collectTotalDuValue(rows, idx, drugNames.tap)],
     ]);
 
     const remainingHandlers = new Map(sectionHandlers);
@@ -162,6 +172,16 @@ export class CalculationsFile {
       duMonth: this.getRowValueAsNumber(rows[++ri]),
       expDuMonth: this.getRowValueAsNumber(rows[++ri]),
       multiple: this.getRowValueAsNumber(rows[++ri])
+    });
+    return ri;
+  }
+
+  collectTotalDuValue(rows: HTMLCollectionOf<Element>, ri: number, drugName: string) {
+    this.drugs.set(drugName, {
+      total: this.getRowValueAsNumber(rows[ri]),
+      duMonth: 0,
+      expDuMonth: 0,
+      multiple: 0
     });
     return ri;
   }
