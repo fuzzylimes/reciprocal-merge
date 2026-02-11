@@ -7,7 +7,7 @@ export const headers = {
   aig: ['AIG', 'Name', 'isTop10', 'Specialty', 'PracticeLocation', 'DEA', 'State', 'numCS', 'totalRx', 'CSP', 'CSCash', 'Discipline', 'Miles', 'numpt'],
   deaconcern: ['DEAnumber', 'Name', 'Problem'],
   cscash: ['drug', 'percent'],
-  arcos: ['drug', 'Mutual', 'supplier2', 'supplier3'],
+  arcos: ['drug', 'Mutual', 'supplier2', 'supplier3', 'SumOfDU', 'ARCOStotal', 'Dispensing'],
   top10cs: ['drug', 'number', 'csdoseperc', 'totaldoseperc', 'csdosenum', 'totalcsnum', 'totaldosenum'],
   topdr: ['Number', 'Name', 'Specialty', 'PracticeLocation', 'DEA', 'State', 'csrx', 'totalrx', 'CSP', 'CSCash', 'Discipline', 'Miles'],
   aigTable: ['AIG', 'Prevdate', 'Prevdoses', 'currentdate', 'currentdoses', 'Change', 'Changedose']
