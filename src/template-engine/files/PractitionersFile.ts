@@ -80,4 +80,8 @@ export class PractitionersFile {
     return practitioners[0];
   }
 
+  getAllDea = (): Map<string, practitionerSheet> => {
+    return this.deaMap;
+  }
+
 }

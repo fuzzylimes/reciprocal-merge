@@ -10,7 +10,8 @@ export const headers = {
   arcos: ['drug', 'Mutual', 'supplier2', 'supplier3', 'SumOfDU', 'ARCOStotal', 'Dispensing'],
   top10cs: ['drug', 'number', 'csdoseperc', 'totaldoseperc', 'csdosenum', 'totalcsnum', 'totaldosenum'],
   topdr: ['Number', 'Name', 'Specialty', 'PracticeLocation', 'DEA', 'State', 'csrx', 'totalrx', 'CSP', 'CSCash', 'Discipline', 'Miles'],
-  aigTable: ['AIG', 'Prevdate', 'Prevdoses', 'currentdate', 'currentdoses', 'Change', 'Changedose']
+  aigTable: ['AIG', 'Prevdate', 'Prevdoses', 'currentdate', 'currentdoses', 'Change', 'Changedose'],
+  alldea: ['Practitioner', 'DEA', 'PracticeLocation', 'Pharmacy'],
 };
 
 // Names for each of the generated sheets
@@ -23,6 +24,7 @@ export const sheetNames = {
   top10cs: 'top10cs',
   topdr: 'topdr',
   aigTable: 'aigtable',
+  alldea: 'alldea',
 }
 
 // Sheet order for final exported excel file
@@ -34,5 +36,6 @@ export const sheetOrder = [
   sheetNames.top10cs,
   sheetNames.topdr,
   ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(n => sheetNames.aig + n),
-  sheetNames.aigTable
+  sheetNames.aigTable,
+  sheetNames.alldea,
 ];
