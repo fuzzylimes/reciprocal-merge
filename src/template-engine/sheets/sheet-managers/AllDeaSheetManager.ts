@@ -18,16 +18,26 @@ export class AllDeaSheetManager extends SheetManager {
   }
 
   collect(): void {
-    const alldea = this.generator.practitioners.getAllDea();
-    for (const [dea, r] of alldea) {
-      const record: deaRecord = {
-        DEA: dea,
-        Practitioner: r.Practitioner,
-        Pharmacy: String(r['PC Note - Pharm'] || ''),
-        PracticeLocation: String(r.PracticeLocation ?? '')
+    // We need to get all of the DEA references from the AIG pages.
+    // No need to grab from top10dr page as they're already on the AIG pages.
+    const unique = new Set<string>();
+    for (let i = 1; i <= Object.keys(this.generator.aigValues).length; i++) {
+      const aigRef = this.generator.sheetManager.getAigSheet(i)?.aigData || [];
+      for (const ref of aigRef) {
+        if (unique.has(ref.DEA)) {
+          continue;
+        }
+        unique.add(ref.DEA);
+        const record: deaRecord = {
+          DEA: ref.DEA,
+          Practitioner: ref.Name ? `${ref.Name} (${ref.Specialty})` : '',
+          Pharmacy: ref.Note || '',
+          PracticeLocation: ref.PracticeLocation
+        }
+
+        this.data.push(record);
       }
 
-      this.data.push(record);
     }
   }
 
