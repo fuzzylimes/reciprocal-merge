@@ -19,6 +19,7 @@ type aigRecord = {
   DEA: string;
   State?: string;
   Discipline?: string;
+  Note?: string;
   numCS?: number;
   totalRx?: number;
   CSP?: number;
@@ -165,6 +166,7 @@ export class AigSheetManager extends SheetManager {
         DEA: dea,
         State: practitioner?.State ?? '',
         Discipline: practitioner?.Discipline ?? '',
+        Note: practitioner?.Note ?? '',
         numCS,
         totalRx,
         CSP: toDecimalPercent(csp),
@@ -291,5 +293,9 @@ export class AigSheetManager extends SheetManager {
 
   get commonData(): aigCommon {
     return this.common;
+  }
+
+  get aigData(): aigRecord[] {
+    return this.data;
   }
 }

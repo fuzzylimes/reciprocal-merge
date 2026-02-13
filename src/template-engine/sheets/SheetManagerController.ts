@@ -2,6 +2,7 @@ import { csrxSheet } from "../files/report-handlers/CsRxHandler";
 import { TemplateGenerator } from "../TemplateGenerator";
 import { AigSheetManager } from "./sheet-managers/AigSheetManager";
 import { AigTableSheetManager } from "./sheet-managers/AigTableSheetManager";
+import { AllDeaSheetManager } from "./sheet-managers/AllDeaSheetManager";
 import { ArcosSheetManager } from "./sheet-managers/ArcosSheetManager";
 import { CommonSheetManager } from "./sheet-managers/CommonSheetManager";
 import { CsCashSheetManager } from "./sheet-managers/CsCashSheetManager";
@@ -34,6 +35,7 @@ export class SheetManagerController {
     this.registerSheet(new TopDrSheetManager(this.generator, this));
     this.registerSheet(new Top10CsSheetManager(this.generator, this));
     this.registerSheet(new AigTableSheetManager(this.generator, this));
+    this.registerSheet(new AllDeaSheetManager(this.generator, this));
   }
 
   private registerSheet(manager: SheetManager): void {
