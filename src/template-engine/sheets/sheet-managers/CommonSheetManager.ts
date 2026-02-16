@@ -29,6 +29,7 @@ type commonRecord = {
   highmednum?: unknown;
   highmed?: unknown;
   highmedpres?: unknown;
+  bupop?: unknown;
   spatial?: unknown;
   csphyphys?: unknown;
   phyphys?: unknown;
@@ -182,6 +183,7 @@ export class CommonSheetManager extends SheetManager {
     this.generateMultiPrac();
     this.collectHighMed();
     this.collectHighMedPres();
+    this.collectBupOp();
     this.collectSpatial();
     this.collectAig();
     this.data.prevdate = prevCalcFile.pharmacy.date;
@@ -306,6 +308,60 @@ export class CommonSheetManager extends SheetManager {
 
     const value = `The most prolific prescriber is ${maxPrescriber} with ${maxCount} ${this.plural('prescription', maxCount)} between ${maxPatients.length} ${this.plural('patient', maxPatients.length)}`;
     this.data.highmedpres = value;
+  }
+
+  private collectBupOp() {
+    const opioidFamilies = [
+      'oxycodone', 'hydrocodone', 'morphine', 'hydromorphone',
+      'fentanyl', 'methadone', 'oxymorphone', 'tapentadol', 'codeine'
+    ];
+
+    const csrxRows = this.generator.report.csrx.csrxRows;
+    if (!csrxRows.length) return;
+
+    // Build per-patient records sorted by fill date
+    const patientMap = new Map<number, { family: string; drugName: string; fillDate: Date }[]>();
+    for (const row of csrxRows) {
+      const patientId = row['Patient ID'];
+      if (!patientId) continue;
+
+      const entry = {
+        family: String(row.Family ?? '').toLowerCase(),
+        drugName: String(row['Drug Name'] ?? ''),
+        fillDate: new Date(row['Fill Date']),
+      };
+
+      if (!patientMap.has(patientId)) {
+        patientMap.set(patientId, []);
+      }
+      patientMap.get(patientId)!.push(entry);
+    }
+
+    // Check each patient for bupe (non-transdermal) followed by an opioid
+    const matchingPatients: number[] = [];
+    for (const [patientId, records] of patientMap) {
+      records.sort((a, b) => a.fillDate.getTime() - b.fillDate.getTime());
+
+      const bupeRecords = records.filter(
+        r => r.family === 'buprenorphine' && !r.drugName.toLowerCase().includes('transdermal')
+      );
+      if (!bupeRecords.length) continue;
+
+      const earliestBupeDate = bupeRecords[0].fillDate;
+      const hasLaterOpioid = records.some(
+        r => opioidFamilies.includes(r.family) && r.fillDate.getTime() > earliestBupeDate.getTime()
+      );
+
+      if (hasLaterOpioid) {
+        matchingPatients.push(patientId);
+      }
+    }
+
+    if (matchingPatients.length) {
+      this.data.bupop = `${matchingPatients.length} ${this.plural('patient', matchingPatients.length)} ${this.patientNumbers(matchingPatients)}`;
+    } else {
+      this.data.bupop = 'None';
+    }
   }
 
   private collectSpatial() {

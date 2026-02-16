@@ -5,6 +5,8 @@ import { BaseReportHandler } from "./BaseHandler";
 export type csrxSheet = {
   'Drug Name': string;
   Family: string;
+  'Fill Date': string;
+  'Patient ID': number;
   'mg/day'?: number;
   'mg per day'?: number;
   'DEA#': string;
