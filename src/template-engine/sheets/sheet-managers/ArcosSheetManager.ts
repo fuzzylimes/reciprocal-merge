@@ -52,7 +52,7 @@ export class ArcosSheetManager extends SheetManager {
         supplier3: '',
         SumOfDU: '',
         ARCOStotal: { t: 'n', f: `E${row}/2` },
-        Dispensing: calculationData.get(dn)?.total || 0
+        Dispensing: calculationData.get(rx)?.total || 0  // Use rx (with 'Total') for lookup, dn for display
       })
     }
 
