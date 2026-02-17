@@ -2,6 +2,7 @@ import { TemplateGenerator } from "../../TemplateGenerator";
 import { SheetManagerController } from "../SheetManagerController";
 import { headers, sheetNames } from "../utils/constants";
 import { SheetManager } from "./SheetManager";
+import { TopDrSheetManager } from "./TopDrSheetmanager";
 
 type deaRecord = {
   Practitioner: string,
@@ -17,10 +18,23 @@ export class AllDeaSheetManager extends SheetManager {
     super(generator, controller, sheetNames.alldea, headers.alldea);
   }
 
+  private createRecord(dea: string, name?: unknown, specialty?: unknown, practiceLocation?: unknown, pharmacy?: string): deaRecord {
+    const nameStr = String(name || '');
+    const specialtyStr = String(specialty || '');
+    const practitioner = nameStr && specialtyStr ? `${nameStr} (${specialtyStr})` : nameStr ?? '';
+
+    return {
+      DEA: dea,
+      Practitioner: practitioner,
+      Pharmacy: pharmacy || '',
+      PracticeLocation: practiceLocation ? String(practiceLocation) : undefined
+    };
+  }
+
   collect(): void {
-    // We need to get all of the DEA references from the AIG pages.
-    // No need to grab from top10dr page as they're already on the AIG pages.
     const unique = new Set<string>();
+
+    // Collect all DEA references from the AIG pages
     for (let i = 1; i <= Object.keys(this.generator.aigValues).length; i++) {
       const aigRef = this.generator.sheetManager.getAigSheet(i)?.aigData || [];
       for (const ref of aigRef) {
@@ -28,16 +42,19 @@ export class AllDeaSheetManager extends SheetManager {
           continue;
         }
         unique.add(ref.DEA);
-        const record: deaRecord = {
-          DEA: ref.DEA,
-          Practitioner: ref.Name ? `${ref.Name} (${ref.Specialty})` : '',
-          Pharmacy: ref.Note || '',
-          PracticeLocation: ref.PracticeLocation
-        }
-
-        this.data.push(record);
+        this.data.push(this.createRecord(ref.DEA, ref.Name, ref.Specialty, ref.PracticeLocation, ref.Note as string));
       }
+    }
 
+    // Add top10dr values that aren't already in the AIG pages
+    const topDrSheet = this.generator.sheetManager.getSheet<TopDrSheetManager>(sheetNames.topdr);
+    for (const dr of topDrSheet.top10drData) {
+      const deaStr = String(dr.DEA || '');
+      if (!deaStr || unique.has(deaStr)) {
+        continue;
+      }
+      unique.add(deaStr);
+      this.data.push(this.createRecord(deaStr, dr.Name, dr.Specialty, dr.PracticeLocation, dr.Note as string));
     }
   }
 
