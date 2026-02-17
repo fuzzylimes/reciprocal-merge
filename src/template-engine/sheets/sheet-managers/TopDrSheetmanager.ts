@@ -12,6 +12,7 @@ type topdrRecord = {
   PracticeLocation?: unknown;
   DEA?: unknown;
   State?: unknown;
+  Note?: unknown;
   csrx?: unknown;
   totalrx?: unknown;
   CSP?: unknown;
@@ -39,6 +40,9 @@ export class TopDrSheetManager extends SheetManager {
     // Iterate over each of the ids. Their index will align with the order in top10CsValues
     for (const [i, d] of top10DeaIds.entries()) {
       const p: Practitioner | undefined = practitionerDetails[d];
+      if (!p) {
+        this.controller.addMissingDea(d);
+      }
       const { percentCsPaid: cashCell, totalCsRx: csrx, totalRx: totalrx } = top10CsValues[i];
 
       let csp, csCash;
@@ -60,6 +64,7 @@ export class TopDrSheetManager extends SheetManager {
           PracticeLocation: p?.PracticeLocation ?? '',
           Specialty: p?.Specialty ?? '',
           State: p?.State ?? '',
+          Note: p?.Note ?? '',
           csrx: csrx,
           totalrx: totalrx,
           CSP: toDecimalPercent(csp),
@@ -77,5 +82,9 @@ export class TopDrSheetManager extends SheetManager {
     const rowData = this.controller.buildDataArray(this.data, this.headers);
     // Create a new sheet on the base generator
     this.generator.addSheet(this.sheetName, this.headers, rowData);
+  }
+
+  get top10drData(): topdrRecord[] {
+    return this.data;
   }
 }
