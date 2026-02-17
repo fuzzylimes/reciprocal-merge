@@ -40,6 +40,9 @@ export class TopDrSheetManager extends SheetManager {
     // Iterate over each of the ids. Their index will align with the order in top10CsValues
     for (const [i, d] of top10DeaIds.entries()) {
       const p: Practitioner | undefined = practitionerDetails[d];
+      if (!p) {
+        this.controller.addMissingDea(d);
+      }
       const { percentCsPaid: cashCell, totalCsRx: csrx, totalRx: totalrx } = top10CsValues[i];
 
       let csp, csCash;
