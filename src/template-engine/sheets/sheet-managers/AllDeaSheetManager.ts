@@ -18,7 +18,7 @@ export class AllDeaSheetManager extends SheetManager {
     super(generator, controller, sheetNames.alldea, headers.alldea);
   }
 
-  private createRecord(dea: string, name?: unknown, specialty?: unknown, practiceLocation?: unknown, pharmacy?: string): deaRecord {
+  private createRecord(dea: string, name?: unknown, specialty?: unknown, practiceLocation?: unknown, pharmacy?: string, pharmId?: string): deaRecord {
     const nameStr = String(name || '');
     const specialtyStr = String(specialty || '');
     const practitioner = nameStr && specialtyStr ? `${nameStr} (${specialtyStr})` : nameStr ?? '';
@@ -26,7 +26,7 @@ export class AllDeaSheetManager extends SheetManager {
     return {
       DEA: dea,
       Practitioner: practitioner,
-      Pharmacy: pharmacy || '',
+      Pharmacy: pharmacy ? `${pharmacy} ${pharmId ?? ''}` : '',
       PracticeLocation: practiceLocation ? String(practiceLocation) : undefined
     };
   }
@@ -42,7 +42,7 @@ export class AllDeaSheetManager extends SheetManager {
           continue;
         }
         unique.add(ref.DEA);
-        this.data.push(this.createRecord(ref.DEA, ref.Name, ref.Specialty, ref.PracticeLocation, ref.Note as string));
+        this.data.push(this.createRecord(ref.DEA, ref.Name, ref.Specialty, ref.PracticeLocation, ref.Note as string, ref.PharmId));
       }
     }
 
@@ -54,7 +54,7 @@ export class AllDeaSheetManager extends SheetManager {
         continue;
       }
       unique.add(deaStr);
-      this.data.push(this.createRecord(deaStr, dr.Name, dr.Specialty, dr.PracticeLocation, dr.Note as string));
+      this.data.push(this.createRecord(deaStr, dr.Name, dr.Specialty, dr.PracticeLocation, dr.Note as string, dr.PharmId));
     }
   }
 

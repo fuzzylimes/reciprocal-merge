@@ -20,6 +20,7 @@ type aigRecord = {
   State?: string;
   Discipline?: string;
   Note?: string;
+  PharmId?: string;
   numCS?: number;
   totalRx?: number;
   CSP?: number;
@@ -167,6 +168,7 @@ export class AigSheetManager extends SheetManager {
         State: practitioner?.State ?? '',
         Discipline: practitioner?.Discipline ?? '',
         Note: practitioner?.Note ?? '',
+        PharmId: practitioner?.PharmId ?? '',
         numCS,
         totalRx,
         CSP: toDecimalPercent(csp),

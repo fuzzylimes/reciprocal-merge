@@ -13,6 +13,7 @@ type topdrRecord = {
   DEA?: unknown;
   State?: unknown;
   Note?: unknown;
+  PharmId?: string;
   csrx?: unknown;
   totalrx?: unknown;
   CSP?: unknown;
@@ -65,6 +66,7 @@ export class TopDrSheetManager extends SheetManager {
           Specialty: p?.Specialty ?? '',
           State: p?.State ?? '',
           Note: p?.Note ?? '',
+          PharmId: p?.PharmId ?? '',
           csrx: csrx,
           totalrx: totalrx,
           CSP: toDecimalPercent(csp),
