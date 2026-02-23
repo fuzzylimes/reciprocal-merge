@@ -52,6 +52,7 @@ const PrescriberVerification = ({
       Address: details.Address && details.CityStateZip ? `${details.Address}, ${details.CityStateZip}` : '',
       Discipline: discipline,
       'PC Note - Pharm': '',
+      'Pharm DEA': '',
       'PC Notes Date': '',
       Placeholder: '______'
     };

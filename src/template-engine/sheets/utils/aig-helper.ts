@@ -80,13 +80,13 @@ export const aigLookup: AIGLookup = {
     base: 'amphetamine'
   },
   4: {
-    label: drugNames.bupe,
+    label: drugNames.bupe8,
     family: 'buprenorphine',
     names: ['8 mg'],
     operation: '>=',
     high: 32,
     per: true,
-    duMonthCell: drugNames.bupe,
+    duMonthCell: drugNames.bupe8,
     aigSheetNum: 4,
     aigReference: aigReference.bupe
   },

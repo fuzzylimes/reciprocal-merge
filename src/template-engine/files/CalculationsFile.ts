@@ -9,14 +9,17 @@ enum SectionIdentifiers {
   alprazfam = 'Alprazolam',
   alpraz2 = 'Alprazolam 2mg',
   amphet = 'Amphetamine',
-  bupe = 'Buprenorphine 8mg',
+  bupe = 'Buprenorphine',
+  bupe8 = 'Buprenorphine 8mg',
   cariso = 'Carisoprodol',
+  code = 'Codeine',
   fent = 'Fentanyl',
   hydroco = 'Hydrocodone',
   hydroco10 = 'Hydrocodone 10/325mg',
   hydromorph = 'Hydromorphone',
   hydromorph8 = 'Hydromorphone 8mg',
   lisdex = 'Lisdexamfetamine',
+  mep = 'Meperidine',
   metha = 'Methadone',
   methyl = 'Methylphenidate',
   morph = 'Morphine',
@@ -25,6 +28,7 @@ enum SectionIdentifiers {
   oxy30 = 'Oxycodone 30mg',
   oxy10 = 'Oxycodone 10/325mg',
   oxymorph = 'Oxymorphone',
+  tap = 'Tapentadol',
   tram = 'Tramadol'
 }
 
@@ -93,7 +97,7 @@ export class CalculationsFile {
   initializeData() {
     const rows = this.table.getElementsByTagName('w:tr');
 
-    // Map identifiers to handler functions
+    // Map identifiers to handler functions for the main section
     const sectionHandlers = new Map([
       [SectionIdentifiers.total, (idx: number) => this.collectTotalValues(rows, idx)],
       [SectionIdentifiers.percent, (idx: number) => this.collectPercentValues(rows, idx)],
@@ -101,7 +105,7 @@ export class CalculationsFile {
       [SectionIdentifiers.alprazfam, (idx: number) => this.collectDrugValues(rows, idx, drugNames.alprazfam)],
       [SectionIdentifiers.alpraz2, (idx: number) => this.collectDrugValues(rows, idx, drugNames.alpraz2)],
       [SectionIdentifiers.amphet, (idx: number) => this.collectDrugValues(rows, idx, drugNames.amphet)],
-      [SectionIdentifiers.bupe, (idx: number) => this.collectDrugValues(rows, idx, drugNames.bupe)],
+      [SectionIdentifiers.bupe8, (idx: number) => this.collectDrugValues(rows, idx, drugNames.bupe8)],
       [SectionIdentifiers.cariso, (idx: number) => this.collectDrugValues(rows, idx, drugNames.cariso)],
       [SectionIdentifiers.fent, (idx: number) => this.collectDrugValues(rows, idx, drugNames.fent)],
       [SectionIdentifiers.hydroco, (idx: number) => this.collectDrugValues(rows, idx, drugNames.hydroco)],
@@ -120,7 +124,18 @@ export class CalculationsFile {
       [SectionIdentifiers.tram, (idx: number) => this.collectDrugValues(rows, idx, drugNames.tram)],
     ]);
 
+    // Map of identifiers for the bottom section (added early 2026)
+    // These drugs have only a single "total" value in a separate section at the bottom
+    const bottomSectionDrugs = new Map([
+      [SectionIdentifiers.bupe, drugNames.bupe],
+      [SectionIdentifiers.code, drugNames.code],
+      [SectionIdentifiers.mep, drugNames.mep],
+      [SectionIdentifiers.methyl, drugNames.methyl + 'Total'],
+      [SectionIdentifiers.tap, drugNames.tap],
+    ]);
+
     const remainingHandlers = new Map(sectionHandlers);
+    const processedSections = new Set<string>();
 
     // process each row
     for (let ri = 0; ri < rows.length; ri++) {
@@ -141,18 +156,36 @@ export class CalculationsFile {
         continue;
       }
 
-      // Find and process matching section
+      // Find and process matching section from main handlers
+      let matched = false;
       for (const [identifier, handler] of remainingHandlers.entries()) {
         if (label.toLowerCase().includes(identifier.toLowerCase())) {
           ri = handler(ri);
           remainingHandlers.delete(identifier);
+          processedSections.add(identifier);
+          matched = true;
           break;
         }
       }
 
-      // Early exit if we've found all sections
-      if (remainingHandlers.size === 0) {
-        break;
+      // If we didn't match a main section handler, check if it's a bottom section drug
+      if (!matched) {
+        for (const [identifier, drugName] of bottomSectionDrugs.entries()) {
+          if (label.toLowerCase().includes(identifier.toLowerCase())) {
+            // Only process bottom section drugs that were already seen in the main section
+            // This ensures we're in the bottom section (duplicate occurrence)
+            if (processedSections.has(identifier)) {
+              this.collectTotalDuValue(rows, ri, drugName);
+              bottomSectionDrugs.delete(identifier);
+            } else {
+              // First occurrence - process with main handler if it exists in bottom section drugs
+              // but wasn't in main handlers (like bupe, code, mep, tap)
+              this.collectTotalDuValue(rows, ri, drugName);
+              bottomSectionDrugs.delete(identifier);
+            }
+            break;
+          }
+        }
       }
     }
   }
@@ -162,6 +195,16 @@ export class CalculationsFile {
       duMonth: this.getRowValueAsNumber(rows[++ri]),
       expDuMonth: this.getRowValueAsNumber(rows[++ri]),
       multiple: this.getRowValueAsNumber(rows[++ri])
+    });
+    return ri;
+  }
+
+  collectTotalDuValue(rows: HTMLCollectionOf<Element>, ri: number, drugName: string) {
+    this.drugs.set(drugName, {
+      total: this.getRowValueAsNumber(rows[ri]),
+      duMonth: 0,
+      expDuMonth: 0,
+      multiple: 0
     });
     return ri;
   }

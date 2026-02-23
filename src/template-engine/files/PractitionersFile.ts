@@ -15,6 +15,7 @@ export type practitionerSheet = {
   State: string;
   Discipline: string;
   'PC Note - Pharm': string;
+  'Pharm DEA'?: string;
   'PC Notes Date': Date;
 };
 
@@ -26,6 +27,7 @@ export type Practitioner = {
   State: string;
   Discipline: string | undefined;
   Note: string | undefined;
+  PharmId: string | undefined;
   Date: Date | undefined;
 }
 
@@ -67,6 +69,7 @@ export class PractitionersFile {
           State: String(p.State ?? ''),
           Discipline: p.Discipline ? String(p.Discipline) : undefined,
           Note: p['PC Note - Pharm'] ? String(p['PC Note - Pharm']) : undefined,
+          PharmId: p['Pharm DEA'] ? String(p['Pharm DEA']) : undefined,
           Date: p['PC Notes Date'] ? p['PC Notes Date'] : undefined
         };
       }
