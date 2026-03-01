@@ -10,7 +10,7 @@ import globals from 'globals';
 export default [
   // Global ignores
   {
-    ignores: ['node_modules/**', 'dist/**', 'src-tauri/**', 'vite.config.ts']
+    ignores: ['node_modules/**', 'dist/**', 'vite.config.ts']
   },
 
   // Base JavaScript rules with proper environment

@@ -21,7 +21,6 @@ import FileSelector from './FileSelector';
 import { getCellValue, saveExcelFile } from '../utils/excel';
 import { Ifile } from '../utils/file-system-service';
 import ProcessLocation from './ProcessLocation';
-import { isTauriEnv } from '../utils/environment';
 import { WorkBook } from 'xlsx';
 
 // Import the worker directly with Vite's special ?worker syntax
@@ -147,18 +146,8 @@ function GenerateTab() {
       const endDate = dateRange?.split(' - ')[1];
       const outputName = `${pharmacyName ?? ''} input ${endDate ?? ''}.xlsx`
 
-      const success = await saveExcelFile(workbook, outputName);
-
-      if (!isTauriEnv()) {
-        showNotification('Document saved or cancelled', 'info');
-        return;
-      }
-
-      if (success) {
-        showNotification('Template Excel file successfully generated!', 'success');
-      } else {
-        showNotification('Save operation cancelled', 'info');
-      }
+      await saveExcelFile(workbook, outputName);
+      showNotification('Document saved or cancelled', 'info');
     } catch (error) {
       console.error('Error saving Excel file:', error);
       showNotification('Failed to save the generated file. See console for details.', 'error');

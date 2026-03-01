@@ -36,14 +36,9 @@ export const saveExcelFile = async (workbook: WorkBook, fileName: string, fileTy
     ? excelData
     : new Uint8Array(excelData);
 
-  // Use the unified file system service to save the file
   return await saveFile(
     binaryData,
     fileName.endsWith(fileType) ? fileName : `${fileName}.${fileType}`,
-    {
-      extensions: [fileType],
-      description: 'Excel Files'
-    }
   );
 }
 
