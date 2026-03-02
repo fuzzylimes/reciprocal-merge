@@ -5,7 +5,7 @@ import Container from '@mui/material/Container';
 import Navigation from './components/Navigation';
 import MergeTab from './components/MergeTab';
 import GenerateTab from './components/GenerateTab';
-import { getEnvironmentInfo, isTauriEnv } from './utils/environment';
+import { getEnvironmentInfo } from './utils/environment';
 import { enableNetworkBlocker } from './utils/network-blocker';
 import PrivacyBanner from './components/PrivacyBanner';
 import DeaSearchTab from './components/DeaSearchTab';
@@ -25,7 +25,6 @@ const theme = createTheme({
 function App() {
   const [currentTab, setCurrentTab] = useState<number>(0);
   const [networkBlockerEnabled, setNetworkBlockerEnabled] = useState(false);
-  const isTauri = isTauriEnv();
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
@@ -34,8 +33,7 @@ function App() {
   // Initialize environment-specific features
   useEffect(() => {
     console.info(JSON.stringify(getEnvironmentInfo(), null, 2));
-    // Only enable network blocker in browser mode, not in Tauri
-    if (!isTauri && !networkBlockerEnabled) {
+    if (!networkBlockerEnabled) {
       const proxyUrl = import.meta.env.VITE_DEA_PROXY_URL;
       const url = new URL(proxyUrl);
       enableNetworkBlocker([url.hostname]);
@@ -47,7 +45,7 @@ function App() {
         'color: white; background: #1976d2; padding: 4px 8px; border-radius: 4px; font-weight: bold;',
         '\nThis application actively blocks all network requests after initial load, except for DEA searches.\nYour files are processed entirely in your browser and never leave your device.');
     }
-  }, [isTauri, networkBlockerEnabled]);
+  }, [networkBlockerEnabled]);
 
   return (
     <ThemeProvider theme={theme}>

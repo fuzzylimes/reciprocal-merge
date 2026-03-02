@@ -4,6 +4,8 @@ This project has a very specific use case - if you don't know what it is, then i
 
 However, if you're looking for an example of a Tauri + React app that happens to work with xlsx and docx files, feel free to take a look around for inspiration.
 
+> Due to security concerns, I've decided to drop support for the Tauri portion of the build. If you'd like to see that code example, check out the [tauri-snapshot](https://github.com/fuzzylimes/reciprocal-merge/tree/tauri-snapshot) tag.
+
 ## Overview
 This is an extension of the [excelTemplateMerger](https://github.com/fuzzylimes/excelTemplateMerger) project I created in 2024. That project is a generic word doc template engine which can pull from a supplied excel input file. Essentially a more user friendly abstraction to the base `docxtemplater` library. It was created to solve a problem that my wife was having with a workflow at work, and since then, we've discovered additional areas where automation can be beneficial.
 

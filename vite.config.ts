@@ -2,8 +2,6 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import * as p from "./package.json";
 
-const host = process.env.TAURI_DEV_HOST;
-
 // Set the application base path - will be used for all assets and imports
 const BASE_PATH = process.env.VITE_BASE_PATH || '/';
 
@@ -22,19 +20,7 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 1420,
       strictPort: true,
-      // Old Tauri stuff
-      // host: host || false,
       host: '0.0.0.0',
-      hmr: host
-        ? {
-          protocol: "ws",
-          host,
-          port: 1421,
-        }
-        : undefined,
-      watch: {
-        ignored: ["**/src-tauri/**"],
-      },
     },
     build: {
       sourcemap: true,

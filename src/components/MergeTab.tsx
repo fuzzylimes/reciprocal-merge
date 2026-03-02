@@ -12,7 +12,6 @@ import FileSelector from './FileSelector';
 import { mergeExcel } from '../utils/merge';
 import { Ifile, saveFile } from '../utils/file-system-service';
 import ProcessLocation from './ProcessLocation';
-import { isTauriEnv } from '../utils/environment';
 import { getCellValue, loadExcelFile } from '../utils/excel';
 
 function MergeTab() {
@@ -81,22 +80,8 @@ function MergeTab() {
       const outputFileName = getOutputFileName();
 
       // Save the file using our unified file system service
-      const saved = await saveFile(
-        mergedContent,
-        outputFileName,
-        { extensions: ['docx'], description: 'Word Documents' }
-      );
-
-      if (!isTauriEnv()) {
-        showNotification('Document saved or cancelled', 'info');
-        return;
-      }
-
-      if (saved) {
-        showNotification('Document successfully merged and saved!', 'success');
-      } else {
-        showNotification('Save operation cancelled or failed', 'info');
-      }
+      await saveFile(mergedContent, outputFileName);
+      showNotification('Document saved or cancelled', 'info');
     } catch (error) {
       console.error('Error during merge process:', error);
       showNotification('Failed to merge documents. See console for details.', 'error');
