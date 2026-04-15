@@ -23,4 +23,5 @@ export const drugNames = {
   code: 'Codeine',
   mep: 'Meperidine',
   tap: 'Tapentadol',
+  dex: 'Dexmethylphenidate',
 }
