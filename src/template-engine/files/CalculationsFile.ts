@@ -29,7 +29,8 @@ enum SectionIdentifiers {
   oxy10 = 'Oxycodone 10/325mg',
   oxymorph = 'Oxymorphone',
   tap = 'Tapentadol',
-  tram = 'Tramadol'
+  tram = 'Tramadol',
+  dex = 'Dexmethylphenidate',
 }
 
 interface Pharmacy {
@@ -129,8 +130,9 @@ export class CalculationsFile {
     const bottomSectionDrugs = new Map([
       [SectionIdentifiers.bupe, drugNames.bupe],
       [SectionIdentifiers.code, drugNames.code],
-      [SectionIdentifiers.mep, drugNames.mep],
+      [SectionIdentifiers.dex, drugNames.dex],
       [SectionIdentifiers.methyl, drugNames.methyl + 'Total'],
+      [SectionIdentifiers.mep, drugNames.mep],
       [SectionIdentifiers.tap, drugNames.tap],
     ]);
 
@@ -171,7 +173,7 @@ export class CalculationsFile {
       // If we didn't match a main section handler, check if it's a bottom section drug
       if (!matched) {
         for (const [identifier, drugName] of bottomSectionDrugs.entries()) {
-          if (label.toLowerCase().includes(identifier.toLowerCase())) {
+          if (label.toLowerCase().split(' ').includes(identifier.toLowerCase())) {
             // Only process bottom section drugs that were already seen in the main section
             // This ensures we're in the bottom section (duplicate occurrence)
             if (processedSections.has(identifier)) {
