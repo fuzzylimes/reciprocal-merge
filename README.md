@@ -1,3 +1,6 @@
+> [!WARNING]
+> This project has been sunset for the foreseeable future. Use it for reference if you'd like, but I will no longer be maintaining it.
+
 # Reciprocal Merge
 
 This project has a very specific use case - if you don't know what it is, then it isn't intended for you.
